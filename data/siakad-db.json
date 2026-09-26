@@ -1,0 +1,2764 @@
+{
+  "courses": [
+    {
+      "id": "mk-filsafat-ilmu",
+      "title": "Filsafat Ilmu",
+      "code": "MPI-501",
+      "sks": 3,
+      "semester": "Semester Ganjil 2026/2027",
+      "campusName": "STAI Jarinabi",
+      "dosenName": "Risfa Tri Ulfa",
+      "dosenTitle": "S.Pd., M.Pd., Gr.",
+      "studyProgram": "Manajemen Pendidikan Islam (MPI 1)",
+      "totalStudents": 15
+    }
+  ],
+  "activeCourseId": "mk-filsafat-ilmu",
+  "courseProfile": {
+    "name": "Risfa Tri Ulfa, S.Pd., M.Pd., Gr.",
+    "dosenName": "Risfa Tri Ulfa",
+    "dosenTitle": "S.Pd., M.Pd., Gr.",
+    "campusName": "STAI Jarinabi",
+    "nip": "198806282015032001",
+    "courseTitle": "Filsafat Ilmu",
+    "courseCode": "MPI-501",
+    "sks": 3,
+    "semester": "Semester Ganjil 2026/2027",
+    "studyProgram": "Manajemen Pendidikan Islam (MPI 1)",
+    "description": "Mata kuliah ini membahas fondasi ontologis, epistemologis, dan aksiologis keilmuan dalam tata kelola lembaga pendidikan Islam kontemporer.",
+    "uasFormat": "proyek_video",
+    "academicYear": "2026/2027"
+  },
+  "students": [
+    {
+      "id": "mhs-1",
+      "nim": "20260101",
+      "name": "DWI SUPRIONO",
+      "birthPlace": "Pasuruan",
+      "birthDate": "1997-04-12",
+      "address": "Jl. Raya Kraton No. 45, Kec. Kraton, Pasuruan",
+      "gender": "Laki-laki",
+      "phone": "081234567801",
+      "rpsPart": "Pertemuan 2",
+      "topic": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+      "meetingNumber": 2,
+      "groupId": 1,
+      "createdAt": "2026-09-12T00:00:00Z"
+    },
+    {
+      "id": "mhs-2",
+      "nim": "20260102",
+      "name": "EKA JATIMULISA",
+      "birthPlace": "Probolinggo",
+      "birthDate": "1998-08-20",
+      "address": "Jl. Panglima Sudirman No. 112, Kraksaan, Probolinggo",
+      "gender": "Perempuan",
+      "phone": "081234567802",
+      "rpsPart": "Pertemuan 3",
+      "topic": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+      "meetingNumber": 3,
+      "groupId": 1,
+      "createdAt": "2026-09-12T00:00:00Z"
+    },
+    {
+      "id": "mhs-3",
+      "nim": "20260103",
+      "name": "HADI DWI PRASETYO",
+      "rpsPart": "Pertemuan 4",
+      "topic": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+      "meetingNumber": 4,
+      "groupId": 1,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Bangil",
+      "birthDate": "1996-11-05",
+      "address": "Jl. Diponegoro No. 28, Bangil, Pasuruan",
+      "gender": "Laki-laki",
+      "phone": "081234567803"
+    },
+    {
+      "id": "mhs-4",
+      "nim": "20260104",
+      "name": "HINDUN TRI LESTARIANI",
+      "rpsPart": "Pertemuan 5",
+      "topic": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+      "meetingNumber": 5,
+      "groupId": 2,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Malang",
+      "birthDate": "1998-02-17",
+      "address": "Jl. Soekarno-Hatta Blok B-4, Lowokwaru, Malang",
+      "gender": "Perempuan",
+      "phone": "081234567804"
+    },
+    {
+      "id": "mhs-5",
+      "nim": "20260105",
+      "name": "IHWAN SYAHDONI",
+      "rpsPart": "Pertemuan 6",
+      "topic": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+      "meetingNumber": 6,
+      "groupId": 2,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Pasuruan",
+      "birthDate": "1997-09-24",
+      "address": "Jl. Pahlawan No. 78, Pekuncen, Pasuruan",
+      "gender": "Laki-laki",
+      "phone": "081234567805"
+    },
+    {
+      "id": "mhs-6",
+      "nim": "20260106",
+      "name": "ROFFATUL MAGHFIROH",
+      "rpsPart": "Pertemuan 7",
+      "topic": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+      "meetingNumber": 7,
+      "groupId": 2,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Pandaan",
+      "birthDate": "1999-01-30",
+      "address": "Jl. Ahmad Yani No. 15, Pandaan, Pasuruan",
+      "gender": "Perempuan",
+      "phone": "081234567806"
+    },
+    {
+      "id": "mhs-7",
+      "nim": "20260107",
+      "name": "ARI WIBOWO",
+      "rpsPart": "Pertemuan 9",
+      "topic": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+      "meetingNumber": 9,
+      "groupId": 3,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Sidoarjo",
+      "birthDate": "1996-06-18",
+      "address": "Perumahan Puri Indah Asri D-12, Porong, Sidoarjo",
+      "gender": "Laki-laki",
+      "phone": "081234567807"
+    },
+    {
+      "id": "mhs-8",
+      "nim": "20260108",
+      "name": "SANI SIFA'UROHMAH",
+      "rpsPart": "Pertemuan 10",
+      "topic": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+      "meetingNumber": 10,
+      "groupId": 3,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Pasuruan",
+      "birthDate": "1998-10-14",
+      "address": "Jl. KH. Mansyur No. 33, Tembokrejo, Pasuruan",
+      "gender": "Perempuan",
+      "phone": "081234567808"
+    },
+    {
+      "id": "mhs-9",
+      "nim": "20260109",
+      "name": "FIKA DEFTIRIYANI",
+      "rpsPart": "Pertemuan 11",
+      "topic": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+      "meetingNumber": 11,
+      "groupId": 3,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Mojokerto",
+      "birthDate": "1999-03-08",
+      "address": "Jl. Gajah Mada No. 89, Magersari, Mojokerto",
+      "gender": "Perempuan",
+      "phone": "081234567809"
+    },
+    {
+      "id": "mhs-10",
+      "nim": "20260110",
+      "name": "FARIDATUL ALIYAH",
+      "rpsPart": "Pertemuan 12",
+      "topic": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+      "meetingNumber": 12,
+      "groupId": 4,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Pasuruan",
+      "birthDate": "1998-07-22",
+      "address": "Jl. Veteran No. 64, Bugul Kidul, Pasuruan",
+      "gender": "Perempuan",
+      "phone": "081234567810"
+    },
+    {
+      "id": "mhs-11",
+      "nim": "20260111",
+      "name": "JUWINDA FIRDA SARI",
+      "rpsPart": "Pertemuan 13",
+      "topic": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+      "meetingNumber": 13,
+      "groupId": 4,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Bangil",
+      "birthDate": "1997-12-01",
+      "address": "Jl. Kalirejo No. 19, Bangil, Pasuruan",
+      "gender": "Perempuan",
+      "phone": "081234567811"
+    },
+    {
+      "id": "mhs-12",
+      "nim": "20260112",
+      "name": "ANDRE ALI AKBAR",
+      "rpsPart": "Pertemuan 14",
+      "topic": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+      "meetingNumber": 14,
+      "groupId": 4,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Surabaya",
+      "birthDate": "1996-05-19",
+      "address": "Jl. Jemursari Selatan VII No. 14, Wonocolo, Surabaya",
+      "gender": "Laki-laki",
+      "phone": "081234567812"
+    },
+    {
+      "id": "mhs-13",
+      "nim": "20260113",
+      "name": "M.SYAIFUDIN ZUHRI",
+      "rpsPart": "Pertemuan 15",
+      "topic": "Integrasi Ilmu, Agama, dan Kearifan Lokal (Local Wisdom) dalam Tata Kelola Lembaga Pendidikan Islam",
+      "meetingNumber": 15,
+      "groupId": 5,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Pasuruan",
+      "birthDate": "1997-08-11",
+      "address": "Jl. Wahid Hasyim No. 102, Gadingrejo, Pasuruan",
+      "gender": "Laki-laki",
+      "phone": "081234567813"
+    },
+    {
+      "id": "mhs-14",
+      "nim": "20260114",
+      "name": "M. ZIDAN SAPUTRA",
+      "rpsPart": "Pertemuan 15",
+      "topic": "Etika Akademik, Plagiarisme, dan Akuntabilitas Digitalisasi Berbasis Nilai-Nilai Amanah",
+      "meetingNumber": 15,
+      "groupId": 5,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Probolinggo",
+      "birthDate": "1999-10-03",
+      "address": "Jl. Hayam Wuruk No. 51, Kanigaran, Probolinggo",
+      "gender": "Laki-laki",
+      "phone": "081234567814"
+    },
+    {
+      "id": "mhs-15",
+      "nim": "20260115",
+      "name": "DELLA NOVITA SARI",
+      "rpsPart": "Pertemuan 15",
+      "topic": "Tantangan Aksiologi dan Epistemologi Keilmuan di Era Generative AI (ChatGPT, Canva AI, Deep Learning)",
+      "meetingNumber": 15,
+      "groupId": 5,
+      "createdAt": "2026-09-12T00:00:00Z",
+      "birthPlace": "Malang",
+      "birthDate": "1998-03-29",
+      "address": "Jl. Candi Mendut Barat No. 8, Mojolangu, Malang",
+      "gender": "Perempuan",
+      "phone": "081234567815"
+    }
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "name": "KELOMPOK 1",
+      "members": [
+        "DWI SUPRIONO",
+        "EKA JATIMULISA",
+        "HADI DWI PRASETYO"
+      ],
+      "title": "Tantangan Epistemologi & Etika Akademik Penggunaan Artificial Intelligence (Generative AI) dalam Pendidikan Islam",
+      "description": "Membahas bagaimana penggunaan Generative AI (ChatGPT, Claude) memengaruhi metode pencarian kebenaran ilmiah (Epistemologi) serta batas-batas kejujuran akademik (Amanah) bagi mahasiswa MPI.",
+      "toolsSuggested": "ChatGPT/Claude (Naskah), Canva/CapCut (Visual), D-ID/HeyGen (AI Avatar)"
+    },
+    {
+      "id": 2,
+      "name": "KELOMPOK 2",
+      "members": [
+        "HINDUN TRI LESTARIANI",
+        "IHWAN SYAHDONI",
+        "ROFFATUL MAGHFIROH"
+      ],
+      "title": "Rekonstruksi Ontologi Pendidikan Islam: Integrasi Sains Modern dan Kearifan Lokal (Local Wisdom)",
+      "description": "Menganalisis hakikat realitas objek kajian pendidikan Islam (Ontologi), serta pentingnya menyelaraskan pengembangan sains modern dengan nilai-nilai tradisi dan kearifan lokal di lembaga pendidikan Islam.",
+      "toolsSuggested": "Claude/Gemini (Kajian Filsafat), Canva/CapCut (Infografis & Video), ElevenLabs (Voiceover)"
+    },
+    {
+      "id": 3,
+      "name": "KELOMPOK 3",
+      "members": [
+        "ARI WIBOWO",
+        "SANI SIFA'UROHMAH",
+        "FIKA DEFTIRIYANI"
+      ],
+      "title": "Jejak Emas Keilmuan Islam: Dari Bayani, Burhani, hingga Tajribi dalam Tata Kelola Modern MPI",
+      "description": "Menjelaskan sejarah kejayaan sains Islam dan kontribusi tokoh ilmuwan Muslim (seperti Al-Ghazali, Ibn Rushd, Ibn Al-Haytham) serta relevansinya terhadap metodologi berpikir ilmiah mahasiswa era digital.",
+      "toolsSuggested": "ChatGPT (Alur Cerita Sejarah), CapCut/Canva (Sinematik Visual), D-ID (Presenter Virtual)"
+    },
+    {
+      "id": 4,
+      "name": "KELOMPOK 4",
+      "members": [
+        "FARIDATUL ALIYAH",
+        "JUWINDA FIRDA SARI",
+        "ANDRE ALI AKBAR"
+      ],
+      "title": "Uji Kebenaran Ilmiah di Era Post-Truth: Menganalisis Hoaks dan Disinformasi Media Sosial secara Filosofis",
+      "description": "Menerapkan teori-teori kebenaran ilmiah (Koherensi, Korespondensi, Pragmatis) dalam menyaring arus informasi, fenomena deepfake, dan post-truth di media sosial.",
+      "toolsSuggested": "Claude/Gemini (Analisis Kasus), Canva AI (Motion Grafis), HeyGen/CapCut (Editing)"
+    },
+    {
+      "id": 5,
+      "name": "KELOMPOK 5",
+      "members": [
+        "M.SYAIFUDIN ZUHRI",
+        "M. ZIDAN SAPUTRA",
+        "DELLA NOVITA SARI"
+      ],
+      "title": "Aksiologi Keilmuan: Menjaga Nilai Amanah dan Digital Governance pada Lembaga Pendidikan Islam",
+      "description": "Menelaah pemanfaatan ilmu dan teknologi digital dari sudut pandang aksiologi (etika keilmuan), berfokus pada pencegahan plagiarisme, tata kelola sarana pendidikan, dan akuntabilitas moral digital.",
+      "toolsSuggested": "ChatGPT/Gemini (Naskah Etika), Canva AI/CapCut (Simulasi Kasus), ElevenLabs (Voiceover)"
+    }
+  ],
+  "meetings": [
+    {
+      "meetingNumber": 1,
+      "dateStr": "Sabtu, 12 September 2026",
+      "isoDate": "2026-09-12",
+      "title": "Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu",
+      "presenters": [
+        "Dosen Pengampu"
+      ],
+      "partCodes": [
+        "Pengantar"
+      ],
+      "type": "kuliah",
+      "description": "Pemaparan silabus RPS, pembagian 15 materi presentasi kelompok & 5 proyek video edukasi AI, serta orientasi metodologis Filsafat Ilmu dalam MPI.",
+      "presentationFormat": "kelompok"
+    },
+    {
+      "meetingNumber": 2,
+      "dateStr": "Sabtu, 19 September 2026",
+      "isoDate": "2026-09-19",
+      "title": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+      "presenters": [
+        "DWI SUPRIONO"
+      ],
+      "partCodes": [
+        "Pertemuan 2"
+      ],
+      "type": "kuliah",
+      "description": "Analisis kedudukan filsafat ilmu sebagai landasan pengembangan keilmuan kepemimpinan dan manajerial pendidikan Islam."
+    },
+    {
+      "meetingNumber": 3,
+      "dateStr": "Sabtu, 26 September 2026",
+      "isoDate": "2026-09-26",
+      "title": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+      "presenters": [
+        "EKA JATIMULISA"
+      ],
+      "partCodes": [
+        "Pertemuan 3"
+      ],
+      "type": "kuliah",
+      "description": "Diferensiasi konseptual antara pengetahuan awam, sains empiris, dan perenungan filosofis mendalam."
+    },
+    {
+      "meetingNumber": 4,
+      "dateStr": "Sabtu, 3 Oktober 2026",
+      "isoDate": "2026-10-03",
+      "title": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+      "presenters": [
+        "HADI DWI PRASETYO"
+      ],
+      "partCodes": [
+        "Pertemuan 4"
+      ],
+      "type": "kuliah",
+      "description": "Eksplorasi ontologis: apa yang dikaji dalam ilmu, materialisme vs idealisme, serta ontologi tata kelola kelembagaan Islam."
+    },
+    {
+      "meetingNumber": 5,
+      "dateStr": "Sabtu, 10 Oktober 2026",
+      "isoDate": "2026-10-10",
+      "title": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+      "presenters": [
+        "HINDUN TRI LESTARIANI"
+      ],
+      "partCodes": [
+        "Pertemuan 5"
+      ],
+      "type": "kuliah",
+      "description": "Bagaimana ilmu diperoleh: indra, akal budi, intuisi, wahyu, dan kriteria validitas keilmuan pendidikan."
+    },
+    {
+      "meetingNumber": 6,
+      "dateStr": "Sabtu, 17 Oktober 2026",
+      "isoDate": "2026-10-17",
+      "title": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+      "presenters": [
+        "IHWAN SYAHDONI"
+      ],
+      "partCodes": [
+        "Pertemuan 6"
+      ],
+      "type": "kuliah",
+      "description": "Fungsi bahasa ilmiah, silogisme logika deduktif-induktif, matematika kuantitatif, dan metodologi statistik dalam riset manajemen."
+    },
+    {
+      "meetingNumber": 7,
+      "dateStr": "Sabtu, 24 Oktober 2026",
+      "isoDate": "2026-10-24",
+      "title": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+      "presenters": [
+        "ROFFATUL MAGHFIROH"
+      ],
+      "partCodes": [
+        "Pertemuan 7"
+      ],
+      "type": "kuliah",
+      "description": "Untuk apa ilmu digunakan: bebas nilai (value-free) vs terikat nilai (value-bound), etika akademisi MPI."
+    },
+    {
+      "meetingNumber": 8,
+      "dateStr": "Sabtu, 31 Oktober 2026",
+      "isoDate": "2026-10-31",
+      "title": "Ujian Tengah Semester (UTS) - Review & Sintesis Trilogi Pilar Filsafat Ilmu",
+      "presenters": [
+        "Seluruh Mahasiswa"
+      ],
+      "partCodes": [
+        "Evaluasi UTS"
+      ],
+      "type": "uts",
+      "description": "Evaluasi pemahaman komprehensif atas pilar Ontologi, Epistemologi, dan Aksiologi dalam konteks MPI."
+    },
+    {
+      "meetingNumber": 9,
+      "dateStr": "Sabtu, 7 November 2026",
+      "isoDate": "2026-11-07",
+      "title": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+      "presenters": [
+        "ARI WIBOWO"
+      ],
+      "partCodes": [
+        "Pertemuan 9"
+      ],
+      "type": "kuliah",
+      "description": "Gagasan Thales, Socrates, Plato, Aristoteles, hingga transisi ke abad skolastik dan pertengahan."
+    },
+    {
+      "meetingNumber": 10,
+      "dateStr": "Sabtu, 14 November 2026",
+      "isoDate": "2026-11-14",
+      "title": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+      "presenters": [
+        "SANI SIFA'UROHMAH"
+      ],
+      "partCodes": [
+        "Pertemuan 10"
+      ],
+      "type": "kuliah",
+      "description": "Zaman keemasan Islam: Baitul Hikmah, Ibn Sina, Al-Khawarizmi, Ibn Rushd, dan transmisi sains ke Barat."
+    },
+    {
+      "meetingNumber": 11,
+      "dateStr": "Sabtu, 21 November 2026",
+      "isoDate": "2026-11-21",
+      "title": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+      "presenters": [
+        "FIKA DEFTIRIYANI"
+      ],
+      "partCodes": [
+        "Pertemuan 11"
+      ],
+      "type": "kuliah",
+      "description": "Perdebatan epistemologis Descartes, John Locke, David Hume, Kant, serta kemunculan positivisme Auguste Comte."
+    },
+    {
+      "meetingNumber": 12,
+      "dateStr": "Sabtu, 28 November 2026",
+      "isoDate": "2026-11-28",
+      "title": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+      "presenters": [
+        "FARIDATUL ALIYAH"
+      ],
+      "partCodes": [
+        "Pertemuan 12"
+      ],
+      "type": "kuliah",
+      "description": "Paradigma kualitatif dan kritis: Karl Popper (falsifikasi), Thomas Kuhn (pergeseran paradigma), dan Mazhab Frankfurt."
+    },
+    {
+      "meetingNumber": 13,
+      "dateStr": "Sabtu, 5 Desember 2026",
+      "isoDate": "2026-12-05",
+      "title": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+      "presenters": [
+        "JUWINDA FIRDA SARI"
+      ],
+      "partCodes": [
+        "Pertemuan 13"
+      ],
+      "type": "kuliah",
+      "description": "Kriteria kebenaran proposisi ilmiah serta penerapannya dalam verifikasi temuan penelitian manajemen pendidikan."
+    },
+    {
+      "meetingNumber": 14,
+      "dateStr": "Sabtu, 12 Desember 2026",
+      "isoDate": "2026-12-12",
+      "title": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+      "presenters": [
+        "ANDRE ALI AKBAR"
+      ],
+      "partCodes": [
+        "Pertemuan 14"
+      ],
+      "type": "kuliah",
+      "description": "Pola penalaran logis dalam rancang bangun penelitian skripsi dan tesis di lingkungan Manajemen Pendidikan Islam."
+    },
+    {
+      "meetingNumber": 15,
+      "dateStr": "Sabtu, 19 Desember 2026",
+      "isoDate": "2026-12-19",
+      "title": "Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI",
+      "presenters": [
+        "M.SYAIFUDIN ZUHRI",
+        "M. ZIDAN SAPUTRA",
+        "DELLA NOVITA SARI"
+      ],
+      "partCodes": [
+        "Pertemuan 15",
+        "Pertemuan 15",
+        "Pertemuan 15"
+      ],
+      "type": "kuliah",
+      "description": "Sidang panel 3 topik pamungkas: integrasi kearifan lokal, etika akademik amanah, serta tantangan epistemologi GenAI."
+    },
+    {
+      "meetingNumber": 16,
+      "dateStr": "Sabtu, 26 Desember 2026",
+      "isoDate": "2026-12-26",
+      "title": "Ujian Akhir Semester (UAS) - Festival & Penayangan Video Edukasi AI Kelompok 1-5",
+      "presenters": [
+        "Kelompok 1",
+        "Kelompok 2",
+        "Kelompok 3",
+        "Kelompok 4",
+        "Kelompok 5"
+      ],
+      "partCodes": [
+        "UAS Proyek"
+      ],
+      "type": "uas",
+      "description": "Penayangan video edukasi 1080p hasil kolaborasi AI (ChatGPT, Canva, CapCut, D-ID), review dosen, dan evaluasi nilai akhir."
+    }
+  ],
+  "submissions": [
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 2",
+      "topic": "Konsep Dasar, Urgensi, dan Pengertian Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+      "meetingNumber": 2,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p2",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p2",
+      "notes": "Uji coba submit pertemuan 2",
+      "id": "sub-1790220259101-9943v",
+      "submittedAt": "2026-09-24T03:24:19.101Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_02_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_02_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-3",
+      "studentName": "HADI DWI PRASETYO",
+      "rpsPart": "Pertemuan 4",
+      "topic": "Landasan Epistemologis Keilmuan: Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah",
+      "meetingNumber": 4,
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-hadi",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-hadi",
+      "submittedAt": "2026-09-19T01:36:01.092Z",
+      "id": "sub-1789781761092-aj8xw",
+      "grade": 92,
+      "feedback": "Pemaparan ontologi sangat mendalam dan slide rapi.",
+      "gradedAt": "2026-09-19T01:36:06.345Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_04_HADI_DWI_PRASETYO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_04_HADI_DWI_PRASETYO.pptx",
+      "notes": "Makalah ilmiah terstruktur disusun sesuai RPS pertemuan 4 program studi MPI 1 STAI Jarinabi."
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 3",
+      "topic": "Landasan Ontologis Keilmuan: Hakikat Realitas Tata Kelola Pendidikan Islam Kontemporer",
+      "meetingNumber": 3,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p3",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p3",
+      "notes": "Uji coba submit pertemuan 3",
+      "id": "sub-1790220259144-k97zn",
+      "submittedAt": "2026-09-24T03:24:19.144Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_03_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_03_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 4",
+      "topic": "Landasan Epistemologis Keilmuan: Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah",
+      "meetingNumber": 4,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p4",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p4",
+      "notes": "Uji coba submit pertemuan 4",
+      "id": "sub-1790220259164-u8833",
+      "submittedAt": "2026-09-24T03:24:19.164Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_04_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_04_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 5",
+      "topic": "Landasan Aksiologis Keilmuan: Etika, Moralitas, dan Tanggung Jawab Sosial Pemimpin Pendidikan",
+      "meetingNumber": 5,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p5",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p5",
+      "notes": "Uji coba submit pertemuan 5",
+      "id": "sub-1790220259181-gt3hi",
+      "submittedAt": "2026-09-24T03:24:19.182Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_05_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_05_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 6",
+      "topic": "Sejarah Perkembangan Filsafat Ilmu: Era Klasik Islam (Baitul Hikmah) hingga Modern",
+      "meetingNumber": 6,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p6",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p6",
+      "notes": "Uji coba submit pertemuan 6",
+      "id": "sub-1790220259205-7xn1u",
+      "submittedAt": "2026-09-24T03:24:19.205Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_06_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_06_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 7",
+      "topic": "Teori Kebenaran Ilmiah (Korespondensi, Koherensi, Pragmatis) dalam Pengambilan Keputusan Manajerial",
+      "meetingNumber": 7,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p7",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p7",
+      "notes": "Uji coba submit pertemuan 7",
+      "id": "sub-1790220259224-26uqp",
+      "submittedAt": "2026-09-24T03:24:19.224Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_07_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_07_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 8",
+      "topic": "Evaluasi Tengah Semester (UTS): Sintesis Kritis Fondasi Filsafat Ilmu",
+      "meetingNumber": 8,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p8",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p8",
+      "notes": "Uji coba submit pertemuan 8",
+      "id": "sub-1790220259245-i4nd4",
+      "submittedAt": "2026-09-24T03:24:19.245Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_08_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_08_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 9",
+      "topic": "Paradigma Positivisme, Post-Positivisme, dan Konstruktivisme dalam Riset MPI",
+      "meetingNumber": 9,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p9",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p9",
+      "notes": "Uji coba submit pertemuan 9",
+      "id": "sub-1790220259262-3vo9h",
+      "submittedAt": "2026-09-24T03:24:19.262Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_09_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_09_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 10",
+      "topic": "Struktur Logika, Silogisme, dan Metodologi Ilmiah dalam Perumusan Kebijakan Akademik",
+      "meetingNumber": 10,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p10",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p10",
+      "notes": "Uji coba submit pertemuan 10",
+      "id": "sub-1790220259285-x7gdb",
+      "submittedAt": "2026-09-24T03:24:19.285Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_10_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_10_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 11",
+      "topic": "Integrasi Ilmu dan Agama: Konsep Islamisasi Ilmu Pengetahuan dan Keilmuan Terpadu",
+      "meetingNumber": 11,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p11",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p11",
+      "notes": "Uji coba submit pertemuan 11",
+      "id": "sub-1790220259305-6qfoc",
+      "submittedAt": "2026-09-24T03:24:19.305Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_11_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_11_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 12",
+      "topic": "Etika Akademik, Orisinalitas Riset, dan Integritas Ilmiah di Era Artificial Intelligence",
+      "meetingNumber": 12,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p12",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p12",
+      "notes": "Uji coba submit pertemuan 12",
+      "id": "sub-1790220259324-cb1gi",
+      "submittedAt": "2026-09-24T03:24:19.324Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_12_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_12_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 13",
+      "topic": "Filsafat Pendidikan Islam: Pemikiran Tokoh Al-Ghazali, Ibnu Khaldun, dan Al-Attas",
+      "meetingNumber": 13,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p13",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p13",
+      "notes": "Uji coba submit pertemuan 13",
+      "id": "sub-1790220259339-iv1dr",
+      "submittedAt": "2026-09-24T03:24:19.339Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_13_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_13_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 14",
+      "topic": "Kepemimpinan Transformatif Berbasis Kebijaksanaan Filosofis (Hikmah) dalam Madrasah",
+      "meetingNumber": 14,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p14",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p14",
+      "notes": "Uji coba submit pertemuan 14",
+      "id": "sub-1790220259356-j26e2",
+      "submittedAt": "2026-09-24T03:24:19.356Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_14_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_14_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 15",
+      "topic": "Kritik Posmodernisme dan Rekonstruksi Epistemologi Manajemen Lembaga Pendidikan Islam",
+      "meetingNumber": 15,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p15",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p15",
+      "notes": "Uji coba submit pertemuan 15",
+      "id": "sub-1790220259372-an8ru",
+      "submittedAt": "2026-09-24T03:24:19.372Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_15_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_15_DWI_SUPRIONO.pptx"
+    },
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 16",
+      "topic": "Evaluasi Akhir Semester (UAS): Kolaborasi Proyek Edukasi Video AI Interaktif",
+      "meetingNumber": 16,
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-p16",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-p16",
+      "notes": "Uji coba submit pertemuan 16",
+      "id": "sub-1790220259392-i0g2w",
+      "submittedAt": "2026-09-24T03:24:19.392Z",
+      "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_16_DWI_SUPRIONO.doc",
+      "pptFileName": "Slide_Presentasi_Pertemuan_16_DWI_SUPRIONO.pptx"
+    }
+  ],
+  "utsQuestions": [
+    {
+      "id": 1,
+      "number": 1,
+      "title": "Dimensi Ontologis & Fondasi Keilmuan (Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu & Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam)",
+      "topic": "Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu & Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+      "question": "Berdasarkan silabus RPS Pertemuan 1 dan 2 (Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu serta Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam), jelaskan secara komprehensif hakikat ontologis dan objek kajian formal maupun material dari mata kuliah Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Bagaimana hubungan dialektis antara konsep dasar tersebut dengan paradigma ilmu pengetahuan modern?",
+      "guide": "Jawab dengan merujuk materi RPS pertemuan 1-2. Sebutkan minimal 2 pandangan filosof/ahli, definisi ontologi keilmuan, serta refleksinya dalam praksis pendidikan.",
+      "rubric": "Ketajaman analisis ontologis (8 poin), rujukan konseptual RPS (6 poin), orisinalitas argumentasi (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 2,
+      "number": 2,
+      "title": "Epistemologi & Metodologi Ilmiah (Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat & Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi)",
+      "topic": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat & Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+      "question": "Telaah secara mendalam materi RPS Pertemuan 3 dan 4 mengenai epistemologi dan metodologi pencarian kebenaran ilmiah dalam lingkup Risfa Tri Ulfa, S.Pd., M.Pd., Gr. (Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat & Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi)! Bedakan antara pendekatan rasionalisme, empirisme, dan intuisi/wahyu dalam membangun validitas ilmiah!",
+      "guide": "Uraikan konstruksi metodologis keilmuan, kriteria kebenaran ilmiah (koherensi, korespondensi, pragmatis), dan hubungannya dengan capaian pembelajaran RPS pertemuan 3-4.",
+      "rubric": "Pemahaman teori epistemologi (8 poin), perbandingan metodologis (6 poin), ketepatan contoh (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 3,
+      "number": 3,
+      "title": "Aksiologi, Etika & Tanggung Jawab Moral Keilmuan (Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan)",
+      "topic": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+      "question": "Mengacu pada pembahasan materi Pertemuan 5 (Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan), bagaimana ilmuwan dan akademisi menyeimbangkan antara kebebasan nilai (value-free) dan keterikatan nilai (value-bound) dalam penerapan ilmu? Analisis tanggung jawab etis dan moral ilmuwan di era disrupsi digital saat ini!",
+      "guide": "Fokus pada dimensi aksiologis, tanggung jawab etika profesi ilmuwan, mitigasi penyalahgunaan teknologi/AI, serta nilai moralitas akademis.",
+      "rubric": "Kedalaman pemikiran aksiologis (8 poin), relevansi etika modern (6 poin), struktur jawaban akademis (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 4,
+      "number": 4,
+      "title": "Studi Kasus & Dialektika Realitas Empiris (Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI)",
+      "topic": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+      "question": "Berdasarkan kajian materi Pertemuan 6 (Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI), lakukan analisis kritis terhadap salah satu problematika aktual yang relevan dengan Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Bagaimana konsep yang telah dipelajari mampu memberikan kerangka diagnostik dan solusi holistik terhadap masalah tersebut?",
+      "guide": "Identifikasi masalah riil, gunakan instrumen analisis materi RPS pertemuan 6, dan tawarkan rekomendasi ilmiah konkret.",
+      "rubric": "Identifikasi kasus konkret (7 poin), penerapan teori RPS (7 poin), kekuatan argumentasi solusi (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 5,
+      "number": 5,
+      "title": "Sintesis Kritis & Refleksi Teori Integratif Pra-UTS (Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan)",
+      "topic": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+      "question": "Sebagai sintesis komprehensif atas seluruh materi RPS Pertemuan 1 hingga 7 menjelang UTS, rumuskan proposisi atau kerangka konseptual baru yang mengintegrasikan fondasi ontologi, epistemologi, dan aksiologi dalam mata kuliah Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Jelaskan urgensinya bagi pengembangan kompetensi kepemimpinan dan manajerial!",
+      "guide": "Tuliskan sintesis integratif berbobot akademik, hindari pengulangan hafalan, tunjukkan pemikiran reflektif tingkat tinggi (HOTS).",
+      "rubric": "Kemampuan sintesis integratif (8 poin), orisinalitas kerangka konseptual (6 poin), logika penalaran akademis (6 poin). Total 20 poin.",
+      "maxScore": 20
+    }
+  ],
+  "utsSubmissions": [],
+  "uasQuestions": [
+    {
+      "id": 1,
+      "number": 1,
+      "title": "Paradigma Mutakhir & Konstruksi Teori Kontemporer (Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan & Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern)",
+      "topic": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan & Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+      "question": "Berdasarkan silabus RPS Pertemuan 9 dan 10 (Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan serta Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern), evaluasi secara kritis pergeseran paradigma keilmuan kontemporer dalam mata kuliah Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Bagaimana paradigma baru ini menjawab keterbatasan teori-teori konvensional masa lampau?",
+      "guide": "Analisis pergeseran paradigma, rujukan silabus pertemuan 9-10, bandingkan model lama dan model mutakhir dengan argumen akademis kokoh.",
+      "rubric": "Ketajaman perbandingan paradigma (8 poin), pemahaman materi pasca-UTS RPS (6 poin), kualitas argumentasi ilmiah (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 2,
+      "number": 2,
+      "title": "Analisis Kebijakan, Manajerial & Tata Kelola (Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme)",
+      "topic": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+      "question": "Mengkaji materi RPS Pertemuan 11 (Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme), bagaimana prinsip-prinsip filosofis dan manajerial diimplementasikan dalam formulasi kebijakan kelembagaan? Berikan contoh kasus kebijakan konkret dan telaah efektivitas serta dampak etisnya!",
+      "guide": "Uraikan aspek manajerial, kebijakan praktis, studi kasus riil, dan relevansi implementasi terhadap peningkatan kualitas kelembagaan.",
+      "rubric": "Analisis kebijakan & manajemen (8 poin), relevansi studi kasus riil (6 poin), argumentasi solutif (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 3,
+      "number": 3,
+      "title": "Problematika Kontemporer & Disrupsi Masa Depan (Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains & Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif)",
+      "topic": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains & Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+      "question": "Berdasarkan telaah kritis RPS Pertemuan 12 dan 13 (Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains & Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif), analisis dinamika tantangan disrupsi kecerdasan buatan (AI) dan globalisasi terhadap keberlanjutan keilmuan Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Langkah adaptif apa yang wajib diambil oleh praktisi dan akademisi?",
+      "guide": "Soroti tantangan disrupsi zaman, ancaman dekadensi nilai, peluang inovasi, serta strategi adaptasi berkelanjutan.",
+      "rubric": "Kedalaman telaah disrupsi (8 poin), orisinalitas gagasan antisipatif (6 poin), logika penalaran (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 4,
+      "number": 4,
+      "title": "Model Integratif & Desain Solutif Lapangan (Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif & Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI)",
+      "topic": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif & Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI",
+      "question": "Mengacu pada pembahasan materi Pertemuan 14 dan 15 (Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif serta Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI), rancanglah sebuah model konseptual atau blueprint inovatif untuk memecahkan problem sistemik dalam bidang Risfa Tri Ulfa, S.Pd., M.Pd., Gr.! Jelaskan tahapan implementasi dan indikator keberhasilannya!",
+      "guide": "Kemukakan desain blueprint orisinal, tahapan implementasi sistematis, serta matriks indikator capaian yang terukur.",
+      "rubric": "Inovasi dan kebaruan desain model (8 poin), kelayakan implementasi (6 poin), koherensi akademik (6 poin). Total 20 poin.",
+      "maxScore": 20
+    },
+    {
+      "id": 5,
+      "number": 5,
+      "title": "Rekonstruksi Holistik & Refleksi Komprehensif Akhir Semester (Risfa Tri Ulfa, S.Pd., M.Pd., Gr.)",
+      "topic": "Sintesis Komprehensif Akhir Semester",
+      "question": "Sebagai evaluasi akhir komprehensif atas seluruh perjalanan perkuliahan 16 pertemuan dalam RPS Risfa Tri Ulfa, S.Pd., M.Pd., Gr., lakukan sintesis epistemologis menyeluruh dari pertemuan 1 hingga 15! Apa refleksi mendasar mengenai peran keilmuan ini dalam membangun peradaban berkeadaban dan bagaimana visi akademik Anda ke depan?",
+      "guide": "Tuliskan esai refleksi tingkat tinggi (HOTS) yang mengikat seluruh benang merah materi dari awal hingga akhir perkuliahan.",
+      "rubric": "Sintesis komprehensif seluruh materi RPS (8 poin), kedalaman refleksi filosofis (6 poin), proyeksi visi ke depan (6 poin). Total 20 poin.",
+      "maxScore": 20
+    }
+  ],
+  "uasSubmissions": [],
+  "quizQuestions": [
+    {
+      "id": 1,
+      "number": 1,
+      "question": "Pertemuan 1 (Hakikat Berpikir Filsafat): Manakah karakteristik utama cara berpikir kefilsafatan dalam menelaah ilmu manajemen pendidikan?",
+      "options": [
+        "Radikal (sampai ke akar), sistematis, kritis, dan universal",
+        "Parsial, emosional, dogmatis, dan tertutup terhadap pembaharuan",
+        "Praktis-instan tanpa perlu refleksi metodologis dan ontologis",
+        "Hanya mengandalkan asumsi tak berdasar dan prasangka pribadi"
+      ],
+      "correctIndex": 0,
+      "explanation": "Berpikir filsafat dicirikan dengan sikap radikal (menyelidiki hingga dasar terdalam), sistematis (terstruktur dan logis), kritis (tidak menerima tanpa verifikasi), serta universal.",
+      "points": 10,
+      "badgeTopic": "Hakikat Filsafat Ilmu",
+      "animationTheme": "brain"
+    },
+    {
+      "id": 2,
+      "number": 2,
+      "question": "Pertemuan 2 (Landasan Ontologi): Apakah fokus pembahasan pokok pilar Ontologi dalam struktur filsafat ilmu pengetahuan?",
+      "options": [
+        "Menilai apakah suatu ilmu membawa dampak finansial jangka pendek",
+        "Mengkaji hakikat realitas atau wujud objektif dari apa yang diteliti",
+        "Merancang kuesioner penelitian kuantitatif dengan skala Likert",
+        "Menentukan sanksi etik bagi mahasiswa yang terlambat mengumpulkan tugas"
+      ],
+      "correctIndex": 1,
+      "explanation": "Ontologi mempersoalkan hakikat apa yang dikaji (what is real), batasan wujud objek material serta objek formal ilmu pengetahuan.",
+      "points": 10,
+      "badgeTopic": "Dimensi Ontologi",
+      "animationTheme": "atom"
+    },
+    {
+      "id": 3,
+      "number": 3,
+      "question": "Pertemuan 3 (Landasan Epistemologi): Pertanyaan mendasar yang dijawab oleh dimensi Epistemologi keilmuan adalah...",
+      "options": [
+        "Berapa anggaran biaya riset yang dialokasikan kampus per semester",
+        "Bagaimana cara, proses, metodologi, dan validitas untuk memperoleh pengetahuan yang benar",
+        "Siapa nama tokoh yang pertama kali mencetak buku referensi di dunia",
+        "Mengapa ijazah formal diperlukan dalam melamar pekerjaan manajerial"
+      ],
+      "correctIndex": 1,
+      "explanation": "Epistemologi adalah cabang filsafat yang menyelidiki asal-usul, struktur, metode, dan keabsahan (validitas) ilmu pengetahuan (how we know).",
+      "points": 10,
+      "badgeTopic": "Dimensi Epistemologi",
+      "animationTheme": "compass"
+    },
+    {
+      "id": 4,
+      "number": 4,
+      "question": "Pertemuan 4 (Landasan Aksiologi): Dalam kerangka Manajemen Pendidikan Islam, aksiologi menegaskan bahwa...",
+      "options": [
+        "Pemanfaatan ilmu wajib berorientasi pada nilai kemaslahatan umat, etika, dan keluhuran moral",
+        "Ilmuwan bebas sepenuhnya menciptakan teori tanpa terikat norma etika apapun",
+        "Pengetahuan ilmiah harus dipisahkan mutlak dari nilai-nilai spiritual keagamaan",
+        "Hasil riset hanya ditujukan untuk kepentingan popularitas pribadi ilmuwan"
+      ],
+      "correctIndex": 0,
+      "explanation": "Aksiologi mengkaji nilai kegunaan (value), etika moral, dan estetika ilmu, menjamin bahwa sains dipergunakan untuk kemaslahatan kemanusiaan dan umat.",
+      "points": 10,
+      "badgeTopic": "Dimensi Aksiologi & Etika",
+      "animationTheme": "scale"
+    },
+    {
+      "id": 5,
+      "number": 5,
+      "question": "Pertemuan 5 (Metode Ilmiah Deduksi & Induksi): Metode berpikir ilmiah yang bergerak dari teori umum untuk diuji pada fakta lapangan empiris disebut...",
+      "options": [
+        "Penalaran Deduktif (Logiko-Hipotetiko)",
+        "Penalaran Induktif Empiris Murni",
+        "Penalaran Spekulatif Supranatural",
+        "Metode Trial and Error Spontan"
+      ],
+      "correctIndex": 0,
+      "explanation": "Penalaran deduktif bertolak dari proposisi atau teori umum untuk ditarik kesimpulan khusus guna menguji hipotesis di lapangan.",
+      "points": 10,
+      "badgeTopic": "Metode Ilmiah MPI",
+      "animationTheme": "target"
+    },
+    {
+      "id": 6,
+      "number": 6,
+      "question": "Pertemuan 6 (Teori Kebenaran Korespondensi): Suatu proposisi atau pernyataan ilmiah dinyatakan benar menurut teori korespondensi jika...",
+      "options": [
+        "Disetujui oleh suara mayoritas mutlak anggota rapat komite",
+        "Pernyataan tersebut bersesuaian dengan fakta objektif kenyataan empiris di dunia nyata",
+        "Pernyataan tersebut telah tertulis dalam novel fiksi klasik",
+        "Memberikan keuntungan materi langsung kepada penyampai pernyataan"
+      ],
+      "correctIndex": 1,
+      "explanation": "Teori korespondensi menyatakan bahwa kebenaran tercapai apabila terdapat keselarasan (korespondensi) antara pernyataan pikiran dengan realitas empiris fakta objektif.",
+      "points": 10,
+      "badgeTopic": "Teori Kebenaran Ilmiah",
+      "animationTheme": "shield"
+    },
+    {
+      "id": 7,
+      "number": 7,
+      "question": "Pertemuan 7 (Teori Kebenaran Pragmatis): Menurut filsafat Pragmatisme (C.S. Peirce & William James), kebenaran suatu gagasan diukur dari...",
+      "options": [
+        "Seberapa rumit istilah peristilahan asing yang dipergunakan",
+        "Kemanfaatan praktis, efektivitas fungsi, dan hasil nyata dalam memecahkan masalah",
+        "Tingkat kesesuaian dengan tradisi leluhur tanpa perlu evaluasi",
+        "Panjangnya jumlah halaman dokumen karya ilmiah yang dicetak"
+      ],
+      "correctIndex": 1,
+      "explanation": "Pragmatisme memandang kebenaran berdasarkan konsekuensi praktis, kegunaan fungsional, dan daya gunanya dalam memberikan solusi efektif.",
+      "points": 10,
+      "badgeTopic": "Pragmatisme Keilmuan",
+      "animationTheme": "lightbulb"
+    },
+    {
+      "id": 8,
+      "number": 8,
+      "question": "Pertemuan 9 (Integrasi Sains & Wahyu): Bagaimana relasi ideal antara wahyu ilahi (ayat qauliyah) dan sains empiris (ayat kauniyah)?",
+      "options": [
+        "Saling melengkapi, terintegrasi, dan harmonis dalam mengungkap kebenaran sunnatullah",
+        "Bermusuhan secara mutlak sehingga sains modern wajib ditinggalkan",
+        "Akal ilmiah tidak boleh digunakan sama sekali dalam memahami ajaran agama",
+        "Wahyu dan sains tidak memiliki titik temu sedikit pun dalam peradaban"
+      ],
+      "correctIndex": 0,
+      "explanation": "Filsafat keilmuan Islam meletakkan ayat qauliyah (wahyu) dan ayat kauniyah (alam semesta) dalam kesatuan tauhid yang saling menguatkan.",
+      "points": 10,
+      "badgeTopic": "Integrasi Sains & Islam",
+      "animationTheme": "book"
+    },
+    {
+      "id": 9,
+      "number": 9,
+      "question": "Pertemuan 10 (Etika Akademik di Era Artificial Intelligence): Tanggung jawab moral ilmuwan dan mahasiswa dalam menggunakan AI adalah...",
+      "options": [
+        "Memanfaatkan AI secara kritis, transparan dalam atribusi, menjunjung integritas, dan menolak plagiasi",
+        "Menyalin mentah-mentah karya orang lain menggunakan AI tanpa diverifikasi kebenarannya",
+        "Menggunakan teknologi AI untuk memalsukan data penelitian dan manipulasi statistik",
+        "Membayar jasa pembuatan tugas otomatis demi nilai tanpa memahami konsep materi"
+      ],
+      "correctIndex": 0,
+      "explanation": "Integritas akademik mewajibkan kejujuran ilmiah, penggunaan teknologi secara beretika, pengakuan sumber rujukan, dan penolakan terhadap plagiarisme.",
+      "points": 10,
+      "badgeTopic": "Etika Akademik & AI",
+      "animationTheme": "shield"
+    },
+    {
+      "id": 10,
+      "number": 10,
+      "question": "Pertemuan 13 (Pergeseran Paradigma / Paradigm Shift): Tokoh filsafat ilmu yang merumuskan konsep revolusi ilmiah dan pergeseran paradigma adalah...",
+      "options": [
+        "Thomas S. Kuhn",
+        "Karl Popper (Falsifikasi)",
+        "Paul Feyerabend (Anarkisme Metodologis)",
+        "Auguste Comte (Positivisme Klasik)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Thomas S. Kuhn dalam karyanya \"The Structure of Scientific Revolutions\" (1962) menguraikan bagaimana sains beranjak dari normal science ke krisis anomali dan revolusi paradigma baru.",
+      "points": 10,
+      "badgeTopic": "Paradigma Sains Modern",
+      "animationTheme": "brain"
+    }
+  ],
+  "quizSubmissions": [
+    {
+      "id": "quiz-1789780272299",
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "score": 100,
+      "correctCount": 10,
+      "totalQuestions": 10,
+      "submittedAt": "2026-09-19T01:11:12.299Z",
+      "cameraVerified": true,
+      "answers": {
+        "1": 0,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 0,
+        "6": 1,
+        "7": 1,
+        "8": 0,
+        "9": 0,
+        "10": 0
+      },
+      "timeTakenSeconds": 45
+    }
+  ],
+  "quizSettings": {
+    "isQuizActive": true,
+    "targetMeeting": "Semua Pertemuan (Review RPS & Materi Komprehensif)",
+    "quizTitle": "Game Cerdas Cermat RPS Pascasarjana MPI 1",
+    "timeLimitMinutes": 15,
+    "description": "Kuis interaktif 10 soal pilihan ganda berbobot dengan pengawas kamera live HUD untuk menguji penguasaan materi RPS."
+  },
+  "utsFormat": "esai",
+  "uasFormat": "proyek_video",
+  "utsExamSettings": {
+    "isOpen": true,
+    "instructions": "Ujian Tengah Semester (UTS) mata kuliah Filsafat Ilmu dibuka oleh Dosen Pengampu. Kerjakan 5 butir soal essay reflektif dengan cermat dan kumpulkan sebelum batas waktu berakhir.",
+    "openedAt": "2026-09-15T08:00:00.000Z",
+    "openedBy": "Risfa Tri Ulfa, S.Pd., M.Pd., Gr."
+  },
+  "uasExamSettings": {
+    "isOpen": true,
+    "instructions": "Ujian Akhir Semester (UAS) dibuka oleh Dosen Pengampu. Silakan kumpulkan tautan video presentasi kelompok atau naskah tugas akhir.",
+    "openedAt": "2026-09-15T08:00:00.000Z",
+    "openedBy": "Risfa Tri Ulfa, S.Pd., M.Pd., Gr."
+  },
+  "attendance": {
+    "1": {}
+  },
+  "grades": {
+    "mhs-3": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 92,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 89,
+      "letterGrade": "A",
+      "notes": "Pemaparan ontologi sangat mendalam dan slide rapi."
+    },
+    "mhs-4": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-5": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-6": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-7": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-8": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-9": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-10": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-11": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-12": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-13": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-14": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-15": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-1789289459487-4i91": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 88,
+      "letterGrade": "A-"
+    },
+    "mhs-1": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "individualScore": 85,
+      "utsScore": 85,
+      "uasScore": 85,
+      "groupScore": 85,
+      "finalScore": 85,
+      "letterGrade": "A",
+      "notes": "Tugas Terkumpul: Materi Uji Pertemuan 2"
+    }
+  },
+  "activeHeartbeats": {},
+  "dosenPassword": "filsafat2026",
+  "messages": [],
+  "lastUpdated": "2026-09-24T03:40:03.498Z",
+  "allCoursesData": {},
+  "archivedSemesters": [
+    {
+      "id": "arch-1789406398524",
+      "courseId": "mk-filsafat-ilmu",
+      "courseTitle": "Filsafat Ilmu",
+      "courseCode": "MPI-501",
+      "semesterName": "Semester Genap 2026/2027",
+      "academicYear": "2026/2027",
+      "archivedAt": "2026-09-14T17:19:58.524Z",
+      "totalStudents": 16,
+      "students": [
+        {
+          "id": "mhs-1",
+          "nim": "20260101",
+          "name": "DWI SUPRIONO",
+          "rpsPart": "Pertemuan 2",
+          "topic": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+          "meetingNumber": 2,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "lastActive": "2026-09-14T16:17:08.631Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-04-12",
+          "address": "Jl. Raya Kraton No. 45, Kec. Kraton, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567801"
+        },
+        {
+          "id": "mhs-2",
+          "nim": "20260102",
+          "name": "EKA JATIMULISA",
+          "rpsPart": "Pertemuan 3",
+          "topic": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+          "meetingNumber": 3,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Probolinggo",
+          "birthDate": "1998-08-20",
+          "address": "Jl. Panglima Sudirman No. 112, Kraksaan, Probolinggo",
+          "gender": "Perempuan",
+          "phone": "081234567802"
+        },
+        {
+          "id": "mhs-3",
+          "nim": "20260103",
+          "name": "HADI DWI PRASETYO",
+          "rpsPart": "Pertemuan 4",
+          "topic": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+          "meetingNumber": 4,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Bangil",
+          "birthDate": "1996-11-05",
+          "address": "Jl. Diponegoro No. 28, Bangil, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567803"
+        },
+        {
+          "id": "mhs-4",
+          "nim": "20260104",
+          "name": "HINDUN TRI LESTARIANI",
+          "rpsPart": "Pertemuan 5",
+          "topic": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+          "meetingNumber": 5,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Malang",
+          "birthDate": "1998-02-17",
+          "address": "Jl. Soekarno-Hatta Blok B-4, Lowokwaru, Malang",
+          "gender": "Perempuan",
+          "phone": "081234567804"
+        },
+        {
+          "id": "mhs-5",
+          "nim": "20260105",
+          "name": "IHWAN SYAHDONI",
+          "rpsPart": "Pertemuan 6",
+          "topic": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+          "meetingNumber": 6,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-09-24",
+          "address": "Jl. Pahlawan No. 78, Pekuncen, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567805"
+        },
+        {
+          "id": "mhs-6",
+          "nim": "20260106",
+          "name": "ROFFATUL MAGHFIROH",
+          "rpsPart": "Pertemuan 7",
+          "topic": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+          "meetingNumber": 7,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pandaan",
+          "birthDate": "1999-01-30",
+          "address": "Jl. Ahmad Yani No. 15, Pandaan, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567806"
+        },
+        {
+          "id": "mhs-7",
+          "nim": "20260107",
+          "name": "ARI WIBOWO",
+          "rpsPart": "Pertemuan 9",
+          "topic": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+          "meetingNumber": 9,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Sidoarjo",
+          "birthDate": "1996-06-18",
+          "address": "Perumahan Puri Indah Asri D-12, Porong, Sidoarjo",
+          "gender": "Laki-laki",
+          "phone": "081234567807"
+        },
+        {
+          "id": "mhs-8",
+          "nim": "20260108",
+          "name": "SANI SIFA'UROHMAH",
+          "rpsPart": "Pertemuan 10",
+          "topic": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+          "meetingNumber": 10,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-10-14",
+          "address": "Jl. KH. Mansyur No. 33, Tembokrejo, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567808"
+        },
+        {
+          "id": "mhs-9",
+          "nim": "20260109",
+          "name": "FIKA DEFTIRIYANI",
+          "rpsPart": "Pertemuan 11",
+          "topic": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+          "meetingNumber": 11,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Mojokerto",
+          "birthDate": "1999-03-08",
+          "address": "Jl. Gajah Mada No. 89, Magersari, Mojokerto",
+          "gender": "Perempuan",
+          "phone": "081234567809"
+        },
+        {
+          "id": "mhs-10",
+          "nim": "20260110",
+          "name": "FARIDATUL ALIYAH",
+          "rpsPart": "Pertemuan 12",
+          "topic": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+          "meetingNumber": 12,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-07-22",
+          "address": "Jl. Veteran No. 64, Bugul Kidul, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567810"
+        },
+        {
+          "id": "mhs-11",
+          "nim": "20260111",
+          "name": "JUWINDA FIRDA SARI",
+          "rpsPart": "Pertemuan 13",
+          "topic": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+          "meetingNumber": 13,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Bangil",
+          "birthDate": "1997-12-01",
+          "address": "Jl. Kalirejo No. 19, Bangil, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567811"
+        },
+        {
+          "id": "mhs-12",
+          "nim": "20260112",
+          "name": "ANDRE ALI AKBAR",
+          "rpsPart": "Pertemuan 14",
+          "topic": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+          "meetingNumber": 14,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Surabaya",
+          "birthDate": "1996-05-19",
+          "address": "Jl. Jemursari Selatan VII No. 14, Wonocolo, Surabaya",
+          "gender": "Laki-laki",
+          "phone": "081234567812"
+        },
+        {
+          "id": "mhs-13",
+          "nim": "20260113",
+          "name": "M.SYAIFUDIN ZUHRI",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Integrasi Ilmu, Agama, dan Kearifan Lokal (Local Wisdom) dalam Tata Kelola Lembaga Pendidikan Islam",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-08-11",
+          "address": "Jl. Wahid Hasyim No. 102, Gadingrejo, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567813"
+        },
+        {
+          "id": "mhs-14",
+          "nim": "20260114",
+          "name": "M. ZIDAN SAPUTRA",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Etika Akademik, Plagiarisme, dan Akuntabilitas Digitalisasi Berbasis Nilai-Nilai Amanah",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Probolinggo",
+          "birthDate": "1999-10-03",
+          "address": "Jl. Hayam Wuruk No. 51, Kanigaran, Probolinggo",
+          "gender": "Laki-laki",
+          "phone": "081234567814"
+        },
+        {
+          "id": "mhs-15",
+          "nim": "20260115",
+          "name": "DELLA NOVITA SARI",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Tantangan Aksiologi dan Epistemologi Keilmuan di Era Generative AI (ChatGPT, Canva AI, Deep Learning)",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Malang",
+          "birthDate": "1998-03-29",
+          "address": "Jl. Candi Mendut Barat No. 8, Mojolangu, Malang",
+          "gender": "Perempuan",
+          "phone": "081234567815"
+        },
+        {
+          "id": "mhs-1789289459487-4i91",
+          "nim": "20260016",
+          "name": "TEST MHS",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Materi Tambahan / Telaah Khusus Filsafat Ilmu",
+          "meetingNumber": 15,
+          "groupId": 1,
+          "createdAt": "2026-09-13T08:50:59.487Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-05-15",
+          "address": "Kabupaten Pasuruan, Jawa Timur",
+          "gender": "Laki-laki",
+          "phone": "081234560016"
+        }
+      ],
+      "groups": [
+        {
+          "id": 1,
+          "name": "KELOMPOK 1",
+          "members": [
+            "DWI SUPRIONO",
+            "EKA JATIMULISA",
+            "HADI DWI PRASETYO"
+          ],
+          "title": "Tantangan Epistemologi & Etika Akademik Penggunaan Artificial Intelligence (Generative AI) dalam Pendidikan Islam",
+          "description": "Membahas bagaimana penggunaan Generative AI (ChatGPT, Claude) memengaruhi metode pencarian kebenaran ilmiah (Epistemologi) serta batas-batas kejujuran akademik (Amanah) bagi mahasiswa MPI.",
+          "toolsSuggested": "ChatGPT/Claude (Naskah), Canva/CapCut (Visual), D-ID/HeyGen (AI Avatar)"
+        },
+        {
+          "id": 2,
+          "name": "KELOMPOK 2",
+          "members": [
+            "HINDUN TRI LESTARIANI",
+            "IHWAN SYAHDONI",
+            "ROFFATUL MAGHFIROH"
+          ],
+          "title": "Rekonstruksi Ontologi Pendidikan Islam: Integrasi Sains Modern dan Kearifan Lokal (Local Wisdom)",
+          "description": "Menganalisis hakikat realitas objek kajian pendidikan Islam (Ontologi), serta pentingnya menyelaraskan pengembangan sains modern dengan nilai-nilai tradisi dan kearifan lokal di lembaga pendidikan Islam.",
+          "toolsSuggested": "Claude/Gemini (Kajian Filsafat), Canva/CapCut (Infografis & Video), ElevenLabs (Voiceover)"
+        },
+        {
+          "id": 3,
+          "name": "KELOMPOK 3",
+          "members": [
+            "ARI WIBOWO",
+            "SANI SIFA'UROHMAH",
+            "FIKA DEFTIRIYANI"
+          ],
+          "title": "Jejak Emas Keilmuan Islam: Dari Bayani, Burhani, hingga Tajribi dalam Tata Kelola Modern MPI",
+          "description": "Menjelaskan sejarah kejayaan sains Islam dan kontribusi tokoh ilmuwan Muslim (seperti Al-Ghazali, Ibn Rushd, Ibn Al-Haytham) serta relevansinya terhadap metodologi berpikir ilmiah mahasiswa era digital.",
+          "toolsSuggested": "ChatGPT (Alur Cerita Sejarah), CapCut/Canva (Sinematik Visual), D-ID (Presenter Virtual)"
+        },
+        {
+          "id": 4,
+          "name": "KELOMPOK 4",
+          "members": [
+            "FARIDATUL ALIYAH",
+            "JUWINDA FIRDA SARI",
+            "ANDRE ALI AKBAR"
+          ],
+          "title": "Uji Kebenaran Ilmiah di Era Post-Truth: Menganalisis Hoaks dan Disinformasi Media Sosial secara Filosofis",
+          "description": "Menerapkan teori-teori kebenaran ilmiah (Koherensi, Korespondensi, Pragmatis) dalam menyaring arus informasi, fenomena deepfake, dan post-truth di media sosial.",
+          "toolsSuggested": "Claude/Gemini (Analisis Kasus), Canva AI (Motion Grafis), HeyGen/CapCut (Editing)"
+        },
+        {
+          "id": 5,
+          "name": "KELOMPOK 5",
+          "members": [
+            "M.SYAIFUDIN ZUHRI",
+            "M. ZIDAN SAPUTRA",
+            "DELLA NOVITA SARI"
+          ],
+          "title": "Aksiologi Keilmuan: Menjaga Nilai Amanah dan Digital Governance pada Lembaga Pendidikan Islam",
+          "description": "Menelaah pemanfaatan ilmu dan teknologi digital dari sudut pandang aksiologi (etika keilmuan), berfokus pada pencegahan plagiarisme, tata kelola sarana pendidikan, dan akuntabilitas moral digital.",
+          "toolsSuggested": "ChatGPT/Gemini (Naskah Etika), Canva AI/CapCut (Simulasi Kasus), ElevenLabs (Voiceover)"
+        }
+      ],
+      "grades": {
+        "mhs-1": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-2": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-3": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-4": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-5": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-6": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-7": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-8": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-9": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-10": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-11": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-12": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-13": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-14": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-15": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        },
+        "mhs-1789289459487-4i91": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "utsScore": 85,
+          "uasScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        }
+      },
+      "attendance": {
+        "1": {}
+      },
+      "meetings": [
+        {
+          "meetingNumber": 1,
+          "dateStr": "Sabtu, 12 September 2026",
+          "isoDate": "2026-09-12",
+          "title": "Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu",
+          "presenters": [
+            "Dosen Pengampu"
+          ],
+          "partCodes": [
+            "Pengantar"
+          ],
+          "type": "kuliah",
+          "description": "Pemaparan silabus RPS, pembagian 15 materi presentasi kelompok & 5 proyek video edukasi AI, serta orientasi metodologis Filsafat Ilmu dalam MPI.",
+          "presentationFormat": "kelompok"
+        },
+        {
+          "meetingNumber": 2,
+          "dateStr": "Sabtu, 19 September 2026",
+          "isoDate": "2026-09-19",
+          "title": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+          "presenters": [
+            "DWI SUPRIONO"
+          ],
+          "partCodes": [
+            "Pertemuan 2"
+          ],
+          "type": "kuliah",
+          "description": "Analisis kedudukan filsafat ilmu sebagai landasan pengembangan keilmuan kepemimpinan dan manajerial pendidikan Islam."
+        },
+        {
+          "meetingNumber": 3,
+          "dateStr": "Sabtu, 26 September 2026",
+          "isoDate": "2026-09-26",
+          "title": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+          "presenters": [
+            "EKA JATIMULISA"
+          ],
+          "partCodes": [
+            "Pertemuan 3"
+          ],
+          "type": "kuliah",
+          "description": "Diferensiasi konseptual antara pengetahuan awam, sains empiris, dan perenungan filosofis mendalam."
+        },
+        {
+          "meetingNumber": 4,
+          "dateStr": "Sabtu, 3 Oktober 2026",
+          "isoDate": "2026-10-03",
+          "title": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+          "presenters": [
+            "HADI DWI PRASETYO"
+          ],
+          "partCodes": [
+            "Pertemuan 4"
+          ],
+          "type": "kuliah",
+          "description": "Eksplorasi ontologis: apa yang dikaji dalam ilmu, materialisme vs idealisme, serta ontologi tata kelola kelembagaan Islam."
+        },
+        {
+          "meetingNumber": 5,
+          "dateStr": "Sabtu, 10 Oktober 2026",
+          "isoDate": "2026-10-10",
+          "title": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+          "presenters": [
+            "HINDUN TRI LESTARIANI"
+          ],
+          "partCodes": [
+            "Pertemuan 5"
+          ],
+          "type": "kuliah",
+          "description": "Bagaimana ilmu diperoleh: indra, akal budi, intuisi, wahyu, dan kriteria validitas keilmuan pendidikan."
+        },
+        {
+          "meetingNumber": 6,
+          "dateStr": "Sabtu, 17 Oktober 2026",
+          "isoDate": "2026-10-17",
+          "title": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+          "presenters": [
+            "IHWAN SYAHDONI"
+          ],
+          "partCodes": [
+            "Pertemuan 6"
+          ],
+          "type": "kuliah",
+          "description": "Fungsi bahasa ilmiah, silogisme logika deduktif-induktif, matematika kuantitatif, dan metodologi statistik dalam riset manajemen."
+        },
+        {
+          "meetingNumber": 7,
+          "dateStr": "Sabtu, 24 Oktober 2026",
+          "isoDate": "2026-10-24",
+          "title": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+          "presenters": [
+            "ROFFATUL MAGHFIROH"
+          ],
+          "partCodes": [
+            "Pertemuan 7"
+          ],
+          "type": "kuliah",
+          "description": "Untuk apa ilmu digunakan: bebas nilai (value-free) vs terikat nilai (value-bound), etika akademisi MPI."
+        },
+        {
+          "meetingNumber": 8,
+          "dateStr": "Sabtu, 31 Oktober 2026",
+          "isoDate": "2026-10-31",
+          "title": "Ujian Tengah Semester (UTS) - Review & Sintesis Trilogi Pilar Filsafat Ilmu",
+          "presenters": [
+            "Seluruh Mahasiswa"
+          ],
+          "partCodes": [
+            "Evaluasi UTS"
+          ],
+          "type": "uts",
+          "description": "Evaluasi pemahaman komprehensif atas pilar Ontologi, Epistemologi, dan Aksiologi dalam konteks MPI."
+        },
+        {
+          "meetingNumber": 9,
+          "dateStr": "Sabtu, 7 November 2026",
+          "isoDate": "2026-11-07",
+          "title": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+          "presenters": [
+            "ARI WIBOWO"
+          ],
+          "partCodes": [
+            "Pertemuan 9"
+          ],
+          "type": "kuliah",
+          "description": "Gagasan Thales, Socrates, Plato, Aristoteles, hingga transisi ke abad skolastik dan pertengahan."
+        },
+        {
+          "meetingNumber": 10,
+          "dateStr": "Sabtu, 14 November 2026",
+          "isoDate": "2026-11-14",
+          "title": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+          "presenters": [
+            "SANI SIFA'UROHMAH"
+          ],
+          "partCodes": [
+            "Pertemuan 10"
+          ],
+          "type": "kuliah",
+          "description": "Zaman keemasan Islam: Baitul Hikmah, Ibn Sina, Al-Khawarizmi, Ibn Rushd, dan transmisi sains ke Barat."
+        },
+        {
+          "meetingNumber": 11,
+          "dateStr": "Sabtu, 21 November 2026",
+          "isoDate": "2026-11-21",
+          "title": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+          "presenters": [
+            "FIKA DEFTIRIYANI"
+          ],
+          "partCodes": [
+            "Pertemuan 11"
+          ],
+          "type": "kuliah",
+          "description": "Perdebatan epistemologis Descartes, John Locke, David Hume, Kant, serta kemunculan positivisme Auguste Comte."
+        },
+        {
+          "meetingNumber": 12,
+          "dateStr": "Sabtu, 28 November 2026",
+          "isoDate": "2026-11-28",
+          "title": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+          "presenters": [
+            "FARIDATUL ALIYAH"
+          ],
+          "partCodes": [
+            "Pertemuan 12"
+          ],
+          "type": "kuliah",
+          "description": "Paradigma kualitatif dan kritis: Karl Popper (falsifikasi), Thomas Kuhn (pergeseran paradigma), dan Mazhab Frankfurt."
+        },
+        {
+          "meetingNumber": 13,
+          "dateStr": "Sabtu, 5 Desember 2026",
+          "isoDate": "2026-12-05",
+          "title": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+          "presenters": [
+            "JUWINDA FIRDA SARI"
+          ],
+          "partCodes": [
+            "Pertemuan 13"
+          ],
+          "type": "kuliah",
+          "description": "Kriteria kebenaran proposisi ilmiah serta penerapannya dalam verifikasi temuan penelitian manajemen pendidikan."
+        },
+        {
+          "meetingNumber": 14,
+          "dateStr": "Sabtu, 12 Desember 2026",
+          "isoDate": "2026-12-12",
+          "title": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+          "presenters": [
+            "ANDRE ALI AKBAR"
+          ],
+          "partCodes": [
+            "Pertemuan 14"
+          ],
+          "type": "kuliah",
+          "description": "Pola penalaran logis dalam rancang bangun penelitian skripsi dan tesis di lingkungan Manajemen Pendidikan Islam."
+        },
+        {
+          "meetingNumber": 15,
+          "dateStr": "Sabtu, 19 Desember 2026",
+          "isoDate": "2026-12-19",
+          "title": "Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI",
+          "presenters": [
+            "M.SYAIFUDIN ZUHRI",
+            "M. ZIDAN SAPUTRA",
+            "DELLA NOVITA SARI"
+          ],
+          "partCodes": [
+            "Pertemuan 15",
+            "Pertemuan 15",
+            "Pertemuan 15"
+          ],
+          "type": "kuliah",
+          "description": "Sidang panel 3 topik pamungkas: integrasi kearifan lokal, etika akademik amanah, serta tantangan epistemologi GenAI."
+        },
+        {
+          "meetingNumber": 16,
+          "dateStr": "Sabtu, 26 Desember 2026",
+          "isoDate": "2026-12-26",
+          "title": "Ujian Akhir Semester (UAS) - Festival & Penayangan Video Edukasi AI Kelompok 1-5",
+          "presenters": [
+            "Kelompok 1",
+            "Kelompok 2",
+            "Kelompok 3",
+            "Kelompok 4",
+            "Kelompok 5"
+          ],
+          "partCodes": [
+            "UAS Proyek"
+          ],
+          "type": "uas",
+          "description": "Penayangan video edukasi 1080p hasil kolaborasi AI (ChatGPT, Canva, CapCut, D-ID), review dosen, dan evaluasi nilai akhir."
+        }
+      ],
+      "submissions": [],
+      "utsSubmissions": [],
+      "uasSubmissions": [],
+      "quizSubmissions": []
+    },
+    {
+      "id": "arch-1789406351359",
+      "courseId": "mk-filsafat-ilmu",
+      "courseTitle": "Filsafat Ilmu",
+      "courseCode": "MPI-501",
+      "semesterName": "Semester Ganjil 2026/2027",
+      "academicYear": "2026/2027",
+      "archivedAt": "2026-09-14T17:19:11.359Z",
+      "totalStudents": 16,
+      "students": [
+        {
+          "id": "mhs-1",
+          "nim": "20260101",
+          "name": "DWI SUPRIONO",
+          "rpsPart": "Pertemuan 2",
+          "topic": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+          "meetingNumber": 2,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "lastActive": "2026-09-14T16:17:08.631Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-04-12",
+          "address": "Jl. Raya Kraton No. 45, Kec. Kraton, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567801"
+        },
+        {
+          "id": "mhs-2",
+          "nim": "20260102",
+          "name": "EKA JATIMULISA",
+          "rpsPart": "Pertemuan 3",
+          "topic": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+          "meetingNumber": 3,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Probolinggo",
+          "birthDate": "1998-08-20",
+          "address": "Jl. Panglima Sudirman No. 112, Kraksaan, Probolinggo",
+          "gender": "Perempuan",
+          "phone": "081234567802"
+        },
+        {
+          "id": "mhs-3",
+          "nim": "20260103",
+          "name": "HADI DWI PRASETYO",
+          "rpsPart": "Pertemuan 4",
+          "topic": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+          "meetingNumber": 4,
+          "groupId": 1,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Bangil",
+          "birthDate": "1996-11-05",
+          "address": "Jl. Diponegoro No. 28, Bangil, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567803"
+        },
+        {
+          "id": "mhs-4",
+          "nim": "20260104",
+          "name": "HINDUN TRI LESTARIANI",
+          "rpsPart": "Pertemuan 5",
+          "topic": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+          "meetingNumber": 5,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Malang",
+          "birthDate": "1998-02-17",
+          "address": "Jl. Soekarno-Hatta Blok B-4, Lowokwaru, Malang",
+          "gender": "Perempuan",
+          "phone": "081234567804"
+        },
+        {
+          "id": "mhs-5",
+          "nim": "20260105",
+          "name": "IHWAN SYAHDONI",
+          "rpsPart": "Pertemuan 6",
+          "topic": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+          "meetingNumber": 6,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-09-24",
+          "address": "Jl. Pahlawan No. 78, Pekuncen, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567805"
+        },
+        {
+          "id": "mhs-6",
+          "nim": "20260106",
+          "name": "ROFFATUL MAGHFIROH",
+          "rpsPart": "Pertemuan 7",
+          "topic": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+          "meetingNumber": 7,
+          "groupId": 2,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pandaan",
+          "birthDate": "1999-01-30",
+          "address": "Jl. Ahmad Yani No. 15, Pandaan, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567806"
+        },
+        {
+          "id": "mhs-7",
+          "nim": "20260107",
+          "name": "ARI WIBOWO",
+          "rpsPart": "Pertemuan 9",
+          "topic": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+          "meetingNumber": 9,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Sidoarjo",
+          "birthDate": "1996-06-18",
+          "address": "Perumahan Puri Indah Asri D-12, Porong, Sidoarjo",
+          "gender": "Laki-laki",
+          "phone": "081234567807"
+        },
+        {
+          "id": "mhs-8",
+          "nim": "20260108",
+          "name": "SANI SIFA'UROHMAH",
+          "rpsPart": "Pertemuan 10",
+          "topic": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+          "meetingNumber": 10,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-10-14",
+          "address": "Jl. KH. Mansyur No. 33, Tembokrejo, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567808"
+        },
+        {
+          "id": "mhs-9",
+          "nim": "20260109",
+          "name": "FIKA DEFTIRIYANI",
+          "rpsPart": "Pertemuan 11",
+          "topic": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+          "meetingNumber": 11,
+          "groupId": 3,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Mojokerto",
+          "birthDate": "1999-03-08",
+          "address": "Jl. Gajah Mada No. 89, Magersari, Mojokerto",
+          "gender": "Perempuan",
+          "phone": "081234567809"
+        },
+        {
+          "id": "mhs-10",
+          "nim": "20260110",
+          "name": "FARIDATUL ALIYAH",
+          "rpsPart": "Pertemuan 12",
+          "topic": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+          "meetingNumber": 12,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-07-22",
+          "address": "Jl. Veteran No. 64, Bugul Kidul, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567810"
+        },
+        {
+          "id": "mhs-11",
+          "nim": "20260111",
+          "name": "JUWINDA FIRDA SARI",
+          "rpsPart": "Pertemuan 13",
+          "topic": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+          "meetingNumber": 13,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Bangil",
+          "birthDate": "1997-12-01",
+          "address": "Jl. Kalirejo No. 19, Bangil, Pasuruan",
+          "gender": "Perempuan",
+          "phone": "081234567811"
+        },
+        {
+          "id": "mhs-12",
+          "nim": "20260112",
+          "name": "ANDRE ALI AKBAR",
+          "rpsPart": "Pertemuan 14",
+          "topic": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+          "meetingNumber": 14,
+          "groupId": 4,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Surabaya",
+          "birthDate": "1996-05-19",
+          "address": "Jl. Jemursari Selatan VII No. 14, Wonocolo, Surabaya",
+          "gender": "Laki-laki",
+          "phone": "081234567812"
+        },
+        {
+          "id": "mhs-13",
+          "nim": "20260113",
+          "name": "M.SYAIFUDIN ZUHRI",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Integrasi Ilmu, Agama, dan Kearifan Lokal (Local Wisdom) dalam Tata Kelola Lembaga Pendidikan Islam",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1997-08-11",
+          "address": "Jl. Wahid Hasyim No. 102, Gadingrejo, Pasuruan",
+          "gender": "Laki-laki",
+          "phone": "081234567813"
+        },
+        {
+          "id": "mhs-14",
+          "nim": "20260114",
+          "name": "M. ZIDAN SAPUTRA",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Etika Akademik, Plagiarisme, dan Akuntabilitas Digitalisasi Berbasis Nilai-Nilai Amanah",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Probolinggo",
+          "birthDate": "1999-10-03",
+          "address": "Jl. Hayam Wuruk No. 51, Kanigaran, Probolinggo",
+          "gender": "Laki-laki",
+          "phone": "081234567814"
+        },
+        {
+          "id": "mhs-15",
+          "nim": "20260115",
+          "name": "DELLA NOVITA SARI",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Tantangan Aksiologi dan Epistemologi Keilmuan di Era Generative AI (ChatGPT, Canva AI, Deep Learning)",
+          "meetingNumber": 15,
+          "groupId": 5,
+          "createdAt": "2026-09-12T00:00:00Z",
+          "birthPlace": "Malang",
+          "birthDate": "1998-03-29",
+          "address": "Jl. Candi Mendut Barat No. 8, Mojolangu, Malang",
+          "gender": "Perempuan",
+          "phone": "081234567815"
+        },
+        {
+          "id": "mhs-1789289459487-4i91",
+          "nim": "20260016",
+          "name": "TEST MHS",
+          "rpsPart": "Pertemuan 15",
+          "topic": "Materi Tambahan / Telaah Khusus Filsafat Ilmu",
+          "meetingNumber": 15,
+          "groupId": 1,
+          "createdAt": "2026-09-13T08:50:59.487Z",
+          "birthPlace": "Pasuruan",
+          "birthDate": "1998-05-15",
+          "address": "Kabupaten Pasuruan, Jawa Timur",
+          "gender": "Laki-laki",
+          "phone": "081234560016"
+        }
+      ],
+      "groups": [
+        {
+          "id": 1,
+          "name": "KELOMPOK 1",
+          "members": [
+            "DWI SUPRIONO",
+            "EKA JATIMULISA",
+            "HADI DWI PRASETYO"
+          ],
+          "title": "Tantangan Epistemologi & Etika Akademik Penggunaan Artificial Intelligence (Generative AI) dalam Pendidikan Islam",
+          "description": "Membahas bagaimana penggunaan Generative AI (ChatGPT, Claude) memengaruhi metode pencarian kebenaran ilmiah (Epistemologi) serta batas-batas kejujuran akademik (Amanah) bagi mahasiswa MPI.",
+          "toolsSuggested": "ChatGPT/Claude (Naskah), Canva/CapCut (Visual), D-ID/HeyGen (AI Avatar)"
+        },
+        {
+          "id": 2,
+          "name": "KELOMPOK 2",
+          "members": [
+            "HINDUN TRI LESTARIANI",
+            "IHWAN SYAHDONI",
+            "ROFFATUL MAGHFIROH"
+          ],
+          "title": "Rekonstruksi Ontologi Pendidikan Islam: Integrasi Sains Modern dan Kearifan Lokal (Local Wisdom)",
+          "description": "Menganalisis hakikat realitas objek kajian pendidikan Islam (Ontologi), serta pentingnya menyelaraskan pengembangan sains modern dengan nilai-nilai tradisi dan kearifan lokal di lembaga pendidikan Islam.",
+          "toolsSuggested": "Claude/Gemini (Kajian Filsafat), Canva/CapCut (Infografis & Video), ElevenLabs (Voiceover)"
+        },
+        {
+          "id": 3,
+          "name": "KELOMPOK 3",
+          "members": [
+            "ARI WIBOWO",
+            "SANI SIFA'UROHMAH",
+            "FIKA DEFTIRIYANI"
+          ],
+          "title": "Jejak Emas Keilmuan Islam: Dari Bayani, Burhani, hingga Tajribi dalam Tata Kelola Modern MPI",
+          "description": "Menjelaskan sejarah kejayaan sains Islam dan kontribusi tokoh ilmuwan Muslim (seperti Al-Ghazali, Ibn Rushd, Ibn Al-Haytham) serta relevansinya terhadap metodologi berpikir ilmiah mahasiswa era digital.",
+          "toolsSuggested": "ChatGPT (Alur Cerita Sejarah), CapCut/Canva (Sinematik Visual), D-ID (Presenter Virtual)"
+        },
+        {
+          "id": 4,
+          "name": "KELOMPOK 4",
+          "members": [
+            "FARIDATUL ALIYAH",
+            "JUWINDA FIRDA SARI",
+            "ANDRE ALI AKBAR"
+          ],
+          "title": "Uji Kebenaran Ilmiah di Era Post-Truth: Menganalisis Hoaks dan Disinformasi Media Sosial secara Filosofis",
+          "description": "Menerapkan teori-teori kebenaran ilmiah (Koherensi, Korespondensi, Pragmatis) dalam menyaring arus informasi, fenomena deepfake, dan post-truth di media sosial.",
+          "toolsSuggested": "Claude/Gemini (Analisis Kasus), Canva AI (Motion Grafis), HeyGen/CapCut (Editing)"
+        },
+        {
+          "id": 5,
+          "name": "KELOMPOK 5",
+          "members": [
+            "M.SYAIFUDIN ZUHRI",
+            "M. ZIDAN SAPUTRA",
+            "DELLA NOVITA SARI"
+          ],
+          "title": "Aksiologi Keilmuan: Menjaga Nilai Amanah dan Digital Governance pada Lembaga Pendidikan Islam",
+          "description": "Menelaah pemanfaatan ilmu dan teknologi digital dari sudut pandang aksiologi (etika keilmuan), berfokus pada pencegahan plagiarisme, tata kelola sarana pendidikan, dan akuntabilitas moral digital.",
+          "toolsSuggested": "ChatGPT/Gemini (Naskah Etika), Canva AI/CapCut (Simulasi Kasus), ElevenLabs (Voiceover)"
+        }
+      ],
+      "grades": {
+        "mhs-1": {
+          "attendanceScore": 100,
+          "attitudeScore": 88,
+          "individualScore": 88,
+          "groupScore": 90,
+          "finalScore": 90,
+          "letterGrade": "A"
+        },
+        "mhs-2": {
+          "attendanceScore": 100,
+          "attitudeScore": 87,
+          "individualScore": 86,
+          "groupScore": 90,
+          "finalScore": 89,
+          "letterGrade": "A"
+        },
+        "mhs-3": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 87,
+          "groupScore": 90,
+          "finalScore": 90,
+          "letterGrade": "A"
+        },
+        "mhs-4": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-5": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-6": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-7": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-8": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-9": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-10": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-11": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-12": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-13": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-14": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-15": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 87,
+          "letterGrade": "A"
+        },
+        "mhs-1789289459487-4i91": {
+          "attendanceScore": 100,
+          "attitudeScore": 85,
+          "individualScore": 85,
+          "groupScore": 85,
+          "finalScore": 88,
+          "letterGrade": "A-"
+        }
+      },
+      "attendance": {
+        "1": {
+          "mhs-1": "H",
+          "mhs-2": "H",
+          "mhs-3": "H",
+          "mhs-4": "H",
+          "mhs-5": "H",
+          "mhs-6": "H",
+          "mhs-7": "H",
+          "mhs-8": "H",
+          "mhs-9": "H",
+          "mhs-10": "H",
+          "mhs-11": "H",
+          "mhs-12": "H",
+          "mhs-13": "H",
+          "mhs-14": "H",
+          "mhs-15": "H"
+        }
+      },
+      "meetings": [
+        {
+          "meetingNumber": 1,
+          "dateStr": "Sabtu, 12 September 2026",
+          "isoDate": "2026-09-12",
+          "title": "Orientasi Perkuliahan, Kontrak Belajar, & Pengantar Filsafat Ilmu",
+          "presenters": [
+            "Dosen Pengampu"
+          ],
+          "partCodes": [
+            "Pengantar"
+          ],
+          "type": "kuliah",
+          "description": "Pemaparan silabus RPS, pembagian 15 materi presentasi kelompok & 5 proyek video edukasi AI, serta orientasi metodologis Filsafat Ilmu dalam MPI.",
+          "presentationFormat": "kelompok"
+        },
+        {
+          "meetingNumber": 2,
+          "dateStr": "Sabtu, 19 September 2026",
+          "isoDate": "2026-09-19",
+          "title": "Ruang Lingkup, Hakikat, dan Urgensi Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+          "presenters": [
+            "DWI SUPRIONO"
+          ],
+          "partCodes": [
+            "Pertemuan 2"
+          ],
+          "type": "kuliah",
+          "description": "Analisis kedudukan filsafat ilmu sebagai landasan pengembangan keilmuan kepemimpinan dan manajerial pendidikan Islam."
+        },
+        {
+          "meetingNumber": 3,
+          "dateStr": "Sabtu, 26 September 2026",
+          "isoDate": "2026-09-26",
+          "title": "Hakikat Pengetahuan dan Ilmu: Membedakan Ordinary Knowledge, Science, dan Filsafat",
+          "presenters": [
+            "EKA JATIMULISA"
+          ],
+          "partCodes": [
+            "Pertemuan 3"
+          ],
+          "type": "kuliah",
+          "description": "Diferensiasi konseptual antara pengetahuan awam, sains empiris, dan perenungan filosofis mendalam."
+        },
+        {
+          "meetingNumber": 4,
+          "dateStr": "Sabtu, 3 Oktober 2026",
+          "isoDate": "2026-10-03",
+          "title": "Pilar Ontologi Ilmu: Hakikat Ada (Being), Realitas Objek Kajian, dan Aliran-Aliran Ontologi",
+          "presenters": [
+            "HADI DWI PRASETYO"
+          ],
+          "partCodes": [
+            "Pertemuan 4"
+          ],
+          "type": "kuliah",
+          "description": "Eksplorasi ontologis: apa yang dikaji dalam ilmu, materialisme vs idealisme, serta ontologi tata kelola kelembagaan Islam."
+        },
+        {
+          "meetingNumber": 5,
+          "dateStr": "Sabtu, 10 Oktober 2026",
+          "isoDate": "2026-10-10",
+          "title": "Pilar Epistemologi Ilmu: Sumber Pengetahuan, Batas Keabsahan, dan Struktur Pengetahuan",
+          "presenters": [
+            "HINDUN TRI LESTARIANI"
+          ],
+          "partCodes": [
+            "Pertemuan 5"
+          ],
+          "type": "kuliah",
+          "description": "Bagaimana ilmu diperoleh: indra, akal budi, intuisi, wahyu, dan kriteria validitas keilmuan pendidikan."
+        },
+        {
+          "meetingNumber": 6,
+          "dateStr": "Sabtu, 17 Oktober 2026",
+          "isoDate": "2026-10-17",
+          "title": "Sarana Berpikir Ilmiah: Peran Bahasa, Logika, Matematika, dan Statistika dalam Riset MPI",
+          "presenters": [
+            "IHWAN SYAHDONI"
+          ],
+          "partCodes": [
+            "Pertemuan 6"
+          ],
+          "type": "kuliah",
+          "description": "Fungsi bahasa ilmiah, silogisme logika deduktif-induktif, matematika kuantitatif, dan metodologi statistik dalam riset manajemen."
+        },
+        {
+          "meetingNumber": 7,
+          "dateStr": "Sabtu, 24 Oktober 2026",
+          "isoDate": "2026-10-24",
+          "title": "Pilar Aksiologi Ilmu: Nilai, Etika Keilmuan, dan Tanggung Jawab Moral Ilmuwan Pendidikan",
+          "presenters": [
+            "ROFFATUL MAGHFIROH"
+          ],
+          "partCodes": [
+            "Pertemuan 7"
+          ],
+          "type": "kuliah",
+          "description": "Untuk apa ilmu digunakan: bebas nilai (value-free) vs terikat nilai (value-bound), etika akademisi MPI."
+        },
+        {
+          "meetingNumber": 8,
+          "dateStr": "Sabtu, 31 Oktober 2026",
+          "isoDate": "2026-10-31",
+          "title": "Ujian Tengah Semester (UTS) - Review & Sintesis Trilogi Pilar Filsafat Ilmu",
+          "presenters": [
+            "Seluruh Mahasiswa"
+          ],
+          "partCodes": [
+            "Evaluasi UTS"
+          ],
+          "type": "uts",
+          "description": "Evaluasi pemahaman komprehensif atas pilar Ontologi, Epistemologi, dan Aksiologi dalam konteks MPI."
+        },
+        {
+          "meetingNumber": 9,
+          "dateStr": "Sabtu, 7 November 2026",
+          "isoDate": "2026-11-07",
+          "title": "Sejarah Perkembangan Filsafat Klasik: Pemikiran Era Yunani hingga Abad Pertengahan",
+          "presenters": [
+            "ARI WIBOWO"
+          ],
+          "partCodes": [
+            "Pertemuan 9"
+          ],
+          "type": "kuliah",
+          "description": "Gagasan Thales, Socrates, Plato, Aristoteles, hingga transisi ke abad skolastik dan pertengahan."
+        },
+        {
+          "meetingNumber": 10,
+          "dateStr": "Sabtu, 14 November 2026",
+          "isoDate": "2026-11-14",
+          "title": "Masa Kejayaan Sains Islam: Kontribusi Ilmuwan Muslim terhadap Peradaban Keilmuan Modern",
+          "presenters": [
+            "SANI SIFA'UROHMAH"
+          ],
+          "partCodes": [
+            "Pertemuan 10"
+          ],
+          "type": "kuliah",
+          "description": "Zaman keemasan Islam: Baitul Hikmah, Ibn Sina, Al-Khawarizmi, Ibn Rushd, dan transmisi sains ke Barat."
+        },
+        {
+          "meetingNumber": 11,
+          "dateStr": "Sabtu, 21 November 2026",
+          "isoDate": "2026-11-21",
+          "title": "Filsafat Ilmu Era Modern: Analisis Paradigma Rasionalisme, Empirisme, dan Positivisme",
+          "presenters": [
+            "FIKA DEFTIRIYANI"
+          ],
+          "partCodes": [
+            "Pertemuan 11"
+          ],
+          "type": "kuliah",
+          "description": "Perdebatan epistemologis Descartes, John Locke, David Hume, Kant, serta kemunculan positivisme Auguste Comte."
+        },
+        {
+          "meetingNumber": 12,
+          "dateStr": "Sabtu, 28 November 2026",
+          "isoDate": "2026-11-28",
+          "title": "Filsafat Ilmu Kontemporer: Hermeneutika, Teori Kritis, dan Dekonstruksi Positivisme Sains",
+          "presenters": [
+            "FARIDATUL ALIYAH"
+          ],
+          "partCodes": [
+            "Pertemuan 12"
+          ],
+          "type": "kuliah",
+          "description": "Paradigma kualitatif dan kritis: Karl Popper (falsifikasi), Thomas Kuhn (pergeseran paradigma), dan Mazhab Frankfurt."
+        },
+        {
+          "meetingNumber": 13,
+          "dateStr": "Sabtu, 5 Desember 2026",
+          "isoDate": "2026-12-05",
+          "title": "Teori-Teori Kebenaran Ilmiah: Koherensi, Korespondensi, Pragmatis, dan Performatif",
+          "presenters": [
+            "JUWINDA FIRDA SARI"
+          ],
+          "partCodes": [
+            "Pertemuan 13"
+          ],
+          "type": "kuliah",
+          "description": "Kriteria kebenaran proposisi ilmiah serta penerapannya dalam verifikasi temuan penelitian manajemen pendidikan."
+        },
+        {
+          "meetingNumber": 14,
+          "dateStr": "Sabtu, 12 Desember 2026",
+          "isoDate": "2026-12-12",
+          "title": "Metodologi Penelitian dan Logika Penalaran Ilmiah: Induktif, Deduktif, dan Abduktif",
+          "presenters": [
+            "ANDRE ALI AKBAR"
+          ],
+          "partCodes": [
+            "Pertemuan 14"
+          ],
+          "type": "kuliah",
+          "description": "Pola penalaran logis dalam rancang bangun penelitian skripsi dan tesis di lingkungan Manajemen Pendidikan Islam."
+        },
+        {
+          "meetingNumber": 15,
+          "dateStr": "Sabtu, 19 Desember 2026",
+          "isoDate": "2026-12-19",
+          "title": "Integrasi Ilmu-Agama, Etika Akademik, dan Tantangan Keilmuan di Era Generative AI",
+          "presenters": [
+            "M.SYAIFUDIN ZUHRI",
+            "M. ZIDAN SAPUTRA",
+            "DELLA NOVITA SARI"
+          ],
+          "partCodes": [
+            "Pertemuan 15",
+            "Pertemuan 15",
+            "Pertemuan 15"
+          ],
+          "type": "kuliah",
+          "description": "Sidang panel 3 topik pamungkas: integrasi kearifan lokal, etika akademik amanah, serta tantangan epistemologi GenAI."
+        },
+        {
+          "meetingNumber": 16,
+          "dateStr": "Sabtu, 26 Desember 2026",
+          "isoDate": "2026-12-26",
+          "title": "Ujian Akhir Semester (UAS) - Festival & Penayangan Video Edukasi AI Kelompok 1-5",
+          "presenters": [
+            "Kelompok 1",
+            "Kelompok 2",
+            "Kelompok 3",
+            "Kelompok 4",
+            "Kelompok 5"
+          ],
+          "partCodes": [
+            "UAS Proyek"
+          ],
+          "type": "uas",
+          "description": "Penayangan video edukasi 1080p hasil kolaborasi AI (ChatGPT, Canva, CapCut, D-ID), review dosen, dan evaluasi nilai akhir."
+        }
+      ],
+      "submissions": [],
+      "utsSubmissions": [],
+      "uasSubmissions": [],
+      "quizSubmissions": []
+    }
+  ],
+  "rpsRawText": "",
+  "allTimeSubmissions": [
+    {
+      "studentId": "mhs-1",
+      "studentName": "DWI SUPRIONO",
+      "rpsPart": "Pertemuan 2",
+      "topic": "Urgensi Filsafat",
+      "meetingNumber": 2,
+      "pptType": "link",
+      "pptUrl": "https://canva.com/sample",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/sample",
+      "id": "sub-1789780156098-9lc0e",
+      "submittedAt": "2026-09-19T01:09:16.098Z"
+    },
+    {
+      "studentId": "mhs-3",
+      "studentName": "HADI DWI PRASETYO",
+      "rpsPart": "Pertemuan 4",
+      "topic": "Pilar Ontologi Ilmu",
+      "meetingNumber": 4,
+      "pptType": "link",
+      "pptUrl": "https://canva.com/test-hadi",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/test-hadi",
+      "submittedAt": "2026-09-19T01:36:01.092Z",
+      "id": "sub-1789781761092-aj8xw",
+      "grade": 92,
+      "feedback": "Pemaparan ontologi sangat mendalam dan slide rapi.",
+      "gradedAt": "2026-09-19T01:36:06.345Z"
+    }
+  ]
+}
