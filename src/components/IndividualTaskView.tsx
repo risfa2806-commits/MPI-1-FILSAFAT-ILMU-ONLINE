@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Student, IndividualSubmission, MeetingSchedule } from '../types';
+import { Student, IndividualSubmission, MeetingSchedule, StudentGrade } from '../types';
 import {
   submitIndividualTask,
   deleteSubmissionApi,
@@ -54,6 +54,7 @@ interface IndividualTaskViewProps {
   students: Student[];
   currentStudent: Student | null;
   submissions: IndividualSubmission[];
+  grades?: Record<string, StudentGrade>;
   meetings?: MeetingSchedule[];
   onRefreshData: () => Promise<void>;
   onSelectStudent: (student: Student) => void;
@@ -65,6 +66,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   students = [],
   currentStudent,
   submissions = [],
+  grades = {},
   meetings = [],
   onRefreshData,
   onSelectStudent,
@@ -158,6 +160,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   }, [localSubmissions]);
 
   // Merge server submissions and local submissions per student AND per meeting
+  // SERVER SUBMISSION AND SERVER GRADES ARE ALWAYS AUTHORITATIVE!
   const effectiveSubmissions = useMemo(() => {
     const list = [...(submissions || [])];
     localSubmissions.forEach(localSub => {
@@ -167,7 +170,14 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
         (s.studentId === localSub.studentId && (Number(s.meetingNumber) || 2) === targetMeeting)
       );
       if (idx >= 0) {
-        list[idx] = { ...list[idx], ...localSub };
+        // Crucial fix: preserve server grade, feedback, and gradedAt over un-graded local overrides
+        list[idx] = {
+          ...localSub,
+          ...list[idx],
+          grade: list[idx].grade !== undefined ? list[idx].grade : localSub.grade,
+          feedback: list[idx].feedback || localSub.feedback,
+          gradedAt: list[idx].gradedAt || localSub.gradedAt,
+        };
       } else {
         list.unshift(localSub);
       }
@@ -202,6 +212,14 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
       )
     );
   }, [effectiveSubmissions, targetStudent, selectedMeetingNumber]);
+
+  // Effective grade from either submission or grades table fallback
+  const currentGradeObj = grades[targetStudent?.id || ''];
+  const effectiveGrade = existingSubmission?.grade !== undefined
+    ? existingSubmission.grade
+    : (selectedMeetingNumber === (targetStudent?.meetingNumber || 2) ? currentGradeObj?.individualScore : undefined);
+  const effectiveFeedback = existingSubmission?.feedback || (effectiveGrade !== undefined ? currentGradeObj?.notes : undefined);
+  const hasEffectiveGrade = effectiveGrade !== undefined && effectiveGrade > 0;
 
   // Meeting Presenters (Kelompok PPT/Makalah di pertemuan ini)
   const meetingPresenters = useMemo(() => {
@@ -1560,9 +1578,13 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
               <div className="pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500 font-medium">Status Tugas Pertemuan {selectedMeetingNumber}:</span>
-                  {existingSubmission ? (
-                    <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 size={13} /> Terkirim
+                  {hasEffectiveGrade ? (
+                    <span className="inline-flex items-center gap-1 font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-2xs">
+                      <Award size={13} className="text-emerald-700" /> Sudah Dinilai ({effectiveGrade}/100)
+                    </span>
+                  ) : existingSubmission ? (
+                    <span className="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                      <CheckCircle2 size={13} /> Terkirim (Menunggu Nilai)
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
@@ -1657,21 +1679,26 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
               </div>
 
               {/* Dosen Grade & Feedback if available */}
-              {existingSubmission?.grade !== undefined && (
-                <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-300">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-emerald-950 flex items-center gap-1">
-                      <Award size={14} className="text-emerald-700" />
-                      Nilai Tugas Pertemuan {selectedMeetingNumber}:
+              {hasEffectiveGrade && (
+                <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-300 shadow-2xs space-y-2 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                      <Award size={15} className="text-emerald-700" />
+                      Nilai Resmi Dosen Pengampu:
                     </span>
-                    <span className="text-base font-extrabold text-emerald-800">
-                      {existingSubmission.grade} / 100
+                    <span className="text-base font-black text-emerald-800 bg-emerald-200/90 px-2.5 py-0.5 rounded-lg border border-emerald-400">
+                      {effectiveGrade} <span className="text-xs font-normal text-emerald-700">/ 100</span>
                     </span>
                   </div>
-                  {existingSubmission.feedback && (
-                    <p className="text-xs text-emerald-900 mt-1 italic bg-white/70 p-2 rounded border border-emerald-200">
-                      "{existingSubmission.feedback}"
+                  {effectiveFeedback && (
+                    <p className="text-xs text-emerald-900 mt-1 italic bg-white/80 p-2.5 rounded-lg border border-emerald-200 leading-relaxed">
+                      "{effectiveFeedback}"
                     </p>
+                  )}
+                  {existingSubmission?.gradedAt && (
+                    <div className="text-[10px] text-emerald-700 font-medium">
+                      Waktu Penilaian: {new Date(existingSubmission.gradedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </div>
                   )}
                 </div>
               )}
@@ -1835,7 +1862,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                 </div>
 
                 {/* Graded by Lecturer Notification Banner */}
-                {existingSubmission.grade !== undefined && (
+                {hasEffectiveGrade && (
                   <div className="p-4 bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 text-white rounded-xl shadow-md border border-emerald-400/40 flex items-center justify-between gap-4 animate-fadeIn">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-500/30 border border-emerald-400/50 flex items-center justify-center text-emerald-300 flex-shrink-0 mt-0.5">
@@ -1847,12 +1874,12 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                             SUDAH DINILAI DOSEN
                           </span>
                           <span className="text-xs text-emerald-200 font-semibold">
-                            Nilai Dosen: <strong className="text-sm text-yellow-300 font-extrabold">{existingSubmission.grade}</strong> / 100
+                            Nilai Dosen: <strong className="text-sm text-yellow-300 font-extrabold">{effectiveGrade}</strong> / 100
                           </span>
                         </div>
                         <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
-                          {existingSubmission.feedback
-                            ? `Catatan Dosen: "${existingSubmission.feedback}"`
+                          {effectiveFeedback
+                            ? `Catatan Dosen: "${effectiveFeedback}"`
                             : 'Tugas presentasi telah diverifikasi dan dinilai permanen oleh Dosen Pengampu.'}
                         </p>
                       </div>

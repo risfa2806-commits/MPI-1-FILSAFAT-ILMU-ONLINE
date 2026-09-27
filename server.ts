@@ -2026,17 +2026,29 @@ app.post('/api/individual-grade', (req, res) => {
   }
 
   if (!db.submissions) db.submissions = [];
-  let sub = (db.submissions || []).find(s => s.studentId === studentId);
-  if (sub) {
-    sub.grade = Number(grade);
-    sub.feedback = feedback || '';
-    sub.gradedAt = new Date().toISOString();
+  const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
+  const stdName = std?.name?.toLowerCase().trim();
+  const stdNim = std?.nim;
+
+  let matchedSubs = (db.submissions || []).filter(s =>
+    s.studentId === studentId ||
+    (Boolean(stdNim) && s.nim === stdNim) ||
+    (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
+  );
+
+  let sub: any;
+  if (matchedSubs.length > 0) {
+    matchedSubs.forEach(s => {
+      s.grade = Number(grade);
+      s.feedback = feedback || '';
+      s.gradedAt = new Date().toISOString();
+    });
+    sub = matchedSubs[0];
   } else {
     // If student hadn't submitted a formal file yet, create submission record so grade is preserved permanently
-    const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
     sub = {
       id: `sub-${Date.now()}-${studentId}`,
-      studentId,
+      studentId: std ? std.id : studentId,
       studentName: std ? std.name : 'Mahasiswa',
       rpsPart: std?.rpsPart || `Pertemuan ${std?.meetingNumber || 2}`,
       topic: std?.topic || 'Tugas Presentasi RPS',
@@ -2051,9 +2063,10 @@ app.post('/api/individual-grade', (req, res) => {
     db.submissions.push(sub);
   }
 
+  const targetGradeKey = std ? std.id : studentId;
   if (!db.grades) db.grades = {};
-  if (!db.grades[studentId]) {
-    db.grades[studentId] = {
+  if (!db.grades[targetGradeKey]) {
+    db.grades[targetGradeKey] = {
       attendanceScore: 100,
       attitudeScore: 85,
       individualScore: Number(grade),
@@ -2065,11 +2078,15 @@ app.post('/api/individual-grade', (req, res) => {
       notes: feedback || `Nilai Tugas Presentasi: ${grade}`,
     };
   } else {
-    db.grades[studentId].individualScore = Number(grade);
-    if (feedback) db.grades[studentId].notes = feedback;
+    db.grades[targetGradeKey].individualScore = Number(grade);
+    if (feedback) db.grades[targetGradeKey].notes = feedback;
   }
 
-  recalculateStudentGrade(db.grades[studentId]);
+  recalculateStudentGrade(db.grades[targetGradeKey]);
+
+  if (targetGradeKey !== studentId) {
+    db.grades[studentId] = db.grades[targetGradeKey];
+  }
 
   if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
     db.allCoursesData[db.activeCourseId].submissions = db.submissions;
@@ -2077,7 +2094,7 @@ app.post('/api/individual-grade', (req, res) => {
   }
 
   saveDatabase();
-  res.json({ success: true, submission: sub, studentGrade: db.grades[studentId] });
+  res.json({ success: true, submission: sub, studentGrade: db.grades[targetGradeKey] });
 });
 
 // 7b. Submit UTS answers (Mahasiswa - 5 Soal Essay dengan Deteksi AI & Penilaian Otomatis)
@@ -3480,6 +3497,45 @@ app.post('/api/grades', (req, res) => {
   };
   recalculateStudentGrade(gradeObj);
   db.grades[studentId] = gradeObj;
+
+  // Sync with db.submissions so student sees their grade immediately on dashboard
+  if (!db.submissions) db.submissions = [];
+  const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
+  const stdName = std?.name?.toLowerCase().trim();
+  const stdNim = std?.nim;
+  const subs = (db.submissions || []).filter(s =>
+    s.studentId === studentId ||
+    (Boolean(stdNim) && s.nim === stdNim) ||
+    (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
+  );
+
+  if (subs.length > 0) {
+    subs.forEach(s => {
+      s.grade = indiv;
+      if (notes) s.feedback = notes;
+      s.gradedAt = new Date().toISOString();
+    });
+  } else if (std) {
+    db.submissions.push({
+      id: `sub-${Date.now()}-${std.id}`,
+      studentId: std.id,
+      studentName: std.name,
+      rpsPart: std.rpsPart || `Pertemuan ${std.meetingNumber || 2}`,
+      topic: std.topic || 'Tugas Presentasi RPS',
+      meetingNumber: std.meetingNumber || 2,
+      presentationType: 'individu',
+      pptType: 'link',
+      submittedAt: new Date().toISOString(),
+      grade: indiv,
+      feedback: notes || `Nilai Tugas Presentasi: ${indiv}`,
+      gradedAt: new Date().toISOString(),
+    });
+  }
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+    db.allCoursesData[db.activeCourseId].grades = db.grades;
+  }
 
   saveDatabase();
   res.json({ success: true, grade: db.grades[studentId] });
@@ -5134,6 +5190,11 @@ app.post('/api/presentation-group-grade', (req, res) => {
     }
     recalculateStudentGrade(db.grades[std.id]);
   });
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+    db.allCoursesData[db.activeCourseId].grades = db.grades;
+  }
 
   saveDatabase();
 

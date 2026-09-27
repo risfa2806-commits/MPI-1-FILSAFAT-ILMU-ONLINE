@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { MeetingSchedule, Student, IndividualSubmission } from '../types';
-import { Calendar, User, FileText, CheckCircle2, Clock, ExternalLink, Download, Search } from 'lucide-react';
+import { MeetingSchedule, Student, IndividualSubmission, StudentGrade } from '../types';
+import { Calendar, User, FileText, CheckCircle2, Clock, ExternalLink, Download, Search, Award, Sparkles } from 'lucide-react';
 
 interface RpsMeetingListProps {
   meetings: MeetingSchedule[];
   students: Student[];
   submissions: IndividualSubmission[];
+  grades?: Record<string, StudentGrade>;
   currentStudent: Student | null;
-  onSelectStudentTask: (student: Student) => void;
-  onOpenUploadForStudent: (student: Student) => void;
+  onSelectStudentTask: (student: Student, meetingNumber?: number) => void;
+  onOpenUploadForStudent: (student: Student, meetingNumber?: number) => void;
 }
 
 export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
   meetings = [],
   students = [],
   submissions = [],
+  grades = {},
   currentStudent,
   onSelectStudentTask,
   onOpenUploadForStudent,
@@ -177,34 +179,95 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                     <div className="space-y-2">
                       {assignedStudents.map(std => {
                         const submission = (submissions || []).find(
-                          s => (s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim)) &&
+                          s => (s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())) &&
                                (Number(s.meetingNumber) || 2) === meeting.meetingNumber
                         );
                         const isCurrent = currentStudent?.id === std.id;
+                        const gradeObj = grades[std.id];
+                        const gradeScore = submission?.grade !== undefined ? submission.grade : gradeObj?.individualScore;
+                        const isGraded = gradeScore !== undefined && gradeScore > 0;
+                        const gradeFeedback = submission?.feedback || (isGraded ? gradeObj?.notes : undefined);
 
                         return (
                           <div
                             key={std.id}
-                            className={`p-2.5 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                            className={`p-2.5 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all ${
                               isCurrent
-                                ? 'bg-emerald-50/80 border-emerald-300'
+                                ? isGraded
+                                  ? 'bg-emerald-50/95 border-emerald-400 ring-2 ring-emerald-500/30 shadow-2xs'
+                                  : 'bg-emerald-50/80 border-emerald-300'
+                                : isGraded
+                                ? 'bg-emerald-50/40 border-emerald-200'
                                 : 'bg-slate-50/80 border-slate-200'
                             }`}
                           >
-                            <div>
-                              <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-bold text-slate-900">{std.name}</span>
                                 <span className="text-[10px] font-bold bg-emerald-700 text-white px-1.5 py-0.2 rounded">
                                   {std.rpsPart}
                                 </span>
+                                {isCurrent && (
+                                  <span className="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.2 rounded uppercase tracking-wider">
+                                    Tugas Anda
+                                  </span>
+                                )}
                               </div>
                               <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
                                 {std.topic}
                               </div>
+                              {isGraded && gradeFeedback && (
+                                <div className="text-[11px] text-emerald-800 italic bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-300 mt-1 line-clamp-2">
+                                  💬 Evaluasi Dosen: "{gradeFeedback}"
+                                </div>
+                              )}
                             </div>
 
-                            <div className="flex items-center gap-1.5 self-end sm:self-auto">
-                              {submission ? (
+                            <div className="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0">
+                              {isGraded ? (
+                                <div className="flex items-center gap-1">
+                                  <div className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-900 bg-emerald-200/90 border border-emerald-400 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                    <Award size={13} className="text-emerald-700" />
+                                    <span>Nilai: {gradeScore}/100</span>
+                                  </div>
+
+                                  {/* Download PPT or link */}
+                                  {submission?.pptType === 'link' && submission.pptUrl && (
+                                    <a
+                                      href={submission.pptUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="p-1 text-slate-600 hover:text-emerald-700 bg-white border border-slate-200 rounded hover:bg-slate-100 transition-colors"
+                                      title="Buka Link PPT / Canva"
+                                    >
+                                      <ExternalLink size={13} />
+                                    </a>
+                                  )}
+                                  {submission?.pptType === 'file' && submission.pptFileData && (
+                                    <a
+                                      href={submission.pptFileData}
+                                      download={submission.pptFileName || `PPT-${std.rpsPart}-${std.name}.pptx`}
+                                      className="p-1 text-slate-600 hover:text-emerald-700 bg-white border border-slate-200 rounded hover:bg-slate-100 transition-colors"
+                                      title="Download File PPT"
+                                    >
+                                      <Download size={13} />
+                                    </a>
+                                  )}
+
+                                  {/* Buka Rincian Tugas Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onSelectStudentTask(std, meeting.meetingNumber);
+                                      onOpenUploadForStudent(std, meeting.meetingNumber);
+                                    }}
+                                    className="p-1 text-slate-600 hover:text-emerald-700 bg-white border border-slate-200 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="Lihat Detail Nilai & Berkas"
+                                  >
+                                    <Award size={13} className="text-emerald-600" />
+                                  </button>
+                                </div>
+                              ) : submission ? (
                                 <div className="flex items-center gap-1">
                                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                                     <CheckCircle2 size={12} /> Terkirim
@@ -237,8 +300,8 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      onSelectStudentTask(std);
-                                      onOpenUploadForStudent(std);
+                                      onSelectStudentTask(std, meeting.meetingNumber);
+                                      onOpenUploadForStudent(std, meeting.meetingNumber);
                                     }}
                                     className="p-1 text-slate-600 hover:text-amber-700 bg-white border border-slate-200 rounded hover:bg-slate-100 transition-colors cursor-pointer"
                                     title="Perbarui / Buka Form Tugas Pertemuan Ini"
@@ -250,8 +313,8 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    onSelectStudentTask(std);
-                                    onOpenUploadForStudent(std);
+                                    onSelectStudentTask(std, meeting.meetingNumber);
+                                    onOpenUploadForStudent(std, meeting.meetingNumber);
                                   }}
                                   className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
                                 >

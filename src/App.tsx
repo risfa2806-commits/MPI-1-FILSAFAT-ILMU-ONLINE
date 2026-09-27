@@ -31,6 +31,7 @@ import { TopDeadlineBanner } from './components/TopDeadlineBanner';
 import { ToastNotification } from './components/ToastNotification';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { DailyMotivationCard } from './components/DailyMotivationCard';
+import { StudentGradeDashboardCard } from './components/StudentGradeDashboardCard';
 import { StudentMessageModal } from './components/StudentMessageModal';
 import { LeaderboardView } from './components/LeaderboardView';
 import {
@@ -272,25 +273,62 @@ export default function App() {
   const studentGradedInfo = useMemo(() => {
     if (!currentStudent || isDosen) return null;
     const stdId = currentStudent.id;
+    const stdNim = currentStudent.nim;
     const stdName = currentStudent.name.toLowerCase().trim();
+    const studentGradeObj = db?.grades?.[stdId] || (stdNim ? Object.values(db?.grades || {}).find((_, idx) => Object.keys(db?.grades || {})[idx] === stdNim) : undefined);
 
-    // 1. Presentation submission
-    const indSub = (db.submissions || []).find(
-      s => s.studentId === stdId || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
+    // 1. Presentation submission: check all submissions for any with grade, or check db.grades
+    const allIndSubs = (db?.submissions || []).filter(
+      s => s.studentId === stdId || (Boolean(stdNim) && s.nim === stdNim) || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
     );
-    const indGraded = indSub && indSub.grade !== undefined ? indSub : null;
+    const indSubWithGrade = allIndSubs.find(s => s.grade !== undefined);
+    let indGraded = indSubWithGrade || null;
 
-    // 2. UTS submission
-    const utsSub = (db.utsSubmissions || []).find(
-      u => u.studentId === stdId || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
+    if (!indGraded && studentGradeObj && studentGradeObj.individualScore !== undefined && studentGradeObj.individualScore > 0) {
+      indGraded = {
+        id: `grade-ind-${stdId}`,
+        studentId: stdId,
+        studentName: currentStudent.name,
+        rpsPart: currentStudent.rpsPart || `Pertemuan ${currentStudent.meetingNumber || 2}`,
+        topic: currentStudent.topic || 'Tugas Presentasi RPS',
+        meetingNumber: currentStudent.meetingNumber || 2,
+        grade: studentGradeObj.individualScore,
+        feedback: studentGradeObj.notes || 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
+
+    // 2. UTS submission: check all UTS submissions for any with grade, or check db.grades
+    const allUtsSubs = (db?.utsSubmissions || []).filter(
+      u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
     );
-    const utsGraded = utsSub && utsSub.grade !== undefined ? utsSub : null;
+    const utsSubWithGrade = allUtsSubs.find(u => u.grade !== undefined);
+    let utsGraded = utsSubWithGrade || null;
+
+    if (!utsGraded && studentGradeObj && studentGradeObj.utsScore !== undefined && studentGradeObj.utsScore > 0) {
+      utsGraded = {
+        id: `grade-uts-${stdId}`,
+        studentId: stdId,
+        studentName: currentStudent.name,
+        grade: studentGradeObj.utsScore,
+        feedback: 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
 
     // 3. UAS Group submission
-    const grp = (db.groups || []).find(g =>
-      (g.members || []).some(m => m.studentId === stdId || (m.studentName && m.studentName.toLowerCase().trim() === stdName))
+    const grp = (db?.groups || []).find(g =>
+      (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
+      g.id === currentStudent.groupId
     );
-    const grpGraded = grp && grp.grade !== undefined ? grp : null;
+    let grpGraded = grp && grp.grade !== undefined ? grp : null;
+
+    if (!grpGraded && studentGradeObj && studentGradeObj.uasScore !== undefined && studentGradeObj.uasScore > 0) {
+      grpGraded = {
+        id: currentStudent.groupId || 1,
+        name: grp ? grp.name : `Kelompok ${currentStudent.groupId || 1}`,
+        grade: studentGradeObj.uasScore,
+        feedback: 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
 
     if (!indGraded && !utsGraded && !grpGraded) return null;
     return { indGraded, utsGraded, grpGraded };
@@ -444,26 +482,26 @@ export default function App() {
                     Tugas Anda Telah Dinilai Dosen Pengampu!
                   </span>
                 </div>
-                <p className="text-xs text-slate-200 leading-relaxed max-w-2xl">
+                <div className="text-xs text-slate-200 leading-relaxed max-w-2xl space-y-1">
                   {studentGradedInfo.indGraded && (
-                    <span>
-                      Tugas Presentasi &amp; Makalah ({studentGradedInfo.indGraded.rpsPart || 'RPS'}) telah dinilai dengan Skor <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.indGraded.grade}/100</strong>.
+                    <p>
+                      • Tugas Presentasi &amp; Makalah ({studentGradedInfo.indGraded.rpsPart || 'RPS'}): Skor <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.indGraded.grade}/100</strong>.
                       {studentGradedInfo.indGraded.feedback && ` Catatan Evaluasi Dosen: "${studentGradedInfo.indGraded.feedback}".`}
-                    </span>
+                    </p>
                   )}
-                  {studentGradedInfo.utsGraded && !studentGradedInfo.indGraded && (
-                    <span>
-                      Ujian UTS 5 Esai telah dinilai oleh Dosen dengan Nilai <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.utsGraded.grade}/100</strong>.
+                  {studentGradedInfo.utsGraded && (
+                    <p>
+                      • Ujian UTS 5 Esai: Nilai <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.utsGraded.grade}/100</strong>.
                       {studentGradedInfo.utsGraded.feedback && ` Catatan: "${studentGradedInfo.utsGraded.feedback}".`}
-                    </span>
+                    </p>
                   )}
-                  {studentGradedInfo.grpGraded && !studentGradedInfo.indGraded && !studentGradedInfo.utsGraded && (
-                    <span>
-                      Proyek UAS Video Kelompok {studentGradedInfo.grpGraded.name} telah dinilai dengan Nilai <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.grpGraded.grade}/100</strong>.
+                  {studentGradedInfo.grpGraded && (
+                    <p>
+                      • Proyek UAS Video Kelompok {studentGradedInfo.grpGraded.name}: Nilai <strong className="text-emerald-300 text-sm font-extrabold">{studentGradedInfo.grpGraded.grade}/100</strong>.
                       {studentGradedInfo.grpGraded.feedback && ` Catatan: "${studentGradedInfo.grpGraded.feedback}".`}
-                    </span>
+                    </p>
                   )}
-                </p>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
@@ -485,18 +523,36 @@ export default function App() {
           onOpenMessageModal={() => setIsStudentMessageOpen(true)}
         />
 
+        {/* Dasbor Nilai & Status Akademik Mahasiswa Real-Time */}
+        {!isDosen && currentStudent && (
+          <StudentGradeDashboardCard
+            currentStudent={currentStudent}
+            grades={db.grades || {}}
+            submissions={db.submissions || []}
+            utsSubmissions={db.utsSubmissions || []}
+            groups={db.groups || []}
+            meetings={db.meetings || []}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onSelectStudentTask={(std, meetingNumber) => {
+              setSelectedStudentForTask(std);
+              setActiveTab('tugas-individu');
+            }}
+          />
+        )}
+
         {/* TAB 1: JADWAL & RPS 16 PERTEMUAN */}
         {activeTab === 'jadwal' && (
           <RpsMeetingList
             meetings={db.meetings}
             students={db.students}
             submissions={db.submissions}
+            grades={db.grades || {}}
             currentStudent={currentStudent}
-            onSelectStudentTask={(std) => {
+            onSelectStudentTask={(std, meetingNumber) => {
               setSelectedStudentForTask(std);
               setActiveTab('tugas-individu');
             }}
-            onOpenUploadForStudent={(std) => {
+            onOpenUploadForStudent={(std, meetingNumber) => {
               setSelectedStudentForTask(std);
               setActiveTab('tugas-individu');
             }}
@@ -509,6 +565,7 @@ export default function App() {
             students={db.students}
             currentStudent={currentStudent}
             submissions={db.submissions}
+            grades={db.grades || {}}
             meetings={db.meetings || []}
             onRefreshData={reloadData}
             onSelectStudent={handleSelectStudent}
