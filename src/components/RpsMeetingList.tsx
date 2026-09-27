@@ -176,7 +176,10 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                   {(assignedStudents?.length || 0) > 0 ? (
                     <div className="space-y-2">
                       {assignedStudents.map(std => {
-                        const submission = (submissions || []).find(s => s.studentId === std.id);
+                        const submission = (submissions || []).find(
+                          s => (s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim)) &&
+                               (Number(s.meetingNumber) || 2) === meeting.meetingNumber
+                        );
                         const isCurrent = currentStudent?.id === std.id;
 
                         return (
@@ -229,11 +232,28 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                       <Download size={13} />
                                     </a>
                                   )}
+
+                                  {/* Edit / Perbarui Tugas Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onSelectStudentTask(std);
+                                      onOpenUploadForStudent(std);
+                                    }}
+                                    className="p-1 text-slate-600 hover:text-amber-700 bg-white border border-slate-200 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="Perbarui / Buka Form Tugas Pertemuan Ini"
+                                  >
+                                    <Clock size={13} />
+                                  </button>
                                 </div>
                               ) : (
                                 <button
-                                  onClick={() => onOpenUploadForStudent(std)}
-                                  className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1"
+                                  type="button"
+                                  onClick={() => {
+                                    onSelectStudentTask(std);
+                                    onOpenUploadForStudent(std);
+                                  }}
+                                  className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
                                 >
                                   <Clock size={11} />
                                   <span>Unggah PPT</span>

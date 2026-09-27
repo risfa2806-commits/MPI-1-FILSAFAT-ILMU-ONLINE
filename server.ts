@@ -1513,12 +1513,12 @@ function saveBase64FileToDisk(dataUrlOrPath?: string, preferredName?: string): {
   }
 
   try {
-    const matches = dataUrlOrPath.match(/^data:([A-Za-z0-9+/=;.-]+);base64,(.+)$/);
+    const matches = dataUrlOrPath.match(/^data:([A-Za-z0-9+/=;.-]+);base64,(.+)$/s);
     if (!matches || matches.length < 3) {
       return { url: dataUrlOrPath, fileName: preferredName };
     }
     const mime = matches[1];
-    const base64Data = matches[2];
+    const base64Data = matches[2].replace(/\s/g, '');
     const buffer = Buffer.from(base64Data, 'base64');
     
     let ext = '.bin';

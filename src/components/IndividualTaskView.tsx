@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Student, IndividualSubmission, MeetingSchedule } from '../types';
 import {
   submitIndividualTask,
@@ -139,7 +139,17 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
 
   useEffect(() => {
     try {
-      localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(localSubmissions));
+      const sanitized = localSubmissions.map(sub => {
+        const copy = { ...sub };
+        if (copy.pptFileData && copy.pptFileData.startsWith('data:') && copy.pptFileData.length > 50000) {
+          copy.pptFileData = '';
+        }
+        if (copy.makalahFileData && copy.makalahFileData.startsWith('data:') && copy.makalahFileData.length > 50000) {
+          copy.makalahFileData = '';
+        }
+        return copy;
+      });
+      localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(sanitized));
     } catch (e) {
       console.error(e);
     }
@@ -219,6 +229,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
       setSubmissionChoice('ppt_only');
       setPptType('file');
     } else if (tab === 'input_link') {
+      setSubmissionChoice('both');
       setPptType('link');
       setMakalahType('link');
     } else if (tab === 'all') {
@@ -351,10 +362,20 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     }
   };
 
+  // Ref to track which submission/meeting/student was loaded into the form
+  // to avoid polling re-renders wiping out user inputs
+  const lastInitializedKeyRef = useRef<string>('');
+
   // When target student or selected meeting changes, reload form with existing submission if available
   useEffect(() => {
+    const currentKey = `${activeTargetId || ''}_${selectedMeetingNumber}_${existingSubmission?.id || 'none'}`;
+    if (lastInitializedKeyRef.current === currentKey) {
+      return;
+    }
+    lastInitializedKeyRef.current = currentKey;
+
     if (existingSubmission) {
-      setPptType(existingSubmission.pptType);
+      setPptType(existingSubmission.pptType || 'link');
       setPptUrl(existingSubmission.pptUrl || '');
       setPptFileName(existingSubmission.pptFileName || '');
       setPptFileData(existingSubmission.pptFileData || '');
@@ -390,7 +411,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     }
     setSubmitSuccessMsg(null);
     setErrorMsg(null);
-  }, [activeTargetId, selectedMeetingNumber, existingSubmission, currentMeetingSchedule, targetStudent]);
+  }, [activeTargetId, selectedMeetingNumber, existingSubmission?.id]);
 
   // Handle PPT file upload
   const handlePptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -512,6 +533,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
       // 2. Asynchronous database call to verify completion
       const result = await submitIndividualTask(payload);
       if (result.success) {
+        lastInitializedKeyRef.current = '';
         setIsEditingExisting(false);
         setSubmitSuccessMsg(
           result.offlineStored
@@ -1057,6 +1079,8 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                   onClick={() => {
                     setActiveTargetId(std.id);
                     onSelectStudent(std);
+                    setSelectedMeetingNumber(std.meetingNumber || 2);
+                    setIsEditingExisting(false);
                   }}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
                     isSelected
@@ -1566,6 +1590,20 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                     </a>
                   )}
 
+                  {/* Mahasiswa / Dosen: Edit / Perbarui Tugas (Revisi) */}
+                  {(!existingSubmission.grade || isDosen) && (
+                    <button
+                      type="button"
+                      id="btn-edit-tugas-left-col"
+                      onClick={() => setIsEditingExisting(true)}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition-colors cursor-pointer shadow-xs active:scale-95"
+                      title="Perbarui link atau unggah ulang file tugas pertemuan ini"
+                    >
+                      <Edit3 size={14} />
+                      <span>Perbarui / Upload Ulang (Revisi)</span>
+                    </button>
+                  )}
+
                   {/* Dosen Only: Delete / Reset Submission */}
                   {isDosen && (
                     <div className="pt-2">
@@ -1694,6 +1732,19 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                   </div>
 
                   <div className="pt-2 flex flex-wrap items-center gap-2">
+                    {/* Mahasiswa / Dosen: Edit / Upload Ulang Berkas Tugas (Revisi) */}
+                    {(!existingSubmission.grade || isDosen) && (
+                      <button
+                        type="button"
+                        id="btn-edit-tugas-main-panel"
+                        onClick={() => setIsEditingExisting(true)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                        title="Buka form untuk mengganti file atau link tugas pertemuan ini"
+                      >
+                        <Edit3 size={14} />
+                        <span>Perbarui / Upload Ulang Berkas Tugas (Revisi)</span>
+                      </button>
+                    )}
                     {selectedMeetingNumber < 16 && (
                       <button
                         type="button"

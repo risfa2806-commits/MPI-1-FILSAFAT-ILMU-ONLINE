@@ -209,6 +209,7 @@ export default function App() {
   // Handle student selection
   const handleSelectStudent = (student: Student) => {
     setCurrentStudentId(student.id);
+    setSelectedStudentForTask(student);
     localStorage.setItem('siakad_current_student_id', student.id);
     sendHeartbeat(student.id, student.name);
   };

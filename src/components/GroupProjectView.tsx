@@ -85,6 +85,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isEditingGroupProject, setIsEditingGroupProject] = useState(false);
 
   // Reset state for group submission
   const [resettingSubmissionGroupId, setResettingSubmissionGroupId] = useState<number | null>(null);
@@ -362,6 +363,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
     setErrorMsg(null);
     setShowAddMember(false);
     setMemberActionMsg(null);
+    setIsEditingGroupProject(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -385,6 +387,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
       });
 
       if (ok) {
+        setIsEditingGroupProject(false);
         setSuccessMsg('Proyek Video Edukasi Kelompok berhasil disimpan dan tersinkronisasi ke Dosen!');
         await onRefreshData();
       } else {
@@ -1111,7 +1114,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
           )}
 
           {/* Akses Review & Unduh Media Presentasi Kelompok */}
-          {activeGroup.submission?.videoUrl ? (
+          {activeGroup.submission?.videoUrl && !isEditingGroupProject ? (
             <div className="space-y-4">
               {/* Media Player Card */}
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
@@ -1258,9 +1261,28 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
 
                   <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
                     <AlertCircle size={16} className="text-amber-700 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-900 leading-relaxed">
-                      <strong>Fitur Perbaikan (Revisi):</strong> Mahasiswa hanya dapat mengirimkan ulang tugas jika Dosen Pengampu telah <em>mereset atau menghapus</em> status pengumpulan sebelumnya di panel dosen. Silakan koordinasi dengan dosen jika perbaikan mendesak diperlukan.
-                    </p>
+                    <div className="space-y-2 text-xs text-amber-900 leading-relaxed">
+                      <p>
+                        <strong>Fitur Perbaikan (Revisi):</strong> Mahasiswa dapat memperbarui tautan video atau refleksi kelompok jika diperlukan perbaikan sebelum dinilai permanen.
+                      </p>
+                      {(!activeGroup.grade || isDosen) && (
+                        <button
+                          type="button"
+                          id="btn-edit-proyek-kelompok"
+                          onClick={() => {
+                            setVideoUrl(activeGroup.submission?.videoUrl || '');
+                            setAiToolsUsed(activeGroup.submission?.aiToolsUsed || activeGroup.toolsSuggested || '');
+                            setSummaryNotes(activeGroup.submission?.summaryNotes || '');
+                            setSubmittedBy(activeGroup.submission?.submittedBy || currentStudent?.name || '');
+                            setIsEditingGroupProject(true);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                        >
+                          <Edit2 size={13} />
+                          <span>Perbarui / Upload Ulang Video Proyek (Revisi)</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -1316,6 +1338,25 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                   Form Terbuka
                 </span>
               </div>
+
+              {/* Mode Edit Banner jika mengedit tugas video kelompok */}
+              {isEditingGroupProject && (
+                <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-center justify-between gap-3 animate-fadeIn shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <Edit2 size={16} className="text-amber-700 shrink-0" />
+                    <span>
+                      <strong>Mode Edit Aktif:</strong> Anda sedang memperbarui tugas video kelompok {activeGroup.name}. Tautan baru akan menggantikan berkas lama.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingGroupProject(false)}
+                    className="px-3 py-1 bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 rounded-lg text-xs font-bold cursor-pointer shrink-0"
+                  >
+                    Batal Edit
+                  </button>
+                </div>
+              )}
 
               <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
                 <AlertCircle size={15} className="text-amber-700 shrink-0 mt-0.5" />

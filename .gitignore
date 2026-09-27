@@ -7,5 +7,6 @@ coverage/
 .env*
 !.env.example
 powershell.cmd
+powershell.bat
 data/siakad-all-time-submissions.json
 data/*.backup.json
