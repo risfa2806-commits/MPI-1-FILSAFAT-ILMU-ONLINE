@@ -1580,6 +1580,47 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                   </div>
                 )}
 
+                {/* Dosen Quick Action: Hapus / Reset Tugas di Atas (mudah diakses tanpa scroll) */}
+                {isDosen && existingSubmission && (
+                  <div className="mt-2.5">
+                    {!isConfirmingDeleteSub ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsConfirmingDeleteSub(true)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 transition-colors shadow-2xs cursor-pointer"
+                        title={`Hapus / Reset tugas Pertemuan ${selectedMeetingNumber} mahasiswa ini (Akses Dosen)`}
+                      >
+                        <Trash2 size={13} />
+                        <span>Hapus / Reset Pertemuan {selectedMeetingNumber} (Akses Dosen)</span>
+                      </button>
+                    ) : (
+                      <div className="p-3 bg-rose-100/90 border border-rose-300 rounded-xl space-y-2 animate-fadeIn">
+                        <p className="text-[11px] font-semibold text-rose-950">
+                          Yakin hapus tugas Pertemuan {selectedMeetingNumber} milik <strong>{targetStudent.name}</strong>? Mahasiswa dapat mengunggah ulang.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsConfirmingDeleteSub(false)}
+                            className="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 cursor-pointer"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isDosenDeleting}
+                            onClick={handleExecuteDosenDeleteSubmission}
+                            className="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer shadow-xs"
+                          >
+                            <Trash2 size={12} />
+                            <span>{isDosenDeleting ? 'Menghapus...' : 'Ya, Hapus'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Identity Mismatch Badge */}
                 {isIdentityMismatch && (
                   <div className="mt-2.5 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-semibold flex items-center justify-between gap-2 shadow-2xs">
@@ -2074,6 +2115,55 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                   </span>
                 </div>
               </div>
+
+              {/* Akses Dosen: Tombol Cepat Hapus/Reset Tugas (Terletak di Bagian Paling Atas Form agar Selalu Terlihat Tanpa Scroll) */}
+              {isDosen && existingSubmission && (
+                <div className="p-3.5 bg-rose-50 border-2 border-rose-300 rounded-2xl text-xs text-rose-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs animate-fadeIn">
+                  <div className="flex items-center gap-2.5">
+                    <Trash2 size={18} className="text-rose-600 shrink-0" />
+                    <div>
+                      <strong className="block text-xs font-extrabold text-rose-900">
+                        AKSES DOSEN: TUGAS PERTEMUAN #{selectedMeetingNumber} SUDAH TERKUMPUL
+                      </strong>
+                      <p className="text-[11px] text-rose-800">
+                        Mahasiswa ini ({targetStudent.name}) telah mengumpulkan tugas. Jika salah file atau butuh perbaikan, Anda dapat meresetnya sekarang agar form kembali terbuka bagi mahasiswa.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    {!isConfirmingDeleteSub ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsConfirmingDeleteSub(true)}
+                        className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
+                        title="Hapus / Reset tugas ini agar mahasiswa bisa upload ulang"
+                      >
+                        <Trash2 size={14} />
+                        <span>Hapus / Buka Revisi</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-rose-300">
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmingDeleteSub(false)}
+                          className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-semibold cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isDosenDeleting}
+                          onClick={handleExecuteDosenDeleteSubmission}
+                          className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-50 cursor-pointer shadow-xs"
+                        >
+                          <Trash2 size={12} />
+                          <span>{isDosenDeleting ? 'Mereset...' : 'Ya, Hapus'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Peringatan Keras Bukan Akun Sendiri (Anti Impersonation) */}
               {isIdentityMismatch && (

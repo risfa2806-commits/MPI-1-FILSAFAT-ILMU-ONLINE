@@ -1874,8 +1874,8 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
           {/* Modal Konfirmasi Hapus Pesan Jika Penuh */}
           {showClearConfirmModal && (
-            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 scrollbar-thin">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
                     <Trash2 size={20} />
@@ -3946,13 +3946,12 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
       )}
 
       {/* MODAL KONFIRMASI HAPUS TUGAS OLEH DOSEN */}
-      {deleteModalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95">
             {/* Modal Header */}
-            <div className="flex items-start justify-between">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                <div className="h-10 w-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold shrink-0">
                   <Trash2 size={20} />
                 </div>
                 <div>
@@ -3960,153 +3959,174 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                     Hapus / Reset Tugas Mahasiswa
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Fitur khusus Dosen jika mahasiswa salah mengunggah file PPT atau Makalah
+                    Fitur Dosen jika mahasiswa salah mengunggah file PPT atau Makalah
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setDeleteModalData(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteSubmission}
+                  disabled={isDeletingSubmission}
+                  className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  title="Hapus langsung tugas ini"
+                >
+                  <Trash2 size={13} />
+                  <span>{isDeletingSubmission ? 'Menghapus...' : 'Hapus Sekarang'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalData(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
-            {/* Target Info */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Mahasiswa:</span>
-                <span className="font-bold text-slate-900">{deleteModalData.studentName}</span>
+            {/* Modal Scrollable Body */}
+            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 scrollbar-thin">
+              {/* Target Info */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">Mahasiswa:</span>
+                  <span className="font-bold text-slate-900">{deleteModalData.studentName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 font-medium">Bagian RPS:</span>
+                  <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                    {deleteModalData.sub.rpsPart} (Pertemuan {deleteModalData.sub.meetingNumber})
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-medium block">Topik:</span>
+                  <span className="font-semibold text-slate-800 italic">"{deleteModalData.sub.topic}"</span>
+                </div>
+                
+                {/* Status File yang Terunggah */}
+                <div className="pt-2 mt-2 border-t border-slate-200 flex flex-wrap gap-2">
+                  <div className="px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-900 font-semibold text-[11px]">
+                    PPT: {deleteModalData.sub.pptType === 'file' ? (deleteModalData.sub.pptFileName || 'File PPT') : (deleteModalData.sub.pptUrl ? 'Link Canva/Drive' : 'Tidak Ada')}
+                  </div>
+                  <div className="px-2.5 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-900 font-semibold text-[11px]">
+                    Makalah: {deleteModalData.sub.makalahType === 'file' ? (deleteModalData.sub.makalahFileName || 'File Makalah') : (deleteModalData.sub.makalahUrl ? 'Link Dokumen' : 'Tidak Ada')}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Bagian RPS:</span>
-                <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                  {deleteModalData.sub.rpsPart} (Pertemuan {deleteModalData.sub.meetingNumber})
-                </span>
-              </div>
+
+              {/* Radio Selection: Delete all, PPT only, or Makalah only */}
               <div>
-                <span className="text-slate-500 font-medium block">Topik:</span>
-                <span className="font-semibold text-slate-800 italic">"{deleteModalData.sub.topic}"</span>
-              </div>
-              
-              {/* Status File yang Terunggah */}
-              <div className="pt-2 mt-2 border-t border-slate-200 flex flex-wrap gap-2">
-                <div className="px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-900 font-semibold text-[11px]">
-                  PPT: {deleteModalData.sub.pptType === 'file' ? (deleteModalData.sub.pptFileName || 'File PPT') : (deleteModalData.sub.pptUrl ? 'Link Canva/Drive' : 'Tidak Ada')}
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Pilih Apa yang Ingin Dihapus:
+                </label>
+                <div className="space-y-2">
+                  {/* Option 1: Hapus Seluruh Tugas */}
+                  <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    deletePartChoice === 'all'
+                      ? 'bg-rose-50/70 border-rose-400 text-rose-950 ring-1 ring-rose-400'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="deletePart"
+                      value="all"
+                      checked={deletePartChoice === 'all'}
+                      onChange={() => setDeletePartChoice('all')}
+                      className="mt-0.5 text-rose-600 focus:ring-rose-500"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Hapus Seluruh Tugas (Reset Total)</span>
+                      <span className="text-slate-500 text-[11px]">
+                        Menghapus kedua file (PPT dan Makalah). Status mahasiswa menjadi "Belum Dikirim" dan dapat mengunggah ulang dari awal.
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Option 2: Hapus PPT Saja */}
+                  <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    deletePartChoice === 'ppt'
+                      ? 'bg-blue-50/70 border-blue-400 text-blue-950 ring-1 ring-blue-400'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="deletePart"
+                      value="ppt"
+                      checked={deletePartChoice === 'ppt'}
+                      onChange={() => setDeletePartChoice('ppt')}
+                      className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Hapus File PPT Saja</span>
+                      <span className="text-slate-500 text-[11px]">
+                        Hanya menghapus slide presentasi jika salah upload PPT/Canva. Dokumen Makalah tetap dipertahankan.
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Option 3: Hapus Makalah Saja */}
+                  <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    deletePartChoice === 'makalah'
+                      ? 'bg-purple-50/70 border-purple-400 text-purple-950 ring-1 ring-purple-400'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="deletePart"
+                      value="makalah"
+                      checked={deletePartChoice === 'makalah'}
+                      onChange={() => setDeletePartChoice('makalah')}
+                      className="mt-0.5 text-purple-600 focus:ring-purple-500"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold block">Hapus File Makalah Saja</span>
+                      <span className="text-slate-500 text-[11px]">
+                        Hanya menghapus dokumen Makalah jika salah upload Makalah. Slide PPT tetap dipertahankan.
+                      </span>
+                    </div>
+                  </label>
                 </div>
-                <div className="px-2.5 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-900 font-semibold text-[11px]">
-                  Makalah: {deleteModalData.sub.makalahType === 'file' ? (deleteModalData.sub.makalahFileName || 'File Makalah') : (deleteModalData.sub.makalahUrl ? 'Link Dokumen' : 'Tidak Ada')}
-                </div>
+              </div>
+
+              {/* Optional Reason/Note for Student */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Alasan / Catatan Revisi untuk Mahasiswa (Opsional):
+                </label>
+                <textarea
+                  rows={2}
+                  value={deleteReasonText}
+                  onChange={e => setDeleteReasonText(e.target.value)}
+                  placeholder="Contoh: File PPT tidak sesuai dengan topik Part yang ditentukan, mohon unggah ulang..."
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                />
               </div>
             </div>
 
-            {/* Radio Selection: Delete all, PPT only, or Makalah only */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
-                Pilih Apa yang Ingin Dihapus:
-              </label>
-              <div className="space-y-2">
-                {/* Option 1: Hapus Seluruh Tugas */}
-                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  deletePartChoice === 'all'
-                    ? 'bg-rose-50/70 border-rose-400 text-rose-950 ring-1 ring-rose-400'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
-                }`}>
-                  <input
-                    type="radio"
-                    name="deletePart"
-                    value="all"
-                    checked={deletePartChoice === 'all'}
-                    onChange={() => setDeletePartChoice('all')}
-                    className="mt-0.5 text-rose-600 focus:ring-rose-500"
-                  />
-                  <div className="text-xs">
-                    <span className="font-bold block">Hapus Seluruh Tugas (Reset Total)</span>
-                    <span className="text-slate-500 text-[11px]">
-                      Menghapus kedua file (PPT dan Makalah). Status mahasiswa menjadi "Belum Dikirim" dan dapat mengunggah ulang dari awal.
-                    </span>
-                  </div>
-                </label>
-
-                {/* Option 2: Hapus PPT Saja */}
-                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  deletePartChoice === 'ppt'
-                    ? 'bg-blue-50/70 border-blue-400 text-blue-950 ring-1 ring-blue-400'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
-                }`}>
-                  <input
-                    type="radio"
-                    name="deletePart"
-                    value="ppt"
-                    checked={deletePartChoice === 'ppt'}
-                    onChange={() => setDeletePartChoice('ppt')}
-                    className="mt-0.5 text-blue-600 focus:ring-blue-500"
-                  />
-                  <div className="text-xs">
-                    <span className="font-bold block">Hapus File PPT Saja</span>
-                    <span className="text-slate-500 text-[11px]">
-                      Hanya menghapus slide presentasi jika salah upload PPT/Canva. Dokumen Makalah tetap dipertahankan.
-                    </span>
-                  </div>
-                </label>
-
-                {/* Option 3: Hapus Makalah Saja */}
-                <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  deletePartChoice === 'makalah'
-                    ? 'bg-purple-50/70 border-purple-400 text-purple-950 ring-1 ring-purple-400'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
-                }`}>
-                  <input
-                    type="radio"
-                    name="deletePart"
-                    value="makalah"
-                    checked={deletePartChoice === 'makalah'}
-                    onChange={() => setDeletePartChoice('makalah')}
-                    className="mt-0.5 text-purple-600 focus:ring-purple-500"
-                  />
-                  <div className="text-xs">
-                    <span className="font-bold block">Hapus File Makalah Saja</span>
-                    <span className="text-slate-500 text-[11px]">
-                      Hanya menghapus dokumen Makalah jika salah upload Makalah. Slide PPT tetap dipertahankan.
-                    </span>
-                  </div>
-                </label>
+            {/* Modal Actions - Sticky at bottom */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+              <div className="text-[11px] text-slate-600 font-semibold truncate hidden sm:block">
+                Pilihan: <span className="text-rose-700 font-bold">{deletePartChoice === 'all' ? 'Reset Seluruh Tugas' : deletePartChoice === 'ppt' ? 'Hapus PPT' : 'Hapus Makalah'}</span>
               </div>
-            </div>
-
-            {/* Optional Reason/Note for Student */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Alasan / Catatan Revisi untuk Mahasiswa (Opsional):
-              </label>
-              <textarea
-                rows={2}
-                value={deleteReasonText}
-                onChange={e => setDeleteReasonText(e.target.value)}
-                placeholder="Contoh: File PPT tidak sesuai dengan topik Part yang ditentukan, mohon unggah ulang..."
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
-              />
-            </div>
-
-            {/* Modal Actions */}
-            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setDeleteModalData(null)}
-                disabled={isDeletingSubmission}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDeleteSubmission}
-                disabled={isDeletingSubmission}
-                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-1.5 disabled:opacity-50"
-              >
-                <Trash2 size={14} />
-                <span>{isDeletingSubmission ? 'Sedang Menghapus...' : 'Konfirmasi Hapus Tugas'}</span>
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalData(null)}
+                  disabled={isDeletingSubmission}
+                  className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteSubmission}
+                  disabled={isDeletingSubmission}
+                  className="flex-1 sm:flex-initial px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+                >
+                  <Trash2 size={14} />
+                  <span>{isDeletingSubmission ? 'Sedang Menghapus...' : 'Konfirmasi Hapus Tugas'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -4115,7 +4135,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
       {/* 1. MODAL REVIEW & PENILAIAN TUGAS PRESENTASI (INDIVIDU/KELOMPOK) (PPT & MAKALAH) */}
       {reviewIndivSub && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 my-8 space-y-5">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 my-auto space-y-5 scrollbar-thin">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
@@ -4136,12 +4156,31 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setReviewIndivSub(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const student = (students || []).find(s => s.id === reviewIndivSub.studentId);
+                    setDeleteModalData({
+                      studentId: reviewIndivSub.studentId,
+                      studentName: reviewIndivSub.studentName,
+                      nim: student?.nim,
+                      sub: reviewIndivSub,
+                    });
+                  }}
+                  className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
+                  title="Hapus / Reset tugas mahasiswa ini (Akses Dosen)"
+                >
+                  <Trash2 size={13} />
+                  <span>Hapus / Reset</span>
+                </button>
+                <button
+                  onClick={() => setReviewIndivSub(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Grid Layout: Left Content Review, Right Grading */}
@@ -5054,8 +5093,8 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
       {/* MODAL HAPUS MAHASISWA DARI SIAKAD */}
       {studentToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-rose-200 animate-in fade-in zoom-in-95 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-rose-200 animate-in fade-in zoom-in-95 space-y-4 scrollbar-thin my-auto">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="p-2.5 rounded-xl bg-rose-100">
                 <Trash2 size={22} />
