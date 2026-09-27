@@ -11,6 +11,7 @@ import {
   updateStudentApi,
   reorganizeGroupsApi,
   moveStudentGroupApi,
+  swapStudentsGroupApi,
 } from '../services/api';
 import {
   Video,
@@ -299,6 +300,57 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
     }
   };
 
+  // Swap members between groups state (HANYA DOSEN: "hanya dosen yang bisa menukar")
+  const [showSwapMemberModal, setShowSwapMemberModal] = useState(false);
+  const [swapMemberA, setSwapMemberA] = useState<string>('');
+  const [swapTargetGroupId, setSwapTargetGroupId] = useState<number>(1);
+  const [swapMemberB, setSwapMemberB] = useState<string>('');
+  const [isSwappingMembers, setIsSwappingMembers] = useState(false);
+  const [swapMemberMsg, setSwapMemberMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleOpenSwapMembersModal = () => {
+    const memA = activeGroup?.members?.[0] || '';
+    const otherGroups = (groups || []).filter(g => g.id !== activeGroup.id);
+    const targetG = otherGroups[0] || (groups || [])[0];
+    const memB = targetG?.members?.[0] || '';
+
+    setSwapMemberA(memA);
+    setSwapTargetGroupId(targetG ? targetG.id : 1);
+    setSwapMemberB(memB);
+    setSwapMemberMsg(null);
+    setShowSwapMemberModal(true);
+  };
+
+  const handleExecuteSwapMembers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!swapMemberA || !swapMemberB) {
+      setSwapMemberMsg({ type: 'error', text: 'Pilih mahasiswa dari kedua kelompok yang ingin ditukar.' });
+      return;
+    }
+    setIsSwappingMembers(true);
+    setSwapMemberMsg(null);
+    try {
+      const res = await swapStudentsGroupApi({
+        studentAName: swapMemberA,
+        studentBName: swapMemberB,
+      });
+      if (res.success) {
+        setSwapMemberMsg({ type: 'success', text: res.message || 'Mahasiswa berhasil ditukar!' });
+        await onRefreshData();
+        setTimeout(() => {
+          setShowSwapMemberModal(false);
+          setSwapMemberMsg(null);
+        }, 1200);
+      } else {
+        setSwapMemberMsg({ type: 'error', text: res.error || 'Gagal menukar mahasiswa.' });
+      }
+    } catch {
+      setSwapMemberMsg({ type: 'error', text: 'Terjadi gangguan jaringan saat menukar mahasiswa.' });
+    } finally {
+      setIsSwappingMembers(false);
+    }
+  };
+
   // When group changes, update form fields
   const handleGroupSelect = (grp: GroupProject) => {
     setActiveGroupId(grp.id);
@@ -511,23 +563,31 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
     }
   };
 
-  // Handle saving edited student name
+  // Handle saving edited student name (sinkronisasi ke data mahasiswa dan kelompok)
   const handleSaveMemberName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember || !editingMember.newName.trim()) return;
     setIsSavingMemberName(true);
     try {
-      if (editingMember.studentId) {
-        await updateStudentApi(editingMember.studentId, {
-          name: editingMember.newName.trim().toUpperCase(),
+      const newNameUpper = editingMember.newName.trim().toUpperCase();
+      const origNameUpper = editingMember.originalName.trim().toUpperCase();
+
+      const matchedStd = students.find(s =>
+        (editingMember.studentId && s.id === editingMember.studentId) ||
+        s.name.trim().toUpperCase() === origNameUpper
+      );
+      if (matchedStd) {
+        await updateStudentApi(matchedStd.id, {
+          name: newNameUpper,
         });
-      } else {
-        // Update member array in group
-        const newMembers = (activeGroup?.members || []).map(m =>
-          m === editingMember.originalName ? editingMember.newName.trim().toUpperCase() : m
-        );
-        await updateGroupApi(activeGroup.id, { members: newMembers });
       }
+
+      // Update member array in group
+      const newMembers = (activeGroup?.members || []).map(m =>
+        m.trim().toUpperCase() === origNameUpper ? newNameUpper : m
+      );
+      await updateGroupApi(activeGroup.id, { members: newMembers });
+
       setEditingMember(null);
       await onRefreshData();
     } finally {
@@ -671,6 +731,18 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                   <span>Pindah Kelompok</span>
                 </button>
 
+                {isDosen && (
+                  <button
+                    type="button"
+                    onClick={handleOpenSwapMembersModal}
+                    className="px-2 py-1 text-[11px] font-bold bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300 rounded-lg flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                    title="Tukar Mahasiswa Antar Kelompok (Hanya Dosen)"
+                  >
+                    <ArrowRightLeft size={12} className="text-amber-700" />
+                    <span>Tukar Mahasiswa</span>
+                  </button>
+                )}
+
                 {(isDosen || (currentStudent && activeGroup.members.includes(currentStudent.name))) && (
                   <button
                     onClick={handleStartEditGroup}
@@ -734,7 +806,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                   <Users size={13} className="text-indigo-600" />
                   <span>Anggota Kelompok ({activeGroup.members?.length || 0} Orang):</span>
                 </span>
-                {isDosen && (
+                {(isDosen || (currentStudent && activeGroup.members.includes(currentStudent.name))) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -1785,6 +1857,126 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
               >
                 <ArrowRightLeft size={14} />
                 <span>{isMovingGroup ? 'Memproses Pindah...' : 'Simpan & Pindah Kelompok'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Tukar Mahasiswa Antar Kelompok (HANYA DOSEN: "hanya dosen yang bisa menukar") */}
+      {showSwapMemberModal && isDosen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleExecuteSwapMembers}
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-amber-200 space-y-4 animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-base">
+                <ArrowRightLeft className="text-amber-600" size={18} />
+                <span>Tukar Anggota Antar Kelompok (Khusus Dosen)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSwapMemberModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {swapMemberMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  swapMemberMsg.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                <span>{swapMemberMsg.text}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Pilih satu mahasiswa dari <strong>{activeGroup.name}</strong> dan satu mahasiswa dari kelompok lain untuk saling bertukar posisi kelompok secara permanen di database.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Mahasiswa Kelompok A */}
+              <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-amber-950 uppercase block">
+                  1. Dari {activeGroup.name}:
+                </span>
+                <select
+                  value={swapMemberA}
+                  onChange={e => setSwapMemberA(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {(activeGroup.members || []).map((m, idx) => (
+                    <option key={idx} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Mahasiswa Kelompok B */}
+              <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-indigo-950 uppercase block">
+                  2. Pilih Kelompok Tujuan:
+                </span>
+                <select
+                  value={swapTargetGroupId}
+                  onChange={e => {
+                    const gId = Number(e.target.value);
+                    setSwapTargetGroupId(gId);
+                    const targetG = (groups || []).find(g => g.id === gId);
+                    setSwapMemberB(targetG?.members?.[0] || '');
+                  }}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800 mb-2"
+                >
+                  {(groups || [])
+                    .filter(g => g.id !== activeGroup.id)
+                    .map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.members?.length || 0} Anggota)
+                      </option>
+                    ))}
+                </select>
+
+                <span className="text-[11px] font-bold text-indigo-950 uppercase block">
+                  Pilih Mahasiswa Ditukar:
+                </span>
+                <select
+                  value={swapMemberB}
+                  onChange={e => setSwapMemberB(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {((groups || []).find(g => g.id === swapTargetGroupId)?.members || []).map((m, idx) => (
+                    <option key={idx} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowSwapMemberModal(false)}
+                className="px-3 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl font-semibold cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSwappingMembers || !swapMemberA || !swapMemberB}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ArrowRightLeft size={14} />
+                <span>{isSwappingMembers ? 'Menukar...' : 'Eksekusi Tukar Mahasiswa'}</span>
               </button>
             </div>
           </form>

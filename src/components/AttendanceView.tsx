@@ -1102,6 +1102,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
 
                 {/* Inline Note Editor for Dosen */}
                 {isDosen && editingNoteStudentId === std.id && (

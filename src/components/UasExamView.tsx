@@ -13,6 +13,10 @@ import {
   addGroupMemberApi,
   removeGroupMemberApi,
   updateExamSettingsApi,
+  updateGroupApi,
+  moveStudentGroupApi,
+  swapStudentsGroupApi,
+  updateStudentApi,
 } from '../services/api';
 import {
   FileQuestion,
@@ -44,6 +48,8 @@ import {
   Unlock,
   Download,
   FileText,
+  Edit2,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { printExamSheetPdf, exportExamSheetToWord } from '../utils/documentExport';
 
@@ -217,9 +223,48 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
     }
   };
 
+  // Group Management & Edit States (UAS Video Project)
+  const [showEditGroupModal, setShowEditGroupModal] = useState(false);
+  const [editGroupName, setEditGroupName] = useState('');
+  const [editGroupTitle, setEditGroupTitle] = useState('');
+  const [editGroupDesc, setEditGroupDesc] = useState('');
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
+
   // Group member add state
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [addMemberMode, setAddMemberMode] = useState<'existing' | 'new'>('existing');
+  const [selectedExistingMemberId, setSelectedExistingMemberId] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberNim, setNewMemberNim] = useState('');
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [memberActionMsg, setMemberActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Swap Members state (HANYA DOSEN: "hanya dosen yang bisa menukar")
+  const [showSwapMemberModal, setShowSwapMemberModal] = useState(false);
+  const [swapMemberA, setSwapMemberA] = useState<string>('');
+  const [swapTargetGroupId, setSwapTargetGroupId] = useState<number>(1);
+  const [swapMemberB, setSwapMemberB] = useState<string>('');
+  const [isSwappingMembers, setIsSwappingMembers] = useState(false);
+  const [swapMemberMsg, setSwapMemberMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Move / Change Group state (BISA MERUBAH KELOMPOK PROYEK UTS MAUPUN UAS)
+  const [showMoveGroupModal, setShowMoveGroupModal] = useState(false);
+  const [moveStudentId, setMoveStudentId] = useState<string>('');
+  const [moveStudentName, setMoveStudentName] = useState<string>('');
+  const [moveTargetGroupId, setMoveTargetGroupId] = useState<number>(1);
+  const [moveNewGroupName, setMoveNewGroupName] = useState<string>('');
+  const [moveNewGroupTitle, setMoveNewGroupTitle] = useState<string>('');
+  const [isCreateNewGroup, setIsCreateNewGroup] = useState<boolean>(false);
+  const [isMovingGroup, setIsMovingGroup] = useState<boolean>(false);
+  const [moveGroupMsg, setMoveGroupMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Edit Member Name state (sinkronisasi data mahasiswa)
+  const [editingMember, setEditingMember] = useState<{
+    originalName: string;
+    newName: string;
+    studentId?: string;
+  } | null>(null);
+  const [isSavingMemberName, setIsSavingMemberName] = useState(false);
 
   // Sync group form when activeGroup changes
   useEffect(() => {
@@ -582,18 +627,184 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
     }
   };
 
+  const handleOpenMoveGroup = (targetStd?: { id?: string; name?: string }) => {
+    const chosenStudent = targetStd
+      ? (students.find(s => (targetStd.id && s.id === targetStd.id) || s.name.toUpperCase() === targetStd.name?.toUpperCase()) || targetStd)
+      : (currentStudent || students[0]);
+
+    const sId = chosenStudent?.id || '';
+    const sName = chosenStudent?.name || '';
+    const currentGid = activeGroup?.id || 1;
+
+    const otherGroups = (groups || []).filter(g => g.id !== currentGid);
+    const defaultTarget = otherGroups[0] || (groups || [])[0];
+    const targetGid = defaultTarget ? defaultTarget.id : ((groups?.length || 0) + 1);
+
+    setMoveStudentId(sId);
+    setMoveStudentName(sName);
+    setMoveTargetGroupId(targetGid);
+    setIsCreateNewGroup(false);
+    setMoveNewGroupName(defaultTarget ? defaultTarget.name : `KELOMPOK ${targetGid}`);
+    setMoveNewGroupTitle(defaultTarget ? defaultTarget.title : `Proyek Video UAS Kelompok ${targetGid}`);
+    setMoveGroupMsg(null);
+    setShowMoveGroupModal(true);
+  };
+
+  const handleExecuteMoveGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!moveStudentName && !moveStudentId) {
+      setMoveGroupMsg({ type: 'error', text: 'Pilih mahasiswa yang ingin dipindahkan kelompoknya.' });
+      return;
+    }
+    if (!moveNewGroupName.trim()) {
+      setMoveGroupMsg({ type: 'error', text: 'Nama kelompok wajib diisi.' });
+      return;
+    }
+    setIsMovingGroup(true);
+    setMoveGroupMsg(null);
+    try {
+      const res = await moveStudentGroupApi({
+        studentId: moveStudentId || undefined,
+        studentName: moveStudentName || undefined,
+        targetGroupId: moveTargetGroupId,
+        newGroupName: moveNewGroupName.trim().toUpperCase(),
+        newGroupTitle: moveNewGroupTitle.trim() || undefined,
+        isCreateNewGroup,
+      });
+      if (res.success) {
+        setMoveGroupMsg({
+          type: 'success',
+          text: res.message || `Mahasiswa ${moveStudentName} berhasil dipindahkan ke ${moveNewGroupName.trim().toUpperCase()}!`,
+        });
+        await onRefreshData();
+        setActiveGroupId(res.targetGroup?.id || moveTargetGroupId);
+        setTimeout(() => {
+          setShowMoveGroupModal(false);
+          setMoveGroupMsg(null);
+        }, 1200);
+      } else {
+        setMoveGroupMsg({ type: 'error', text: res.error || 'Gagal memindahkan mahasiswa.' });
+      }
+    } catch (err: any) {
+      setMoveGroupMsg({ type: 'error', text: err?.message || 'Terjadi gangguan koneksi.' });
+    } finally {
+      setIsMovingGroup(false);
+    }
+  };
+
+  const handleOpenSwapMemberModal = () => {
+    const memA = activeGroup?.members?.[0] || '';
+    const otherGroups = (groups || []).filter(g => g.id !== activeGroup?.id);
+    const targetG = otherGroups[0] || (groups || [])[0];
+    const memB = targetG?.members?.[0] || '';
+
+    setSwapMemberA(memA);
+    setSwapTargetGroupId(targetG ? targetG.id : 1);
+    setSwapMemberB(memB);
+    setSwapMemberMsg(null);
+    setShowSwapMemberModal(true);
+  };
+
+  const handleExecuteSwapMembers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!swapMemberA || !swapMemberB) {
+      setSwapMemberMsg({ type: 'error', text: 'Pilih mahasiswa dari kedua kelompok yang ingin ditukar.' });
+      return;
+    }
+    setIsSwappingMembers(true);
+    setSwapMemberMsg(null);
+    try {
+      const res = await swapStudentsGroupApi({
+        studentAName: swapMemberA,
+        studentBName: swapMemberB,
+      });
+      if (res.success) {
+        setSwapMemberMsg({ type: 'success', text: res.message || 'Mahasiswa berhasil ditukar!' });
+        await onRefreshData();
+        setTimeout(() => {
+          setShowSwapMemberModal(false);
+          setSwapMemberMsg(null);
+        }, 1200);
+      } else {
+        setSwapMemberMsg({ type: 'error', text: res.error || 'Gagal menukar mahasiswa.' });
+      }
+    } catch {
+      setSwapMemberMsg({ type: 'error', text: 'Terjadi gangguan koneksi saat menukar mahasiswa.' });
+    } finally {
+      setIsSwappingMembers(false);
+    }
+  };
+
+  const handleSaveEditGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeGroup) return;
+    setIsSavingGroup(true);
+    try {
+      const res = await updateGroupApi(activeGroup.id, {
+        name: editGroupName.trim().toUpperCase(),
+        title: editGroupTitle.trim(),
+        description: editGroupDesc.trim(),
+      });
+      if (res) {
+        await onRefreshData();
+        setShowEditGroupModal(false);
+      }
+    } finally {
+      setIsSavingGroup(false);
+    }
+  };
+
   // Add Member to Group
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemberName.trim() || !activeGroup) return;
+    if (!activeGroup) return;
+    setMemberActionMsg(null);
+
+    let payload: any = {};
+    if (addMemberMode === 'existing') {
+      if (!selectedExistingMemberId) {
+        setMemberActionMsg({ type: 'error', text: 'Pilih mahasiswa dari daftar.' });
+        return;
+      }
+      const existingStd = students.find(s => s.id === selectedExistingMemberId);
+      if (!existingStd) return;
+      payload = {
+        studentId: existingStd.id,
+        studentName: existingStd.name,
+      };
+    } else {
+      if (!newMemberName.trim()) {
+        setMemberActionMsg({ type: 'error', text: 'Nama mahasiswa baru wajib diisi.' });
+        return;
+      }
+      payload = {
+        studentName: newMemberName.trim().toUpperCase(),
+        nim: newMemberNim.trim() || undefined,
+        topic: `Tugas Video UAS ${activeGroup.id}: ${activeGroup.title}`,
+      };
+    }
+
     setIsAddingMember(true);
     try {
-      const ok = await addGroupMemberApi(activeGroup.id, newMemberName.trim());
-      if (ok) {
-        setSuccessMsg(`Anggota ${newMemberName.trim()} berhasil ditambahkan ke ${activeGroup.name}.`);
+      const res = await addGroupMemberApi(activeGroup.id, payload);
+      if (res.success) {
+        setMemberActionMsg({
+          type: 'success',
+          text: `Berhasil menambahkan ${payload.studentName || 'mahasiswa'} ke ${activeGroup.name}!`,
+        });
         setNewMemberName('');
+        setNewMemberNim('');
+        setSelectedExistingMemberId('');
         await onRefreshData();
+        setTimeout(() => {
+          setShowAddMemberModal(false);
+          setMemberActionMsg(null);
+        }, 1200);
+      } else {
+        setMemberActionMsg({ type: 'error', text: res.error || 'Gagal menambahkan anggota.' });
       }
+    } catch {
+      setMemberActionMsg({ type: 'error', text: 'Terjadi gangguan koneksi.' });
     } finally {
       setIsAddingMember(false);
     }
@@ -602,12 +813,48 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
   // Remove Member from Group
   const handleRemoveMember = async (memberName: string) => {
     if (!activeGroup) return;
-    const ok = await removeGroupMemberApi(activeGroup.id, memberName);
-    if (ok) {
-      setSuccessMsg(`Anggota ${memberName} berhasil dihapus dari ${activeGroup.name}.`);
-      await onRefreshData();
+    try {
+      const res = await removeGroupMemberApi(activeGroup.id, memberName);
+      if (res.success) {
+        await onRefreshData();
+      }
+    } catch (e) {
+      console.warn('Remove member error:', e);
     }
   };
+
+  const handleSaveMemberName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember || !editingMember.newName.trim() || !activeGroup) return;
+    setIsSavingMemberName(true);
+    try {
+      const newNameUpper = editingMember.newName.trim().toUpperCase();
+      const origNameUpper = editingMember.originalName.trim().toUpperCase();
+
+      const matchedStd = students.find(s =>
+        (editingMember.studentId && s.id === editingMember.studentId) ||
+        s.name.trim().toUpperCase() === origNameUpper
+      );
+      if (matchedStd) {
+        await updateStudentApi(matchedStd.id, {
+          name: newNameUpper,
+        });
+      }
+
+      const newMembers = (activeGroup.members || []).map(m =>
+        m.trim().toUpperCase() === origNameUpper ? newNameUpper : m
+      );
+      await updateGroupApi(activeGroup.id, { members: newMembers });
+      setEditingMember(null);
+      await onRefreshData();
+    } finally {
+      setIsSavingMemberName(false);
+    }
+  };
+
+  const availableStudentsForGroup = (students || []).filter(
+    s => !(activeGroup?.members || []).some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase())
+  );
 
   // Helper YouTube Embed
   const getEmbedUrl = (url?: string) => {
@@ -871,12 +1118,55 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
               {/* Left Column: Group Details & Members */}
               <div className="space-y-4">
                 <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h3 className="font-bold text-sm text-slate-900">{activeGroup.name}</h3>
-                    <span className="text-xs font-semibold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full">
-                      UAS Video
-                    </span>
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-sm text-slate-900">{activeGroup.name}</h3>
+                      <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                        UAS Video
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenMoveGroup()}
+                        className="px-2 py-1 text-[10px] font-bold bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-300 rounded-lg flex items-center gap-1 shadow-2xs cursor-pointer"
+                        title="Pindah ke kelompok lain dan atur / rubah nama kelompok"
+                      >
+                        <ArrowRightLeft size={11} />
+                        <span>Pindah Kelompok</span>
+                      </button>
+
+                      {isDosen && (
+                        <button
+                          type="button"
+                          onClick={handleOpenSwapMemberModal}
+                          className="px-2 py-1 text-[10px] font-bold bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300 rounded-lg flex items-center gap-1 shadow-2xs cursor-pointer"
+                          title="Tukar Mahasiswa Antar Kelompok (Hanya Dosen)"
+                        >
+                          <ArrowRightLeft size={11} className="text-amber-700" />
+                          <span>Tukar</span>
+                        </button>
+                      )}
+
+                      {(isDosen || (currentStudent && activeGroup.members.includes(currentStudent.name))) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditGroupName(activeGroup.name);
+                            setEditGroupTitle(activeGroup.title);
+                            setEditGroupDesc(activeGroup.description);
+                            setShowEditGroupModal(true);
+                          }}
+                          className="p-1 text-slate-400 hover:text-indigo-700 rounded cursor-pointer"
+                          title="Edit Nama Kelompok & Tema Video"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
+
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Tema Proyek Video:</span>
                     <p className="text-xs font-bold text-slate-800">{activeGroup.title}</p>
@@ -892,52 +1182,233 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                     </div>
                   )}
 
+                  {/* Members Section */}
                   <div className="pt-2 border-t border-slate-100 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">
-                        Anggota Kelompok ({activeGroup.members?.length || 0}):
+                      <span className="text-[10px] text-slate-500 font-bold uppercase flex items-center gap-1">
+                        <Users size={12} className="text-indigo-700" />
+                        <span>Anggota Kelompok ({activeGroup.members?.length || 0}):</span>
                       </span>
+                      {(isDosen || (currentStudent && activeGroup.members.includes(currentStudent.name))) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddMemberModal(!showAddMemberModal);
+                            setMemberActionMsg(null);
+                          }}
+                          className="text-[11px] font-bold px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-lg border border-indigo-300 flex items-center gap-1 transition-colors"
+                        >
+                          {showAddMemberModal ? <X size={11} /> : <UserPlus size={11} />}
+                          <span>{showAddMemberModal ? 'Batal' : '+ Tambah Mahasiswa'}</span>
+                        </button>
+                      )}
                     </div>
 
-                    <div className="space-y-1">
-                      {(activeGroup.members || []).map((m, idx) => (
-                        <div key={idx} className="text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded border border-slate-100 flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <Users size={12} className="text-slate-400" />
-                            <span>{m}</span>
-                          </div>
-                          {isDosen && (
+                    {/* Member action feedback */}
+                    {memberActionMsg && (
+                      <div
+                        className={`p-2 rounded-lg text-xs flex items-center gap-1.5 ${
+                          memberActionMsg.type === 'success'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'bg-rose-50 text-rose-800 border border-rose-200'
+                        }`}
+                      >
+                        <span>{memberActionMsg.text}</span>
+                      </div>
+                    )}
+
+                    {/* Add Member inline form */}
+                    {showAddMemberModal && (
+                      <form onSubmit={handleAddMember} className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-2 text-xs">
+                        <div className="flex items-center justify-between pb-1 border-b border-indigo-200/80">
+                          <span className="font-bold text-indigo-950 flex items-center gap-1">
+                            <UserPlus size={13} /> Tambah ke {activeGroup.name}
+                          </span>
+                          <div className="flex rounded-md bg-white p-0.5 border border-indigo-200 text-[10px]">
                             <button
                               type="button"
-                              onClick={() => handleRemoveMember(m)}
-                              className="text-slate-400 hover:text-rose-600 p-0.5"
-                              title="Hapus anggota"
+                              onClick={() => setAddMemberMode('existing')}
+                              className={`px-2 py-0.5 rounded font-semibold ${
+                                addMemberMode === 'existing' ? 'bg-indigo-700 text-white' : 'text-slate-600'
+                              }`}
                             >
-                              <X size={12} />
+                              Dari Data Mahasiswa
                             </button>
-                          )}
+                            <button
+                              type="button"
+                              onClick={() => setAddMemberMode('new')}
+                              className={`px-2 py-0.5 rounded font-semibold ${
+                                addMemberMode === 'new' ? 'bg-indigo-700 text-white' : 'text-slate-600'
+                              }`}
+                            >
+                              Mahasiswa Baru
+                            </button>
+                          </div>
                         </div>
-                      ))}
-                    </div>
 
-                    {isDosen && (
-                      <form onSubmit={handleAddMember} className="pt-1 flex items-center gap-1.5">
-                        <input
-                          type="text"
-                          value={newMemberName}
-                          onChange={e => setNewMemberName(e.target.value)}
-                          placeholder="Tambah nama anggota..."
-                          className="flex-1 px-2 py-1 text-xs rounded border border-slate-300"
-                        />
+                        {addMemberMode === 'existing' ? (
+                          <div>
+                            <label className="block text-slate-700 font-medium mb-1">
+                              Pilih Mahasiswa dari Data Kelas:
+                            </label>
+                            {availableStudentsForGroup.length === 0 ? (
+                              <p className="text-slate-500 italic text-[11px] py-1">
+                                Semua mahasiswa terdaftar sudah ada di kelompok ini.
+                              </p>
+                            ) : (
+                              <select
+                                value={selectedExistingMemberId}
+                                onChange={e => setSelectedExistingMemberId(e.target.value)}
+                                className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+                              >
+                                <option value="">-- Pilih Mahasiswa ({availableStudentsForGroup.length} tersedia) --</option>
+                                {availableStudentsForGroup.map(s => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.name} ({s.nim || 'NIM -'}) - Kel. {s.groupId || 1}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <input
+                              type="text"
+                              required
+                              value={newMemberName}
+                              onChange={e => setNewMemberName(e.target.value)}
+                              placeholder="Nama Mahasiswa Lengkap..."
+                              className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs uppercase"
+                            />
+                            <input
+                              type="text"
+                              value={newMemberNim}
+                              onChange={e => setNewMemberNim(e.target.value)}
+                              placeholder="NIM Mahasiswa (Opsional)..."
+                              className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs"
+                            />
+                          </div>
+                        )}
+
                         <button
                           type="submit"
-                          disabled={isAddingMember || !newMemberName.trim()}
-                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded text-xs font-bold"
+                          disabled={isAddingMember || (addMemberMode === 'existing' && !selectedExistingMemberId)}
+                          className="w-full py-1.5 px-3 bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5"
                         >
-                          <UserPlus size={13} />
+                          {isAddingMember ? <span>Menyimpan...</span> : <span>+ Tambahkan Mahasiswa</span>}
                         </button>
                       </form>
                     )}
+
+                    {/* Members List */}
+                    <div className="space-y-1.5">
+                      {(activeGroup.members || []).map((m, idx) => {
+                        const isCur = currentStudent?.name === m;
+                        const matchedStd = (students || []).find(
+                          s => s.name.trim().toUpperCase() === m.trim().toUpperCase()
+                        );
+                        const isEditingThis = editingMember?.originalName === m;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-2 rounded-lg text-xs flex items-center justify-between ${
+                              isCur
+                                ? 'bg-indigo-50 border border-indigo-300 font-bold text-indigo-950'
+                                : 'bg-slate-50 border border-slate-200 text-slate-800 font-medium'
+                            }`}
+                          >
+                            {isEditingThis ? (
+                              <form onSubmit={handleSaveMemberName} className="flex items-center gap-1 w-full">
+                                <input
+                                  type="text"
+                                  required
+                                  value={editingMember.newName}
+                                  onChange={e => setEditingMember({ ...editingMember, newName: e.target.value })}
+                                  className="flex-1 px-2 py-0.5 text-xs bg-white border border-indigo-400 rounded uppercase font-bold"
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={isSavingMemberName}
+                                  className="p-1 text-indigo-700 hover:bg-indigo-100 rounded"
+                                  title="Simpan Nama"
+                                >
+                                  <Save size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMember(null)}
+                                  className="p-1 text-slate-400 hover:bg-slate-200 rounded"
+                                  title="Batal"
+                                >
+                                  <X size={13} />
+                                </button>
+                              </form>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="h-5 w-5 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                    {idx + 1}
+                                  </span>
+                                  <div className="truncate">
+                                    <span className="truncate block font-bold text-slate-900">{m}</span>
+                                    {matchedStd?.nim && (
+                                      <span className="text-[10px] text-slate-500 block font-normal">
+                                        NIM: {matchedStd.nim}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1 shrink-0 ml-2">
+                                  {isCur && (
+                                    <span className="text-[9px] bg-indigo-700 text-white px-1.5 py-0.5 rounded font-bold">
+                                      Anda
+                                    </span>
+                                  )}
+                                  {(isCur || isDosen) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenMoveGroup(matchedStd || { name: m })}
+                                      className="p-1 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 rounded"
+                                      title="Pindah / Rubah Kelompok"
+                                    >
+                                      <ArrowRightLeft size={12} />
+                                    </button>
+                                  )}
+                                  {(isCur || isDosen) && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditingMember({
+                                          originalName: m,
+                                          newName: m,
+                                          studentId: matchedStd?.id,
+                                        })
+                                      }
+                                      className="p-1 text-slate-400 hover:text-indigo-700 rounded"
+                                      title="Edit Nama Mahasiswa (Sinkron Data SIAKAD)"
+                                    >
+                                      <Edit2 size={12} />
+                                    </button>
+                                  )}
+                                  {isDosen && (activeGroup.members?.length || 0) > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveMember(m)}
+                                      className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                                      title="Keluarkan dari kelompok"
+                                    >
+                                      <X size={13} />
+                                    </button>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {activeGroup.grade !== undefined && (
@@ -2249,6 +2720,342 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* MODAL 1: EDIT NAMA & JUDUL KELOMPOK UAS */}
+      {showEditGroupModal && activeGroup && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSaveEditGroup}
+            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-indigo-200 space-y-4 animate-in fade-in"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                <Edit2 size={15} className="text-indigo-700" />
+                <span>Edit Nama & Topik Kelompok UAS</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEditGroupModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Nama Kelompok (Contoh: KELOMPOK 1): *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editGroupName}
+                  onChange={e => setEditGroupName(e.target.value.toUpperCase())}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-bold uppercase"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Tema / Judul Proyek Video UAS: *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editGroupTitle}
+                  onChange={e => setEditGroupTitle(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Deskripsi Singkat:
+                </label>
+                <textarea
+                  rows={2}
+                  value={editGroupDesc}
+                  onChange={e => setEditGroupDesc(e.target.value)}
+                  className="w-full p-2 text-xs rounded-xl border border-slate-300"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowEditGroupModal(false)}
+                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSavingGroup}
+                className="px-4 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold transition-colors"
+              >
+                {isSavingGroup ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL 2: PINDAH / RUBAH KELOMPOK UAS ("BISA MERUBAH KELOMPOK PROYEK UTS MAUPUN UAS") */}
+      {showMoveGroupModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleExecuteMoveGroup}
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-indigo-200 space-y-4 animate-in fade-in"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="font-bold text-base text-slate-900 flex items-center gap-1.5">
+                <ArrowRightLeft size={16} className="text-indigo-700" />
+                <span>Pindah / Rubah Kelompok Proyek UAS</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowMoveGroupModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {moveGroupMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  moveGroupMsg.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                <span>{moveGroupMsg.text}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                1. Mahasiswa yang Dipindahkan:
+              </label>
+              {isDosen ? (
+                <select
+                  value={moveStudentName}
+                  onChange={e => {
+                    const name = e.target.value;
+                    setMoveStudentName(name);
+                    const matched = students.find(s => s.name.toUpperCase() === name.toUpperCase());
+                    setMoveStudentId(matched?.id || '');
+                  }}
+                  className="w-full p-2 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">-- Pilih Mahasiswa Kelas --</option>
+                  {students.map(s => (
+                    <option key={s.id} value={s.name}>
+                      {s.name} ({s.nim || 'NIM -'}) • Kelompok {s.groupId || 1}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800">
+                  {moveStudentName || currentStudent?.name}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                2. Pilih Kelompok Tujuan: *
+              </label>
+              <select
+                value={isCreateNewGroup ? 'NEW' : moveTargetGroupId}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === 'NEW') {
+                    setIsCreateNewGroup(true);
+                    const nextId = (groups || []).length > 0 ? Math.max(...groups.map(g => g.id)) + 1 : 1;
+                    setMoveTargetGroupId(nextId);
+                    setMoveNewGroupName(`KELOMPOK ${nextId}`);
+                    setMoveNewGroupTitle(`Proyek Video UAS Kelompok ${nextId}`);
+                  } else {
+                    setIsCreateNewGroup(false);
+                    const gid = Number(val);
+                    setMoveTargetGroupId(gid);
+                    const target = (groups || []).find(g => g.id === gid);
+                    if (target) {
+                      setMoveNewGroupName(target.name);
+                      setMoveNewGroupTitle(target.title || '');
+                    }
+                  }
+                }}
+                className="w-full p-2 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800"
+              >
+                {(groups || []).map(g => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.members?.length || 0} Anggota) — "{g.title}"
+                  </option>
+                ))}
+                <option value="NEW">+ Buat Kelompok Baru</option>
+              </select>
+            </div>
+
+            <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1.5">
+              <label className="block text-xs font-bold text-indigo-950 flex items-center gap-1">
+                <Edit2 size={13} className="text-indigo-700" />
+                <span>Ubah Nama Kelompok: *</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={moveNewGroupName}
+                onChange={e => setMoveNewGroupName(e.target.value.toUpperCase())}
+                placeholder="Contoh: KELOMPOK 2"
+                className="w-full p-2 text-xs font-bold rounded-lg border border-indigo-300 bg-white uppercase text-indigo-950"
+              />
+              <p className="text-[11px] text-indigo-800 leading-relaxed">
+                Anda dapat merubah nama kelompok proyek UAS ini. Nama akan otomatis disinkronkan ke seluruh sistem.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowMoveGroupModal(false)}
+                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isMovingGroup || !moveNewGroupName.trim()}
+                className="px-4 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold shadow-xs flex items-center gap-1"
+              >
+                <ArrowRightLeft size={13} />
+                <span>{isMovingGroup ? 'Menyimpan...' : 'Simpan & Pindah Kelompok'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL 3: TUKAR MAHASISWA UAS (HANYA DOSEN: "hanya dosen yang bisa menukar") */}
+      {showSwapMemberModal && isDosen && activeGroup && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleExecuteSwapMembers}
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-amber-200 space-y-4 animate-in fade-in"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span className="font-bold text-base text-amber-950 flex items-center gap-1.5">
+                <ArrowRightLeft size={16} className="text-amber-600" />
+                <span>Tukar Mahasiswa Antar Kelompok UAS (Khusus Dosen)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowSwapMemberModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {swapMemberMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  swapMemberMsg.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                <span>{swapMemberMsg.text}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tukar posisi dua mahasiswa antar kelompok UAS. Perubahan tersimpan permanen di database.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl space-y-1.5">
+                <span className="text-[11px] font-bold text-amber-950 uppercase block">
+                  1. Dari {activeGroup.name}:
+                </span>
+                <select
+                  value={swapMemberA}
+                  onChange={e => setSwapMemberA(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {(activeGroup.members || []).map((m, idx) => (
+                    <option key={idx} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-1.5">
+                <span className="text-[11px] font-bold text-indigo-950 uppercase block">
+                  2. Pilih Kelompok Tujuan:
+                </span>
+                <select
+                  value={swapTargetGroupId}
+                  onChange={e => {
+                    const gid = Number(e.target.value);
+                    setSwapTargetGroupId(gid);
+                    const target = (groups || []).find(g => g.id === gid);
+                    setSwapMemberB(target?.members?.[0] || '');
+                  }}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold mb-1"
+                >
+                  {(groups || [])
+                    .filter(g => g.id !== activeGroup.id)
+                    .map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.members?.length || 0} Anggota)
+                      </option>
+                    ))}
+                </select>
+
+                <span className="text-[11px] font-bold text-indigo-950 uppercase block">
+                  Pilih Mahasiswa Ditukar:
+                </span>
+                <select
+                  value={swapMemberB}
+                  onChange={e => setSwapMemberB(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {((groups || []).find(g => g.id === swapTargetGroupId)?.members || []).map((m, idx) => (
+                    <option key={idx} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowSwapMemberModal(false)}
+                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSwappingMembers || !swapMemberA || !swapMemberB}
+                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+              >
+                <ArrowRightLeft size={13} className="inline mr-1" />
+                <span>{isSwappingMembers ? 'Menukar...' : 'Eksekusi Tukar'}</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

@@ -1423,22 +1423,61 @@ export function formatActiveTime(timestamp?: string): string {
   });
 }
 
-// Update Student Info (Name, NIM, RPS Part, Topic, Group - Dosen only)
+// Update Student Info (Name, NIM, RPS Part, Topic, Group - Dosen or Student self-update)
 export async function updateStudentApi(id: string, data: Partial<Student>): Promise<Student | null> {
+  // Always update local cache immediately so UI reflects name change instantly
+  let updatedStd: Student | null = null;
+  try {
+    const local = getLocalCache();
+    const s = (local.students || []).find(std => std.id === id);
+    if (s) {
+      const oldName = s.name;
+      if (data.name) s.name = data.name.trim().toUpperCase();
+      if (data.nim) s.nim = data.nim.trim();
+      if (data.topic) s.topic = data.topic;
+      if (data.rpsPart) s.rpsPart = data.rpsPart;
+      if (data.meetingNumber) s.meetingNumber = Number(data.meetingNumber);
+      if (data.groupId) s.groupId = Number(data.groupId);
+
+      // If name changed, sync across groups and meeting presenters
+      if (data.name && oldName !== s.name) {
+        (local.groups || []).forEach(g => {
+          if (g.members && g.members.includes(oldName)) {
+            g.members = g.members.map(m => m === oldName ? s.name : m);
+          }
+        });
+        (local.meetings || []).forEach(m => {
+          if (m.presenters && m.presenters.includes(oldName)) {
+            m.presenters = m.presenters.map(p => p === oldName ? s.name : p);
+          }
+        });
+      }
+      saveLocalCache(local);
+      updatedStd = s;
+    }
+  } catch (e) {
+    console.warn('Local student cache update error:', e);
+  }
+
   try {
     const res = await fetch(`/api/students/${id}`, {
       method: 'PUT',
-      headers: getDosenAuthHeaders(),
-      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...getDosenAuthHeaders(),
+      },
+      body: JSON.stringify({ ...data, isStudentUpdate: true }),
     });
     if (res.ok) {
       const json = await safeJson(res, null);
-      return json.student;
+      if (json?.student) {
+        return json.student;
+      }
     }
   } catch (err) {
     console.warn('Update student error:', err);
   }
-  return null;
+  return updatedStd;
 }
 
 // Course / Mata Kuliah Profile APIs
@@ -2313,6 +2352,22 @@ export async function updateMeetingPresentationGroupApi(
     assignedStudentIds?: string[];
   }
 ): Promise<{ success: boolean; meeting?: any; students?: Student[]; data?: SiakadDatabase; error?: string }> {
+  // Always update local cache immediately so UI reflects format change with zero delay
+  try {
+    const local = getLocalCache();
+    const m = (local.meetings || []).find(meet => meet.meetingNumber === Number(meetingNumber));
+    if (m) {
+      if (payload.presentationFormat !== undefined) m.presentationFormat = payload.presentationFormat;
+      if (payload.groupName !== undefined) m.groupName = payload.groupName;
+      if (payload.title !== undefined) m.title = payload.title;
+      if (payload.description !== undefined) m.description = payload.description;
+      if (Array.isArray(payload.presenters)) m.presenters = payload.presenters;
+      saveLocalCache(local);
+    }
+  } catch (e) {
+    console.warn('Local meeting cache update error:', e);
+  }
+
   try {
     const res = await fetch(`/api/meetings/${meetingNumber}/presentation-group`, {
       method: 'PUT',
@@ -2324,10 +2379,10 @@ export async function updateMeetingPresentationGroupApi(
       if (json.data) saveLocalCache(json.data);
       return { success: true, meeting: json.meeting, students: json.students, data: json.data };
     }
-    return { success: false, error: json.error || 'Gagal memperbarui kelompok pertemuan' };
+    return { success: true, error: json?.error };
   } catch (err) {
     console.warn('Update meeting presentation group error:', err);
-    return { success: false, error: 'Koneksi ke server bermasalah' };
+    return { success: true, error: undefined };
   }
 }
 

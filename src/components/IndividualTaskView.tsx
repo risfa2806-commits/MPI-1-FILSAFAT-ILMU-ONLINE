@@ -9,6 +9,7 @@ import {
   updateMeetingPresentationGroupApi,
   submitPeerReviewApi,
   swapMeetingPresentersApi,
+  updateStudentApi,
 } from '../services/api';
 import { DocumentPreviewModal, DocumentPreviewData } from './DocumentPreviewModal';
 import {
@@ -612,6 +613,45 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     }
   };
 
+  // Edit Student Name state (sinkronisasi data mahasiswa SIAKAD)
+  const [editingStudentInMeeting, setEditingStudentInMeeting] = useState<{ id: string; originalName: string; currentName: string; nim?: string } | null>(null);
+  const [isSavingStudentName, setIsSavingStudentName] = useState(false);
+  const [editStudentNameMsg, setEditStudentNameMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleSaveStudentName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudentInMeeting || !editingStudentInMeeting.currentName.trim()) return;
+    setIsSavingStudentName(true);
+    setEditStudentNameMsg(null);
+    try {
+      const newNameUpper = editingStudentInMeeting.currentName.trim().toUpperCase();
+      const origNameUpper = editingStudentInMeeting.originalName.trim().toUpperCase();
+      
+      // Update student in database
+      await updateStudentApi(editingStudentInMeeting.id, {
+        name: newNameUpper,
+      });
+
+      // Update presenters array in meeting if listed
+      const curPres = currentMeetingSchedule?.presenters || [];
+      const updatedPres = curPres.map(p => p.trim().toUpperCase() === origNameUpper ? newNameUpper : p);
+      await updateMeetingPresentationGroupApi(selectedMeetingNumber, {
+        presenters: updatedPres,
+      });
+
+      setEditStudentNameMsg({ type: 'success', text: 'Nama mahasiswa berhasil diperbarui di data mahasiswa & sistem!' });
+      await onRefreshData().catch(() => {});
+      setTimeout(() => {
+        setEditingStudentInMeeting(null);
+        setEditStudentNameMsg(null);
+      }, 1000);
+    } catch (err: any) {
+      setEditStudentNameMsg({ type: 'error', text: err?.message || 'Gagal mengubah nama mahasiswa.' });
+    } finally {
+      setIsSavingStudentName(false);
+    }
+  };
+
   // Swap Presenters state (HANYA DOSEN: "hanya dosen yang bisa menukar")
   const [showSwapPresenterModal, setShowSwapPresenterModal] = useState(false);
   const [swapStudent1, setSwapStudent1] = useState('');
@@ -757,15 +797,13 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
           : sub
       )
     );
-    if (isDosen) {
-      try {
-        await updateMeetingPresentationGroupApi(selectedMeetingNumber, {
-          presentationFormat: fmt,
-        });
-        await onRefreshData().catch(() => {});
-      } catch (e) {
-        console.warn('Format update error:', e);
-      }
+    try {
+      await updateMeetingPresentationGroupApi(selectedMeetingNumber, {
+        presentationFormat: fmt,
+      });
+      await onRefreshData().catch(() => {});
+    } catch (e) {
+      console.warn('Format update error:', e);
     }
   };
 
@@ -1995,33 +2033,28 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       {isDosen ? 'Ditentukan oleh Dosen Pengampu' : 'Format penugasan pertemuan ini'}
                     </span>
                   </div>
-                  {isDosen ? (
-                    <div className="flex items-center bg-indigo-100 p-0.5 rounded-lg text-xs self-start sm:self-auto">
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePresentationFormat('individu')}
-                        className={`px-3 py-1.5 rounded-md font-semibold transition-all ${
-                          presentationType === 'individu' ? 'bg-white text-indigo-950 shadow-xs' : 'text-indigo-700 hover:text-indigo-950'
-                        }`}
-                      >
-                        Individu
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleTogglePresentationFormat('kelompok')}
-                        className={`px-3 py-1.5 rounded-md font-semibold transition-all ${
-                          presentationType === 'kelompok' ? 'bg-white text-indigo-950 shadow-xs' : 'text-indigo-700 hover:text-indigo-950'
-                        }`}
-                      >
-                        Kelompok PPT & Makalah
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="px-3 py-1.5 bg-white border border-indigo-200 text-indigo-950 font-bold text-xs rounded-lg shadow-xs self-start sm:self-auto flex items-center gap-1.5">
-                      <Users size={14} className="text-indigo-600" />
-                      <span>Format: {presentationType === 'kelompok' ? 'Kelompok (PPT & Makalah)' : 'Individu'}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center bg-indigo-100 p-0.5 rounded-lg text-xs self-start sm:self-auto">
+                    <button
+                      type="button"
+                      id="btn-format-individu"
+                      onClick={() => handleTogglePresentationFormat('individu')}
+                      className={`px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+                        presentationType === 'individu' ? 'bg-white text-indigo-950 shadow-xs font-bold' : 'text-indigo-700 hover:text-indigo-950'
+                      }`}
+                    >
+                      Individu
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-format-kelompok"
+                      onClick={() => handleTogglePresentationFormat('kelompok')}
+                      className={`px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
+                        presentationType === 'kelompok' ? 'bg-white text-indigo-950 shadow-xs font-bold' : 'text-indigo-700 hover:text-indigo-950'
+                      }`}
+                    >
+                      Kelompok PPT & Makalah
+                    </button>
+                  </div>
                 </div>
 
                 {/* Edit presentation topic */}
@@ -2043,86 +2076,191 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                   />
                 </div>
 
-                {/* Kelompok Presentasi: Roster Mahasiswa & Tambah & Tukar Mahasiswa */}
-                {isGroupFormat && (
-                  <div className="p-3.5 bg-white rounded-xl border border-indigo-200/80 space-y-3">
-                    {/* Header Group Name + Actions */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-indigo-100">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-black uppercase bg-indigo-900 text-white px-2.5 py-0.5 rounded-md">
-                          {currentMeetingSchedule?.groupName || `Kelompok Pertemuan #${selectedMeetingNumber}`}
-                        </span>
-                        {(isDosen || meetingPresenters.some(p => p.name === currentStudent?.name)) && (
-                          <button
-                            type="button"
-                            onClick={handleOpenEditMeetingGroupName}
-                            className="p-1 text-slate-400 hover:text-indigo-600 rounded cursor-pointer"
-                            title="Edit Nama Kelompok Presentasi"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Action buttons: Tambah & Tukar (Dosen Only: "hanya dosen yang bisa menukar") */}
-                      {isDosen && (
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setShowAddPresenterModal(true)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer"
-                            title="Tambah Mahasiswa ke Kelompok Ini"
-                          >
-                            <UserPlus size={13} />
-                            <span>+ Tambah</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleOpenSwapPresenterModal}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer"
-                            title="Tukar Mahasiswa Antar Pertemuan (Hanya Dosen)"
-                          >
-                            <ArrowRightLeft size={13} />
-                            <span>Tukar Mahasiswa</span>
-                          </button>
-                        </div>
+                {/* Roster Mahasiswa Pemakalah & Tombol Tambah, Tukar, dan Edit Nama */}
+                <div className={`p-3.5 rounded-xl border space-y-3 ${
+                  presentationType === 'kelompok'
+                    ? 'bg-white border-indigo-200/80'
+                    : 'bg-emerald-50/50 border-emerald-200'
+                }`}>
+                  {/* Header Group Name + Actions */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-indigo-100">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[11px] font-black uppercase px-2.5 py-0.5 rounded-md text-white ${
+                        presentationType === 'kelompok' ? 'bg-indigo-900' : 'bg-emerald-800'
+                      }`}>
+                        {currentMeetingSchedule?.groupName || (presentationType === 'kelompok' ? `Kelompok Pertemuan #${selectedMeetingNumber}` : `Format Mandiri - Pertemuan #${selectedMeetingNumber}`)}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        presentationType === 'kelompok' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      }`}>
+                        {presentationType === 'kelompok' ? 'Kelompok PPT & Makalah' : 'Tugas Mandiri (Individu)'}
+                      </span>
+                      {(isDosen || meetingPresenters.some(p => p.name === currentStudent?.name)) && (
+                        <button
+                          type="button"
+                          onClick={handleOpenEditMeetingGroupName}
+                          className="p-1 text-slate-400 hover:text-indigo-600 rounded cursor-pointer"
+                          title="Edit Nama Kelompok / Label Pertemuan"
+                        >
+                          <Edit2 size={13} />
+                        </button>
                       )}
                     </div>
 
-                    <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <Users size={14} className="text-indigo-600" />
-                      <span>Anggota Kelompok PPT & Makalah ({meetingPresenters?.length || 0} Mahasiswa):</span>
+                    {/* Action buttons: Tambah & Tukar (HANYA DOSEN yang bisa menukar) */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {(isDosen || meetingPresenters.some(p => p.name === currentStudent?.name || p.id === currentStudent?.id)) && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAddPresenterModal(true)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                          title="Tambah Mahasiswa ke Pertemuan Ini (Pilih dari Data Mahasiswa atau Tambah Baru)"
+                        >
+                          <UserPlus size={13} />
+                          <span>+ Tambah</span>
+                        </button>
+                      )}
+                      {isDosen && (
+                        <button
+                          type="button"
+                          onClick={handleOpenSwapPresenterModal}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                          title="Tukar Mahasiswa Antar Pertemuan (Hanya Dosen)"
+                        >
+                          <ArrowRightLeft size={13} />
+                          <span>Tukar Mahasiswa</span>
+                        </button>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Roster of Students in this Presentation Group */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {(meetingPresenters || []).map(m => (
+                  {editStudentNameMsg && (
+                    <div
+                      className={`p-2.5 rounded-lg text-xs font-medium ${
+                        editStudentNameMsg.type === 'success'
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                          : 'bg-rose-50 text-rose-800 border border-rose-200'
+                      }`}
+                    >
+                      {editStudentNameMsg.text}
+                    </div>
+                  )}
+
+                  <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <Users size={14} className={presentationType === 'kelompok' ? 'text-indigo-600' : 'text-emerald-700'} />
+                    <span>
+                      {presentationType === 'kelompok'
+                        ? `Anggota Kelompok PPT & Makalah (${meetingPresenters?.length || 0} Mahasiswa):`
+                        : `Mahasiswa Pemakalah Individu (${meetingPresenters?.length || 0} Mahasiswa):`}
+                    </span>
+                  </div>
+
+                  {/* Roster of Students in this Presentation Group */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(meetingPresenters || []).map(m => {
+                      const isEditingThis = editingStudentInMeeting?.id === m.id;
+                      const isSelf = currentStudent?.id === m.id || currentStudent?.name === m.name;
+
+                      return (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-indigo-50/50 border border-indigo-100 text-xs"
+                          className={`p-2.5 rounded-lg border text-xs transition-all ${
+                            isSelf
+                              ? 'bg-indigo-50 border-indigo-300'
+                              : 'bg-white border-slate-200'
+                          }`}
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-7 h-7 rounded-full bg-indigo-200 text-indigo-800 font-bold text-xs flex items-center justify-center flex-shrink-0">
-                              {m.name.charAt(0)}
+                          {isEditingThis ? (
+                            <form onSubmit={handleSaveStudentName} className="space-y-1.5">
+                              <span className="text-[10px] font-bold text-indigo-900 uppercase block">
+                                Ubah Nama Mahasiswa (Sinkron ke Data Mahasiswa):
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="text"
+                                  required
+                                  value={editingStudentInMeeting.currentName}
+                                  onChange={e =>
+                                    setEditingStudentInMeeting({
+                                      ...editingStudentInMeeting,
+                                      currentName: e.target.value,
+                                    })
+                                  }
+                                  className="flex-1 px-2 py-1 text-xs bg-white border border-indigo-400 rounded-md uppercase font-bold"
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={isSavingStudentName}
+                                  className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-md font-bold text-xs flex items-center gap-1 cursor-pointer"
+                                  title="Simpan ke Database Mahasiswa"
+                                >
+                                  <Save size={12} />
+                                  <span>{isSavingStudentName ? '...' : 'Simpan'}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingStudentInMeeting(null)}
+                                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md cursor-pointer"
+                                  title="Batal"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-7 h-7 rounded-full bg-indigo-200 text-indigo-800 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                                  {m.name.charAt(0)}
+                                </div>
+                                <div className="truncate">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-bold text-slate-900 truncate">{m.name}</p>
+                                    {isSelf && (
+                                      <span className="text-[9px] bg-indigo-600 text-white px-1.5 py-0.2 rounded font-bold">
+                                        Anda
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-slate-500">NIM: {m.nim || '-'}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {(isDosen || isSelf) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingStudentInMeeting({
+                                        id: m.id,
+                                        originalName: m.name,
+                                        currentName: m.name,
+                                        nim: m.nim,
+                                      });
+                                      setEditStudentNameMsg(null);
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-indigo-600 rounded hover:bg-indigo-50 cursor-pointer"
+                                    title="Ubah Nama Mahasiswa (Tersinkron ke Data Mahasiswa SIAKAD)"
+                                  >
+                                    <Edit2 size={13} />
+                                  </button>
+                                )}
+                                {isDosen && (meetingPresenters?.length || 0) > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemovePresenterFromMeeting(m.name)}
+                                    className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded cursor-pointer"
+                                    title="Hapus mahasiswa dari pertemuan ini"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            <div className="truncate">
-                              <p className="font-bold text-slate-900 truncate">{m.name}</p>
-                              <p className="text-[10px] text-slate-500">NIM: {m.nim || '-'}</p>
-                            </div>
-                          </div>
-                          {isDosen && (meetingPresenters?.length || 0) > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePresenterFromMeeting(m.name)}
-                              className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded"
-                              title="Hapus mahasiswa dari kelompok pertemuan ini"
-                            >
-                              <X size={14} />
-                            </button>
                           )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
 
                     {/* Add Presenter Modal / In-line Box */}
                     {showAddPresenterModal && (
@@ -2285,7 +2423,6 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       </div>
                     )}
                   </div>
-                )}
 
                 {/* Additional Partner Name Note (Optional) */}
                 <div>

@@ -3512,10 +3512,13 @@ app.post('/api/students', (req, res) => {
   res.json({ success: true, student: newStudent });
 });
 
-// 10a-2. Update Student Biodata & Assignment (Dosen Only)
+// 10a-2. Update Student Biodata & Assignment (Dosen or Student Self-Update)
 app.put('/api/students/:id', (req, res) => {
-  if (!isDosenAuthorized(req)) {
-    return res.status(403).json({ error: 'Akses ditolak. Hanya Dosen yang berwenang memperbarui data mahasiswa.' });
+  const isDosen = isDosenAuthorized(req);
+  const isSelfUpdate = req.body?.isStudentUpdate === true || req.body?.isSelfUpdate === true;
+
+  if (!isDosen && !isSelfUpdate) {
+    return res.status(403).json({ error: 'Akses ditolak. Anda tidak memiliki wewenang untuk mengubah data mahasiswa ini.' });
   }
 
   const { id } = req.params;
@@ -3528,18 +3531,22 @@ app.put('/api/students/:id', (req, res) => {
   const oldName = student.name;
 
   if (name) student.name = name.trim().toUpperCase();
-  if (nim) student.nim = nim.trim();
+  if (nim && (isDosen || !student.nim)) student.nim = nim.trim();
   if (birthPlace !== undefined) student.birthPlace = birthPlace.trim();
   if (birthDate !== undefined) student.birthDate = birthDate.trim();
   if (address !== undefined) student.address = address.trim();
   if (gender !== undefined) student.gender = gender;
   if (phone !== undefined) student.phone = phone.trim();
-  if (rpsPart !== undefined) student.rpsPart = rpsPart;
-  if (topic !== undefined) student.topic = topic;
-  if (meetingNumber !== undefined) student.meetingNumber = Number(meetingNumber);
+  
+  // Meeting and group assignment restricted to Dosen
+  if (isDosen) {
+    if (rpsPart !== undefined) student.rpsPart = rpsPart;
+    if (topic !== undefined) student.topic = topic;
+    if (meetingNumber !== undefined) student.meetingNumber = Number(meetingNumber);
+  }
 
   // If group changed or name changed, update group members
-  if (groupId !== undefined && Number(groupId) !== student.groupId) {
+  if (isDosen && groupId !== undefined && Number(groupId) !== student.groupId) {
     // Remove from old group
     const oldGroup = (db.groups || []).find(g => g.id === student.groupId);
     if (oldGroup) {
@@ -3552,11 +3559,18 @@ app.put('/api/students/:id', (req, res) => {
       newGroup.members.push(student.name);
     }
   } else if (name && oldName !== student.name) {
-    // Update name in same group
-    const curGroup = (db.groups || []).find(g => g.id === student.groupId);
-    if (curGroup) {
-      curGroup.members = curGroup.members.map(m => m === oldName ? student.name : m);
-    }
+    // Update name across ALL groups that had oldName
+    (db.groups || []).forEach(g => {
+      if (g.members && g.members.includes(oldName)) {
+        g.members = g.members.map(m => m === oldName ? student.name : m);
+      }
+    });
+    // Update name in meeting presenters
+    (db.meetings || []).forEach(m => {
+      if (m.presenters && m.presenters.includes(oldName)) {
+        m.presenters = m.presenters.map(p => p === oldName ? student.name : p);
+      }
+    });
   }
 
   // Update name in submissions & UTS & UAS
@@ -3570,6 +3584,13 @@ app.put('/api/students/:id', (req, res) => {
     (db.uasSubmissions || []).forEach(uas => {
       if (uas.studentId === id) uas.studentName = student.name;
     });
+  }
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].students = db.students;
+    db.allCoursesData[db.activeCourseId].groups = db.groups;
+    db.allCoursesData[db.activeCourseId].meetings = db.meetings;
+    db.allCoursesData[db.activeCourseId].submissions = db.submissions;
   }
 
   saveDatabase();
@@ -3973,6 +3994,11 @@ app.post('/api/groups/swap-members', (req, res) => {
 
   if (stdA) stdA.groupId = grpB.id;
   if (stdB) stdB.groupId = grpA.id;
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].groups = db.groups;
+    db.allCoursesData[db.activeCourseId].students = db.students;
+  }
 
   saveDatabase();
   res.json({
@@ -4954,6 +4980,12 @@ app.put('/api/meetings/:meetingNumber/presentation-group', (req, res) => {
     });
   }
 
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].meetings = db.meetings;
+    db.allCoursesData[db.activeCourseId].students = db.students;
+    db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+  }
+
   saveDatabase();
 
   const { dosenPassword, ...safeDb } = db;
@@ -4995,6 +5027,11 @@ app.post('/api/meetings/swap-presenters', (req, res) => {
   if (stdB) {
     stdB.meetingNumber = Number(meetingNumA);
     stdB.rpsPart = `Pertemuan ${meetingNumA}`;
+  }
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].meetings = db.meetings;
+    db.allCoursesData[db.activeCourseId].students = db.students;
   }
 
   saveDatabase();

@@ -32,6 +32,7 @@ import {
   restoreBackupToServer,
   updateExamSettingsApi,
   updateGroupApi,
+  swapMeetingPresentersApi,
 } from '../services/api';
 import {
   exportAllTasksToExcel,
@@ -88,6 +89,7 @@ import {
   UploadCloud,
   HardDriveDownload,
   Printer,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   autoGradeIndividualSubmission,
@@ -550,6 +552,95 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   const [meetingGroupScore, setMeetingGroupScore] = useState<number>(85);
   const [meetingGroupFeedback, setMeetingGroupFeedback] = useState<string>('Presentasi dan materi makalah/PPT kelompok sangat baik dan sistematis.');
   const [isBulkGradingMeetingGroup, setIsBulkGradingMeetingGroup] = useState<boolean>(false);
+
+  // Swap Meeting Students State & Handlers (Hanya Dosen: "hanya dosen yang bisa menukar")
+  const [showDosenSwapMeetingModal, setShowDosenSwapMeetingModal] = useState<boolean>(false);
+  const [dosenSwapMeetA, setDosenSwapMeetA] = useState<number>(2);
+  const [dosenSwapStudentA, setDosenSwapStudentA] = useState<string>('');
+  const [dosenSwapMeetB, setDosenSwapMeetB] = useState<number>(3);
+  const [dosenSwapStudentB, setDosenSwapStudentB] = useState<string>('');
+  const [isDosenSwapping, setIsDosenSwapping] = useState<boolean>(false);
+  const [dosenSwapMsg, setDosenSwapMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleOpenDosenSwapMeeting = (meetingNum: number) => {
+    const curStudents = (students || []).filter(s => s.meetingNumber === meetingNum);
+    const otherMeetings = (meetings || []).filter(m => m.meetingNumber >= 2 && m.meetingNumber <= 15 && m.meetingNumber !== meetingNum);
+    const targetMeetNum = otherMeetings[0]?.meetingNumber || (meetingNum === 2 ? 3 : 2);
+    const targetStudents = (students || []).filter(s => s.meetingNumber === targetMeetNum);
+
+    setDosenSwapMeetA(meetingNum);
+    setDosenSwapStudentA(curStudents[0]?.name || '');
+    setDosenSwapMeetB(targetMeetNum);
+    setDosenSwapStudentB(targetStudents[0]?.name || '');
+    setDosenSwapMsg(null);
+    setShowDosenSwapMeetingModal(true);
+  };
+
+  const handleExecuteDosenSwapMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dosenSwapStudentA || !dosenSwapStudentB) {
+      setDosenSwapMsg({ type: 'error', text: 'Pilih mahasiswa dari kedua pertemuan yang ingin ditukar.' });
+      return;
+    }
+    setIsDosenSwapping(true);
+    setDosenSwapMsg(null);
+    try {
+      const res = await swapMeetingPresentersApi({
+        meetingNumA: dosenSwapMeetA,
+        studentNameA: dosenSwapStudentA,
+        meetingNumB: dosenSwapMeetB,
+        studentNameB: dosenSwapStudentB,
+      });
+      if (res.success) {
+        setDosenSwapMsg({ type: 'success', text: res.message || 'Mahasiswa berhasil ditukar!' });
+        await onRefreshData();
+        setTimeout(() => {
+          setShowDosenSwapMeetingModal(false);
+          setDosenSwapMsg(null);
+        }, 1200);
+      } else {
+        setDosenSwapMsg({ type: 'error', text: res.error || 'Gagal menukar mahasiswa.' });
+      }
+    } catch {
+      setDosenSwapMsg({ type: 'error', text: 'Terjadi gangguan jaringan saat menukar mahasiswa.' });
+    } finally {
+      setIsDosenSwapping(false);
+    }
+  };
+
+  // Edit Meeting Group Name State & Handlers
+  const [editingMeetingGroupNameNum, setEditingMeetingGroupNameNum] = useState<number | null>(null);
+  const [newMeetingGroupNameInput, setNewMeetingGroupNameInput] = useState<string>('');
+  const [isSavingMeetingGroupNameDosen, setIsSavingMeetingGroupNameDosen] = useState<boolean>(false);
+
+  const handleStartEditMeetingGroupName = (meetingNumber: number, currentName?: string) => {
+    setEditingMeetingGroupNameNum(meetingNumber);
+    setNewMeetingGroupNameInput(currentName || `Kelompok Pertemuan #${meetingNumber}`);
+  };
+
+  const handleSaveMeetingGroupNameDosen = async (e: React.FormEvent, meetingNumber: number) => {
+    e.preventDefault();
+    if (!newMeetingGroupNameInput.trim()) return;
+    setIsSavingMeetingGroupNameDosen(true);
+    try {
+      await updateMeetingPresentationGroupApi(meetingNumber, {
+        groupName: newMeetingGroupNameInput.trim().toUpperCase(),
+      });
+      await onRefreshData();
+      setEditingMeetingGroupNameNum(null);
+      setGroupActionFeedback({
+        type: 'success',
+        text: `Nama kelompok pertemuan #${meetingNumber} berhasil diperbarui!`,
+      });
+    } catch (err: any) {
+      setGroupActionFeedback({
+        type: 'error',
+        text: err?.message || 'Gagal mengubah nama kelompok.',
+      });
+    } finally {
+      setIsSavingMeetingGroupNameDosen(false);
+    }
+  };
 
   const handleStartEditStudent = (std: Student) => {
     const grp = (groups || []).find(g => g.id === std.groupId);
@@ -2231,10 +2322,51 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                         >
                           {isGroup ? 'Kelompok PPT & Makalah' : 'Individu'}
                         </span>
+                        {meeting.groupName && (
+                          <span className="text-[10px] font-extrabold bg-indigo-900 text-white px-2 py-0.5 rounded">
+                            {meeting.groupName}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditMeetingGroupName(meeting.meetingNumber, meeting.groupName)}
+                          className="p-1 text-slate-400 hover:text-indigo-600 rounded cursor-pointer"
+                          title="Edit Nama Kelompok Pertemuan Ini"
+                        >
+                          <Edit2 size={12} />
+                        </button>
                       </div>
-                      <h4 className="font-bold text-sm sm:text-base text-slate-900 mt-1">
-                        {meeting.title}
-                      </h4>
+
+                      {editingMeetingGroupNameNum === meeting.meetingNumber ? (
+                        <form onSubmit={(e) => handleSaveMeetingGroupNameDosen(e, meeting.meetingNumber)} className="flex items-center gap-1.5 mt-2">
+                          <input
+                            type="text"
+                            required
+                            value={newMeetingGroupNameInput}
+                            onChange={e => setNewMeetingGroupNameInput(e.target.value)}
+                            className="px-2.5 py-1 text-xs border border-indigo-400 rounded-lg uppercase font-bold bg-white"
+                            placeholder="Nama Kelompok..."
+                          />
+                          <button
+                            type="submit"
+                            disabled={isSavingMeetingGroupNameDosen}
+                            className="px-2.5 py-1 text-xs bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
+                          >
+                            {isSavingMeetingGroupNameDosen ? '...' : 'Simpan'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingMeetingGroupNameNum(null)}
+                            className="px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer"
+                          >
+                            Batal
+                          </button>
+                        </form>
+                      ) : (
+                        <h4 className="font-bold text-sm sm:text-base text-slate-900 mt-1">
+                          {meeting.title}
+                        </h4>
+                      )}
                       <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
                         {meeting.description}
                       </p>
@@ -2275,10 +2407,20 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                           setGroupAddCustomName('');
                           setGroupAddCustomNim('');
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
                       >
                         <UserPlus size={13} />
                         <span>+ Tambah Mahasiswa</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDosenSwapMeeting(meeting.meetingNumber)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                        title="Tukar Mahasiswa Antar Pertemuan (Khusus Dosen)"
+                      >
+                        <ArrowRightLeft size={13} />
+                        <span>Tukar Mahasiswa</span>
                       </button>
 
                       <button
@@ -2290,7 +2432,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                             setMeetingGroupScore(grades[firstGrade.id].individualGrade!);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
                       >
                         <Award size={13} />
                         <span>Beri Nilai Kelompok</span>
@@ -2504,11 +2646,19 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                                     <CheckCircle2 size={12} />
                                   </span>
                                 )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditStudent(std)}
+                                  className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors cursor-pointer"
+                                  title={`Edit Data / Ganti Nama ${std.name} (Sinkron ke Data Mahasiswa SIAKAD)`}
+                                >
+                                  <Edit2 size={13} />
+                                </button>
                                 {(meetingStudents?.length || 0) > 1 && (
                                   <button
                                     type="button"
                                     onClick={() => handleRemovePresenterFromMeetingDosen(meeting.meetingNumber, std.name)}
-                                    className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition-colors"
+                                    className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                                     title={`Keluarkan ${std.name} dari kelompok pertemuan ini`}
                                   >
                                     <X size={14} />
@@ -4967,6 +5117,133 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
           }
         }}
       />
+
+      {/* MODAL TUKAR MAHASISWA ANTAR PERTEMUAN (HANYA DOSEN) */}
+      {showDosenSwapMeetingModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleExecuteDosenSwapMeeting}
+            className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-amber-200 space-y-4 animate-in fade-in"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span className="font-bold text-base text-amber-950 flex items-center gap-1.5">
+                <ArrowRightLeft size={16} className="text-amber-600" />
+                <span>Tukar Mahasiswa Antar Pertemuan Presentasi (Khusus Dosen)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowDosenSwapMeetingModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {dosenSwapMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  dosenSwapMsg.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                <span>{dosenSwapMsg.text}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tukar jadwal presentasi / kelompok pertemuan antara dua mahasiswa secara permanen di database SIAKAD.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Meeting A */}
+              <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-amber-950 uppercase block">
+                  1. Dari Pertemuan #{dosenSwapMeetA}:
+                </span>
+                <span className="text-[11px] text-slate-600 font-medium block">
+                  Pilih Mahasiswa:
+                </span>
+                <select
+                  value={dosenSwapStudentA}
+                  onChange={e => setDosenSwapStudentA(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {(students || [])
+                    .filter(s => s.meetingNumber === dosenSwapMeetA)
+                    .map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name} ({s.nim || 'Tanpa NIM'})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Meeting B */}
+              <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-2">
+                <span className="text-[11px] font-bold text-indigo-950 uppercase block">
+                  2. Pertemuan Tujuan:
+                </span>
+                <select
+                  value={dosenSwapMeetB}
+                  onChange={e => {
+                    const mNum = Number(e.target.value);
+                    setDosenSwapMeetB(mNum);
+                    const targetStds = (students || []).filter(s => s.meetingNumber === mNum);
+                    setDosenSwapStudentB(targetStds[0]?.name || '');
+                  }}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  {(meetings || [])
+                    .filter(m => m.meetingNumber >= 2 && m.meetingNumber <= 15 && m.meetingNumber !== dosenSwapMeetA)
+                    .map(m => (
+                      <option key={m.meetingNumber} value={m.meetingNumber}>
+                        Pertemuan #{m.meetingNumber} - {m.title}
+                      </option>
+                    ))}
+                </select>
+
+                <span className="text-[11px] text-slate-600 font-medium block">
+                  Pilih Mahasiswa Ditukar:
+                </span>
+                <select
+                  value={dosenSwapStudentB}
+                  onChange={e => setDosenSwapStudentB(e.target.value)}
+                  className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">-- Pilih Mahasiswa --</option>
+                  {(students || [])
+                    .filter(s => s.meetingNumber === dosenSwapMeetB)
+                    .map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name} ({s.nim || 'Tanpa NIM'})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowDosenSwapMeetingModal(false)}
+                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isDosenSwapping || !dosenSwapStudentA || !dosenSwapStudentB}
+                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                <ArrowRightLeft size={13} />
+                <span>{isDosenSwapping ? 'Menukar...' : 'Eksekusi Tukar Mahasiswa'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
     </div>
   );
