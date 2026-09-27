@@ -1651,6 +1651,24 @@ app.post('/api/submissions', (req, res) => {
 
   // Check if student already has a submission for this specific meeting, update it or add new
   const targetMeetingNumber = Number(submissionData.meetingNumber) || 2;
+  const student = (db.students || []).find(s => s.id === submissionData.studentId);
+
+  // Anti-Salah Kamar validation on server: verify student is assigned to this meeting room
+  if (!isDosenAuthorized(req) && student) {
+    const studentAssignedMeeting = Number(student.meetingNumber) || 2;
+    const meetingSchedule = (db.meetings || []).find(m => m.meetingNumber === targetMeetingNumber);
+    const isListedInMeetingSchedule = (meetingSchedule?.presenters || []).some(
+      p => p.trim().toLowerCase() === student.name.trim().toLowerCase()
+    );
+    const isAssigned = (studentAssignedMeeting === targetMeetingNumber) || isListedInMeetingSchedule;
+
+    if (!isAssigned) {
+      return res.status(403).json({
+        error: `Akses Ditolak (Salah Kamar): Mahasiswa ${student.name} ditugaskan untuk presentasi pada Pertemuan #${studentAssignedMeeting}, bukan Pertemuan #${targetMeetingNumber}. Anda tidak diperkenankan mengumpulkan tugas di kamar pertemuan lain.`
+      });
+    }
+  }
+
   const existingIndex = db.submissions.findIndex(
     s => (s.id && submissionData.id && s.id === submissionData.id) ||
          (s.studentId === submissionData.studentId && (Number(s.meetingNumber) || 2) === targetMeetingNumber)
@@ -1882,6 +1900,19 @@ app.post('/api/group-submissions', (req, res) => {
     return res.status(403).json({
       error: 'Proyek Video UAS Kelompok ini sudah dikumpulkan sebelumnya (Satu Kali Kirim). Formulir pengiriman terkunci. Mahasiswa hanya dapat mengumpulkan ulang jika Dosen telah mereset status pengumpulan kelompok ini untuk keperluan perbaikan (revisi).',
     });
+  }
+
+  // Anti-Salah Kelompok validation on server
+  if (!isDosenAuthorized(req) && submittedBy && typeof submittedBy === 'string' && submittedBy !== 'Perwakilan Kelompok' && submittedBy !== 'Anggota Kelompok') {
+    const isMember = (group.members || []).some(m => m.trim().toLowerCase() === submittedBy.trim().toLowerCase());
+    if (!isMember) {
+      const matchingStudent = (db.students || []).find(s => s.name.trim().toLowerCase() === submittedBy.trim().toLowerCase());
+      if (matchingStudent && matchingStudent.groupId !== group.id) {
+        return res.status(403).json({
+          error: `Akses Ditolak (Salah Kelompok): Mahasiswa ${submittedBy} tercatat sebagai anggota Kelompok ${matchingStudent.groupId}, bukan ${group.name}. Anda tidak dapat mengumpulkan tugas untuk kelompok lain.`
+        });
+      }
+    }
   }
 
   let processedFileData = fileData;

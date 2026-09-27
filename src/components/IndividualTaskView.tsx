@@ -20,6 +20,8 @@ import {
   ExternalLink,
   Download,
   AlertCircle,
+  AlertTriangle,
+  User,
   Save,
   Clock,
   Sparkles,
@@ -200,6 +202,72 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
       )
     );
   }, [effectiveSubmissions, targetStudent, selectedMeetingNumber]);
+
+  // Meeting Presenters (Kelompok PPT/Makalah di pertemuan ini)
+  const meetingPresenters = useMemo(() => {
+    return (students || []).filter(
+      s => (Number(s.meetingNumber) || 2) === selectedMeetingNumber
+    );
+  }, [students, selectedMeetingNumber]);
+
+  // Verifikasi apakah mahasiswa yang sedang aktif/login ditugaskan di pertemuan yang dipilih ini
+  const isAssignedToThisMeeting = useMemo(() => {
+    if (isDosen) return true; // Dosen bebas membuka/mengelola semua pertemuan
+    if (!currentStudent) return true; // Jika tidak ada profil mahasiswa spesifik yang login, jangan memblokir secara global
+
+    const studentMeeting = Number(currentStudent.meetingNumber) || 2;
+    if (studentMeeting === selectedMeetingNumber) return true;
+
+    // Cek apakah tercantum dalam daftar presenters jadwal pertemuan RPS
+    const isListedInSchedule = (currentMeetingSchedule?.presenters || []).some(
+      p => p.trim().toLowerCase() === currentStudent.name.trim().toLowerCase()
+    );
+    if (isListedInSchedule) return true;
+
+    // Cek apakah tercantum dalam mahasiswa pemakalah pertemuan ini
+    const isPresenter = (meetingPresenters || []).some(
+      p => p.id === currentStudent.id || p.name.trim().toLowerCase() === currentStudent.name.trim().toLowerCase()
+    );
+    if (isPresenter) return true;
+
+    return false;
+  }, [isDosen, currentStudent, selectedMeetingNumber, currentMeetingSchedule, meetingPresenters]);
+
+  // Verifikasi apakah mahasiswa memilih profil mahasiswa lain (bukan namanya sendiri)
+  const isIdentityMismatch = useMemo(() => {
+    if (isDosen) return false; // Dosen boleh mengelola tugas atas nama mahasiswa
+    if (!currentStudent || !targetStudent) return false;
+    return targetStudent.id !== currentStudent.id;
+  }, [isDosen, currentStudent, targetStudent]);
+
+  // Mahasiswa membuka form pertemuan yang bukan jatah/kamar tugasnya
+  const isSalahKamar = useMemo(() => {
+    if (isDosen) return false;
+    if (!currentStudent) return false;
+    return !isAssignedToThisMeeting;
+  }, [isDosen, currentStudent, isAssignedToThisMeeting]);
+
+  // Helper untuk beralih kembali ke akun / nama mahasiswa sendiri
+  const handleSwitchToMyAccount = () => {
+    if (currentStudent) {
+      setActiveTargetId(currentStudent.id);
+      onSelectStudent(currentStudent);
+      if (currentStudent.meetingNumber) {
+        setSelectedMeetingNumber(currentStudent.meetingNumber);
+      }
+      setIsEditingExisting(false);
+      setErrorMsg(null);
+    }
+  };
+
+  // Helper untuk beralih kembali ke kamar pertemuan yang sesuai jadwal sendiri
+  const handleSwitchToMyMeeting = () => {
+    if (currentStudent?.meetingNumber) {
+      setSelectedMeetingNumber(currentStudent.meetingNumber);
+      setIsEditingExisting(false);
+      setErrorMsg(null);
+    }
+  };
 
   // Form states
   const [pptType, setPptType] = useState<'link' | 'file'>(existingSubmission?.pptType || 'link');
@@ -458,6 +526,22 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     setErrorMsg(null);
     setSubmitSuccessMsg(null);
 
+    // Anti-impersonation: Mahasiswa tidak bisa mengirim tugas jika bukan namanya sendiri yang dipilih
+    if (isIdentityMismatch) {
+      setErrorMsg(
+        `Pengumpulan Ditolak: Anda tidak dapat mengumpulkan tugas atas nama mahasiswa lain (${targetStudent.name}). Silakan beralih ke nama Anda sendiri (${currentStudent?.name}).`
+      );
+      return;
+    }
+
+    // Anti-salah kamar: Mahasiswa tidak bisa mengirim tugas jika salah kamar pertemuan
+    if (isSalahKamar) {
+      setErrorMsg(
+        `Pengumpulan Ditolak (Salah Kamar): Anda membuka ruang Pertemuan #${selectedMeetingNumber}. Jadwal resmi presentasi Anda adalah Pertemuan #${currentStudent?.meetingNumber || 2}. Silakan beralih ke kamar pertemuan Anda.`
+      );
+      return;
+    }
+
     // Validation based on submission choice
     const hasPpt = (pptType === 'link' && !!pptUrl.trim()) || (pptType === 'file' && !!pptFileData);
     const hasMakalah = (makalahType === 'link' && !!makalahUrl.trim()) || (makalahType === 'file' && !!makalahFileData);
@@ -487,9 +571,15 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   // Confirmed Submission Execution
   const handleConfirmAndExecuteSubmit = async () => {
     setIsConfirmSubmitOpen(false);
-    setIsSubmitting(true);
     setErrorMsg(null);
     setSubmitSuccessMsg(null);
+
+    if (isIdentityMismatch || isSalahKamar) {
+      setErrorMsg('Pengumpulan dibatalkan: Akses terkunci karena bukan akun sendiri atau salah kamar pertemuan.');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const currentRpsPart =
       selectedMeetingNumber === targetStudent.meetingNumber && targetStudent.rpsPart
@@ -594,10 +684,6 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     }
   };
 
-  // Meeting Presenters & Group Management (Kelompok PPT/Makalah Ditentukan Dosen)
-  const meetingPresenters = (students || []).filter(
-    s => (Number(s.meetingNumber) || 2) === selectedMeetingNumber
-  );
   // Group format is determined directly by presentationType ('kelompok' vs 'individu')
   const isGroupFormat = presentationType === 'kelompok';
   const [showAddPresenterModal, setShowAddPresenterModal] = useState(false);
@@ -1364,7 +1450,8 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
             <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin">
               {availableMeetings.map(m => {
                 const isSelected = m.meetingNumber === selectedMeetingNumber;
-                const isAssigned = targetStudent.meetingNumber === m.meetingNumber;
+                const isAssignedToTarget = targetStudent.meetingNumber === m.meetingNumber;
+                const isMyMeeting = Boolean(currentStudent && (Number(currentStudent.meetingNumber) || 2) === m.meetingNumber);
                 const subForMeeting = (effectiveSubmissions || []).find(
                   s => s.studentId === targetStudent.id && (Number(s.meetingNumber) || 2) === m.meetingNumber
                 );
@@ -1380,7 +1467,9 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                         ? 'bg-emerald-800 text-white border-emerald-800 shadow-sm scale-105'
                         : hasSubmittedThis
                         ? 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100'
-                        : isAssigned
+                        : isMyMeeting
+                        ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
+                        : isAssignedToTarget
                         ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
@@ -1389,7 +1478,9 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       <span>Pertemuan {m.meetingNumber}</span>
                       {hasSubmittedThis ? (
                         <CheckCircle2 size={13} className={isSelected ? 'text-emerald-300' : 'text-emerald-600'} />
-                      ) : isAssigned ? (
+                      ) : isMyMeeting ? (
+                        <span className="text-[10px] text-amber-600 font-extrabold">★</span>
+                      ) : isAssignedToTarget ? (
                         <span className="text-[10px] text-amber-500">★</span>
                       ) : null}
                     </div>
@@ -1397,10 +1488,12 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       isSelected
                         ? 'text-emerald-100'
                         : hasSubmittedThis
-                        ? 'text-emerald-700'
+                        ? 'text-emerald-700 font-semibold'
+                        : isMyMeeting
+                        ? 'text-amber-800 font-extrabold'
                         : 'text-slate-400'
                     }`}>
-                      {hasSubmittedThis ? 'Terkirim ✓' : isAssigned ? 'Jadwal Anda' : 'Buka Form'}
+                      {hasSubmittedThis ? 'Terkirim ✓' : isMyMeeting ? '★ Kamar Anda' : isAssignedToTarget ? 'Jadwal Profil' : 'Buka Form'}
                     </span>
                   </button>
                 );
@@ -1484,6 +1577,40 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       dateStyle: 'medium',
                       timeStyle: 'short',
                     })}
+                  </div>
+                )}
+
+                {/* Identity Mismatch Badge */}
+                {isIdentityMismatch && (
+                  <div className="mt-2.5 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-semibold flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                      <span className="truncate">Bukan Akun Anda: {targetStudent.name.split(' ')[0]}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSwitchToMyAccount}
+                      className="text-[10px] font-bold px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded cursor-pointer shrink-0"
+                    >
+                      Pilih Saya
+                    </button>
+                  </div>
+                )}
+
+                {/* Salah Kamar Badge */}
+                {isSalahKamar && (
+                  <div className="mt-2.5 p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 text-xs font-semibold flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+                      <span className="truncate">Salah Kamar: Jadwal Anda P#{currentStudent?.meetingNumber || 2}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSwitchToMyMeeting}
+                      className="text-[10px] font-bold px-2 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded cursor-pointer shrink-0"
+                    >
+                      Pindah Kamar
+                    </button>
                   </div>
                 )}
               </div>
@@ -1948,6 +2075,56 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                 </div>
               </div>
 
+              {/* Peringatan Keras Bukan Akun Sendiri (Anti Impersonation) */}
+              {isIdentityMismatch && (
+                <div className="p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl text-xs text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block text-sm font-extrabold text-rose-900 mb-0.5">
+                        PERINGATAN: BUKAN AKUN MAHASISWA ANDA!
+                      </strong>
+                      <p className="text-rose-800 leading-relaxed">
+                        Anda saat ini membuka formulir atas nama <strong>{targetStudent.name}</strong> ({targetStudent.nim || 'NIM -'}). Sesuai integritas akademik SIAKAD, Anda <strong>dilarang</strong> mengumpulkan tugas atas nama orang lain.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSwitchToMyAccount}
+                    className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <User size={14} />
+                    <span>Pilih Nama Saya ({currentStudent?.name.split(' ')[0]}) ➔</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Peringatan Salah Kamar Pertemuan (Anti Salah Kamar) */}
+              {isSalahKamar && (
+                <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-xs text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block text-sm font-extrabold text-amber-900 mb-0.5">
+                        PERINGATAN: SALAH KAMAR PERTEMUAN!
+                      </strong>
+                      <p className="text-amber-800 leading-relaxed">
+                        Anda saat ini membuka ruang tugas <strong>Pertemuan #{selectedMeetingNumber}</strong>. Berdasarkan jadwal RPS SIAKAD, jadwal presentasi resmi Anda adalah <strong>Pertemuan #{currentStudent?.meetingNumber || 2}</strong>. Pengumpulan tugas di kamar pertemuan lain terkunci.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSwitchToMyMeeting}
+                    className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Calendar size={14} />
+                    <span>Pindah ke Kamar Saya (Pertemuan #{currentStudent?.meetingNumber || 2}) ➔</span>
+                  </button>
+                </div>
+              )}
+
               {/* Mode Edit Banner jika mengedit tugas yang sudah terkirim */}
               {isEditingExisting && existingSubmission && (
                 <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-center justify-between gap-3 animate-fadeIn shadow-2xs">
@@ -1988,9 +2165,10 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                         s => s.studentId === targetStudent.id && (Number(s.meetingNumber) || 2) === m.meetingNumber
                       );
                       const isGraded = subM && subM.grade !== undefined;
+                      const isMyRoom = Boolean(currentStudent && (Number(currentStudent.meetingNumber) || 2) === m.meetingNumber);
                       return (
                         <option key={m.meetingNumber} value={m.meetingNumber}>
-                          Pertemuan {m.meetingNumber}: {m.title.slice(0, 48)}... {subM ? (isGraded ? `(Dinilai: ${subM.grade})` : '(Terkirim ✓)') : '(Siap Kirim)'}
+                          {isMyRoom ? '★ [Kamar Anda] ' : ''}Pertemuan {m.meetingNumber}: {m.title.slice(0, 40)}... {subM ? (isGraded ? `(Dinilai: ${subM.grade})` : '(Terkirim ✓)') : '(Siap Kirim)'}
                         </option>
                       );
                     })}
@@ -2000,6 +2178,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
                   {availableMeetings.map(m => {
                     const isCur = m.meetingNumber === selectedMeetingNumber;
+                    const isMyRoom = Boolean(currentStudent && (Number(currentStudent.meetingNumber) || 2) === m.meetingNumber);
                     const subM = (effectiveSubmissions || []).find(
                       s => s.studentId === targetStudent.id && (Number(s.meetingNumber) || 2) === m.meetingNumber
                     );
@@ -2016,10 +2195,12 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                             ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs scale-105'
                             : subM
                             ? 'bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                            : isMyRoom
+                            ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
                             : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        P{m.meetingNumber} {subM ? '✓' : ''}
+                        P{m.meetingNumber} {subM ? '✓' : isMyRoom ? '★' : ''}
                       </button>
                     );
                   })}
@@ -2748,11 +2929,29 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                 <button
                   id="btn-kirim-tugas-individu"
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={isSubmitting || isIdentityMismatch || isSalahKamar}
+                  className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 ${
+                    isIdentityMismatch || isSalahKamar
+                      ? 'bg-slate-400 text-white cursor-not-allowed opacity-85'
+                      : 'bg-emerald-700 hover:bg-emerald-800 text-white disabled:opacity-50 cursor-pointer active:scale-95'
+                  }`}
                 >
-                  <Save size={16} />
-                  <span>{isSubmitting ? 'Mengirim & Menyimpan...' : `Kirim Tugas Pertemuan ${selectedMeetingNumber} (Tersimpan Otomatis)`}</span>
+                  {isIdentityMismatch ? (
+                    <>
+                      <Lock size={16} />
+                      <span>Terkunci: Bukan Akun Sendiri (Pilih Nama Anda)</span>
+                    </>
+                  ) : isSalahKamar ? (
+                    <>
+                      <Lock size={16} />
+                      <span>Terkunci: Salah Kamar (Jadwal: Pertemuan #{currentStudent?.meetingNumber || 2})</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>{isSubmitting ? 'Mengirim & Menyimpan...' : `Kirim Tugas Pertemuan ${selectedMeetingNumber} (Tersimpan Otomatis)`}</span>
+                    </>
+                  )}
                 </button>
               </div>
 

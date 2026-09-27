@@ -72,6 +72,19 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
     members: [],
   };
 
+  // Verifikasi apakah mahasiswa merupakan anggota kelompok yang sedang aktif dipilih
+  const isMemberOfActiveGroup = isDosen || !currentStudent || (
+    currentStudent.groupId === activeGroup.id ||
+    (activeGroup.members || []).some(m => m.trim().toLowerCase() === currentStudent.name.trim().toLowerCase())
+  );
+
+  const handleSwitchToMyGroup = () => {
+    if (currentStudent?.groupId) {
+      setActiveGroupId(currentStudent.groupId);
+      setErrorMsg(null);
+    }
+  };
+
   // Form states
   const [videoUrl, setVideoUrl] = useState<string>(activeGroup?.submission?.videoUrl || '');
   const [aiToolsUsed, setAiToolsUsed] = useState<string>(
@@ -370,6 +383,13 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
+
+    if (!isMemberOfActiveGroup) {
+      setErrorMsg(
+        `Pengumpulan Ditolak: Anda bukan anggota ${activeGroup.name}. Kelompok resmi Anda adalah Kelompok ${currentStudent?.groupId || 1}. Silakan beralih ke kelompok Anda sendiri.`
+      );
+      return;
+    }
 
     if (!videoUrl.trim()) {
       setErrorMsg('Harap masukkan link Video (YouTube, Google Drive, atau Canva).');
@@ -1339,6 +1359,31 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                 </span>
               </div>
 
+              {/* Peringatan Bukan Anggota Kelompok Ini */}
+              {!isMemberOfActiveGroup && (
+                <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl text-xs text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block text-sm font-extrabold text-amber-900 mb-0.5">
+                        PERINGATAN: BUKAN KELOMPOK ANDA (SALAH KELOMPOK)!
+                      </strong>
+                      <p className="text-amber-800 leading-relaxed">
+                        Anda saat ini membuka formulir pengumpulan untuk <strong>{activeGroup.name}</strong>. Anda tercatat sebagai anggota <strong>Kelompok {currentStudent?.groupId || 1}</strong>. Pengumpulan tugas untuk kelompok lain terkunci.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSwitchToMyGroup}
+                    className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Users size={14} />
+                    <span>Pindah ke Kelompok Saya (Kel. {currentStudent?.groupId || 1}) ➔</span>
+                  </button>
+                </div>
+              )}
+
               {/* Mode Edit Banner jika mengedit tugas video kelompok */}
               {isEditingGroupProject && (
                 <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 flex items-center justify-between gap-3 animate-fadeIn shadow-2xs">
@@ -1437,11 +1482,24 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                 <button
                   id="btn-kirim-proyek-uas"
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  disabled={isSubmitting || !isMemberOfActiveGroup}
+                  className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 ${
+                    !isMemberOfActiveGroup
+                      ? 'bg-slate-400 text-white cursor-not-allowed opacity-85'
+                      : 'bg-indigo-700 hover:bg-indigo-800 text-white disabled:opacity-50 cursor-pointer active:scale-95'
+                  }`}
                 >
-                  <Save size={15} />
-                  <span>{isSubmitting ? 'Menyimpan...' : 'Kirim Tugas Proyek Video (Satu Kali Kirim)'}</span>
+                  {!isMemberOfActiveGroup ? (
+                    <>
+                      <Lock size={15} />
+                      <span>Terkunci: Bukan Kelompok Anda (Pilih Kelompok {currentStudent?.groupId || 1})</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} />
+                      <span>{isSubmitting ? 'Menyimpan...' : 'Kirim Tugas Proyek Video (Satu Kali Kirim)'}</span>
+                    </>
+                  )}
                 </button>
               </div>
 
