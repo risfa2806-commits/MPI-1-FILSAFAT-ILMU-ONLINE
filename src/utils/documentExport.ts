@@ -46,15 +46,14 @@ export function exportGradesToWord(options: {
     const g = grades[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
+    const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
+    const finalVal = hasAny && g.finalScore !== undefined ? g.finalScore : '-';
+    const letterVal = hasAny && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-';
+    const statusVal = hasAny && g.finalScore !== undefined ? (g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS') : 'BELUM LENGKAP';
 
-    const feedback = getStudentPersonalizedFeedback(std.name, std.nim, g.finalScore, std.topic, idx);
+    const feedback = getStudentPersonalizedFeedback(std.name, std.nim, typeof finalVal === 'number' ? finalVal : 85, std.topic, idx);
 
     return `
       <tr>
@@ -63,13 +62,13 @@ export function exportGradesToWord(options: {
         <td style="padding:6px; border:1px solid #333; font-weight:bold;">${std.name}</td>
         <td style="text-align:center; padding:6px; border:1px solid #333;">${g.attendanceScore}</td>
         <td style="text-align:center; padding:6px; border:1px solid #333;">${g.attitudeScore}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.individualScore}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.utsScore ?? 85}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.uasScore ?? g.groupScore ?? 85}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold; background-color:#e8f5e9;">${g.finalScore}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold;">${g.letterGrade}</td>
-        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold; color:${g.finalScore >= 60 ? '#1b5e20' : '#b71c1c'};">
-          ${g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS'}
+        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.individualScore ?? '-'}</td>
+        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.utsScore ?? '-'}</td>
+        <td style="text-align:center; padding:6px; border:1px solid #333;">${g.uasScore ?? g.groupScore ?? '-'}</td>
+        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold; background-color:#e8f5e9;">${finalVal}</td>
+        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold;">${letterVal}</td>
+        <td style="text-align:center; padding:6px; border:1px solid #333; font-weight:bold; color:${finalVal !== '-' && Number(finalVal) >= 60 ? '#1b5e20' : '#b71c1c'};">
+          ${statusVal}
         </td>
         <td style="padding:6px; border:1px solid #333; font-size:9pt; line-height:1.3; color:#1a237e;">
           <em>"${feedback.quote}"</em> — <strong>${feedback.scholar}</strong>
@@ -3547,7 +3546,8 @@ STRUKTUR DIREKTORI BERKAS ARSIP INI:
   // 3. Spreadsheet CSV of Student Grades
   const csvHeaders = ['No', 'NIM', 'Nama Mahasiswa', 'Part RPS', 'Presensi (15%)', 'Sikap (10%)', 'Tugas PPT/Makalah (25%)', 'UTS (25%)', 'UAS (25%)', 'Nilai Akhir', 'Huruf Mutu', 'Status Kelulusan', 'Catatan'];
   const csvRows = (db.students || []).map((std, idx) => {
-    const g = db.grades?.[std.id] || { attendanceScore: 100, attitudeScore: 85, individualScore: 85, utsScore: 85, uasScore: 85, finalScore: 88, letterGrade: 'A-' };
+    const g = db.grades?.[std.id] || { attendanceScore: 100, attitudeScore: 85, letterGrade: '-' };
+    const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
     return [
       idx + 1,
       `"${std.nim}"`,
@@ -3555,12 +3555,12 @@ STRUKTUR DIREKTORI BERKAS ARSIP INI:
       `"${std.rpsPart}"`,
       g.attendanceScore,
       g.attitudeScore,
-      g.individualScore,
-      g.utsScore ?? 85,
-      g.uasScore ?? 85,
-      g.finalScore,
-      `"${g.letterGrade}"`,
-      `"${g.finalScore >= 65 ? 'LULUS' : 'EVALUASI'}"`,
+      g.individualScore ?? '-',
+      g.utsScore ?? '-',
+      g.uasScore ?? '-',
+      hasAny && g.finalScore !== undefined ? g.finalScore : '-',
+      `"${hasAny && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-'}"`,
+      `"${hasAny && g.finalScore !== undefined ? (g.finalScore >= 65 ? 'LULUS' : 'EVALUASI') : 'BELUM LENGKAP'}"`,
       `"${((g as any).notes || '').replace(/"/g, '""')}"`,
     ].join(',');
   });

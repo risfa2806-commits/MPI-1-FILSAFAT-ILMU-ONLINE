@@ -81,17 +81,37 @@ function calculateLetterGrade(score: number): string {
 function recalculateStudentGrade(g: StudentGrade): void {
   const att = Number(g.attendanceScore ?? 100);
   const attit = Number(g.attitudeScore ?? 85);
-  const indiv = Number(g.individualScore ?? 85);
-  const uts = Number(g.utsScore ?? indiv ?? 85);
-  const uas = Number(g.uasScore ?? g.groupScore ?? 85);
 
-  g.finalScore = Math.round(
-    (att * 0.15) +
-    (attit * 0.10) +
-    (indiv * 0.25) +
-    (uts * 0.25) +
-    (uas * 0.25)
-  );
+  const hasIndiv = g.individualScore !== undefined && g.individualScore !== null && !isNaN(Number(g.individualScore)) && Number(g.individualScore) > 0;
+  const hasUts = g.utsScore !== undefined && g.utsScore !== null && !isNaN(Number(g.utsScore)) && Number(g.utsScore) > 0;
+  const hasUas = (g.uasScore !== undefined && g.uasScore !== null && !isNaN(Number(g.uasScore)) && Number(g.uasScore) > 0) ||
+                 (g.groupScore !== undefined && g.groupScore !== null && !isNaN(Number(g.groupScore)) && Number(g.groupScore) > 0);
+
+  // Jika mahasiswa belum mengumpulkan tugas atau belum dinilai oleh dosen, jangan tampilkan nilai akhir sembarangan
+  if (!hasIndiv && !hasUts && !hasUas) {
+    g.finalScore = undefined;
+    g.letterGrade = '-';
+    return;
+  }
+
+  let totalWeight = 0.15 + 0.10;
+  let totalWeightedScore = (att * 0.15) + (attit * 0.10);
+
+  if (hasIndiv) {
+    totalWeightedScore += Number(g.individualScore) * 0.25;
+    totalWeight += 0.25;
+  }
+  if (hasUts) {
+    totalWeightedScore += Number(g.utsScore) * 0.25;
+    totalWeight += 0.25;
+  }
+  if (hasUas) {
+    const uasVal = Number(g.uasScore ?? g.groupScore);
+    totalWeightedScore += uasVal * 0.25;
+    totalWeight += 0.25;
+  }
+
+  g.finalScore = Math.round(totalWeightedScore / totalWeight);
   g.letterGrade = calculateLetterGrade(g.finalScore);
 }
 
@@ -1708,22 +1728,20 @@ app.post('/api/submissions', (req, res) => {
     db.submissions.push(updatedSubmission);
   }
 
-  // Sync with academic grades in SIAKAD so it's recorded permanently
+  // Sync with academic grades in SIAKAD: jangan tetapkan nilai palsu saat mahasiswa baru mengirim tugas.
+  // Tunggu Dosen Pengampu memberikan penilaian (otomatis via rubrik maupun manual).
   if (!db.grades) db.grades = {};
   if (!db.grades[submissionData.studentId]) {
     db.grades[submissionData.studentId] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: updatedSubmission.grade !== undefined ? updatedSubmission.grade : 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 85,
-      letterGrade: 'A',
-      notes: `Tugas Terkumpul: ${updatedSubmission.topic}`,
+      letterGrade: '-',
+      notes: `Tugas Terkumpul: ${updatedSubmission.topic} (Menunggu Penilaian Dosen)`,
     };
-  } else if (updatedSubmission.grade !== undefined) {
+  }
+  if (updatedSubmission.grade !== undefined) {
     db.grades[submissionData.studentId].individualScore = updatedSubmission.grade;
+    recalculateStudentGrade(db.grades[submissionData.studentId]);
   }
 
   // If group presentation format, sync to co-presenters of this meeting
@@ -1987,12 +2005,7 @@ app.post('/api/group-grade', (req, res) => {
         db.grades[std.id] = {
           attendanceScore: 100,
           attitudeScore: 85,
-          individualScore: 85,
-          utsScore: 85,
-          uasScore: 85,
-          groupScore: Number(grade),
-          finalScore: 88,
-          letterGrade: 'A-',
+          letterGrade: '-',
         };
       }
       if (examType === 'uts') {
@@ -2069,18 +2082,12 @@ app.post('/api/individual-grade', (req, res) => {
     db.grades[targetGradeKey] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: Number(grade),
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
       notes: feedback || `Nilai Tugas Presentasi: ${grade}`,
     };
-  } else {
-    db.grades[targetGradeKey].individualScore = Number(grade);
-    if (feedback) db.grades[targetGradeKey].notes = feedback;
   }
+  db.grades[targetGradeKey].individualScore = Number(grade);
+  if (feedback) db.grades[targetGradeKey].notes = feedback;
 
   recalculateStudentGrade(db.grades[targetGradeKey]);
 
@@ -2146,16 +2153,12 @@ app.post('/api/uts-submissions', (req, res) => {
     });
   }
 
-  // Determine final grade and feedback (if already manually graded by lecturer, preserve; otherwise use auto-grade)
-  const finalGrade = (existingSub && existingSub.grade !== undefined && !existingSub.autoGraded)
-    ? existingSub.grade
-    : autoGrading.totalGrade;
-  const finalScores = (existingSub && existingSub.questionScores && !existingSub.autoGraded)
-    ? existingSub.questionScores
-    : autoGrading.questionScores;
-  const finalFeedback = (existingSub && existingSub.feedback && !existingSub.autoGraded)
-    ? existingSub.feedback
-    : autoGrading.feedback;
+  // Tentukan status nilai UTS: hanya muncul jika sudah pernah dinilai oleh Dosen.
+  // Jika baru dikirim mahasiswa, nilai belum dirilis sampai Dosen menilai (otomatis via rubrik maupun manual).
+  const isAlreadyGraded = existingSub && existingSub.grade !== undefined;
+  const finalGrade = isAlreadyGraded ? existingSub.grade : undefined;
+  const finalScores = isAlreadyGraded ? existingSub.questionScores : undefined;
+  const finalFeedback = isAlreadyGraded ? existingSub.feedback : undefined;
 
   const updatedSubmission: UtsSubmission = {
     id: existingSub ? existingSub.id : `uts-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
@@ -2170,11 +2173,11 @@ app.post('/api/uts-submissions', (req, res) => {
     aiVerdict: aiDetection.verdict,
     aiDetectedFlags: aiDetection.flaggedPhrases,
     aiAnalysisNotes: aiDetection.analysisNotes,
-    autoGraded: true,
+    autoGraded: isAlreadyGraded ? Boolean(existingSub.autoGraded) : false,
     grade: finalGrade,
     questionScores: finalScores,
     feedback: finalFeedback,
-    gradedAt: new Date().toISOString(),
+    gradedAt: isAlreadyGraded ? existingSub.gradedAt : undefined,
   };
 
   if (existingIdx >= 0) {
@@ -2183,23 +2186,20 @@ app.post('/api/uts-submissions', (req, res) => {
     db.utsSubmissions.push(updatedSubmission);
   }
 
-  // Automatically synchronize UTS grade with SIAKAD academic record
+  // Sinkronisasi dengan SIAKAD: jangan tetapkan nilai palsu, tunggu dosen menilai
   if (!db.grades) db.grades = {};
   if (!db.grades[studentId]) {
     db.grades[studentId] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: finalGrade,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
+      notes: 'Lembar Jawaban UTS Terkirim (Menunggu Penilaian Dosen)',
     };
-  } else {
-    db.grades[studentId].utsScore = finalGrade;
   }
-  recalculateStudentGrade(db.grades[studentId]);
+  if (isAlreadyGraded) {
+    db.grades[studentId].utsScore = finalGrade;
+    recalculateStudentGrade(db.grades[studentId]);
+  }
 
   // Update presence
   if (!db.activeHeartbeats) db.activeHeartbeats = {};
@@ -2262,20 +2262,16 @@ app.post('/api/uts-grade', (req, res) => {
   sub.gradedAt = new Date().toISOString();
 
   // Update grades record
+  if (!db.grades) db.grades = {};
   if (!db.grades[studentId]) {
     db.grades[studentId] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: Number(grade),
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
-  } else {
-    db.grades[studentId].utsScore = Number(grade);
   }
+  db.grades[studentId].utsScore = Number(grade);
+  if (feedback) db.grades[studentId].notes = feedback;
 
   recalculateStudentGrade(db.grades[studentId]);
 
@@ -2416,15 +2412,12 @@ app.post('/api/uas-submissions', (req, res) => {
     });
   }
 
-  const finalGrade = (existingSub && existingSub.grade !== undefined && !existingSub.autoGraded)
-    ? existingSub.grade
-    : autoGrading.totalGrade;
-  const finalScores = (existingSub && existingSub.questionScores && !existingSub.autoGraded)
-    ? existingSub.questionScores
-    : autoGrading.questionScores;
-  const finalFeedback = (existingSub && existingSub.feedback && !existingSub.autoGraded)
-    ? existingSub.feedback
-    : autoGrading.feedback;
+  // Tentukan status nilai UAS: hanya muncul jika sudah pernah dinilai oleh Dosen.
+  // Jika baru dikirim mahasiswa, nilai belum dirilis sampai Dosen menilai (otomatis via rubrik maupun manual).
+  const isAlreadyGraded = existingSub && existingSub.grade !== undefined;
+  const finalGrade = isAlreadyGraded ? existingSub.grade : undefined;
+  const finalScores = isAlreadyGraded ? existingSub.questionScores : undefined;
+  const finalFeedback = isAlreadyGraded ? existingSub.feedback : undefined;
 
   const updatedSubmission: UtsSubmission = {
     id: existingSub ? existingSub.id : `uas-${Date.now()}`,
@@ -2439,11 +2432,11 @@ app.post('/api/uas-submissions', (req, res) => {
     aiVerdict: aiDetection.verdict,
     aiDetectedFlags: aiDetection.flaggedPhrases,
     aiAnalysisNotes: aiDetection.analysisNotes,
-    autoGraded: true,
+    autoGraded: isAlreadyGraded ? Boolean(existingSub.autoGraded) : false,
     grade: finalGrade,
     questionScores: finalScores,
     feedback: finalFeedback,
-    gradedAt: new Date().toISOString(),
+    gradedAt: isAlreadyGraded ? existingSub.gradedAt : undefined,
   };
 
   if (existingIdx >= 0) {
@@ -2452,23 +2445,20 @@ app.post('/api/uas-submissions', (req, res) => {
     db.uasSubmissions.push(updatedSubmission);
   }
 
-  // Automatically synchronize UAS grade with SIAKAD academic record
+  // Sinkronisasi dengan SIAKAD: jangan tetapkan nilai palsu, tunggu dosen menilai
   if (!db.grades) db.grades = {};
   if (!db.grades[studentId]) {
     db.grades[studentId] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: finalGrade,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
+      notes: 'Lembar Jawaban UAS Terkirim (Menunggu Penilaian Dosen)',
     };
-  } else {
-    db.grades[studentId].uasScore = finalGrade;
   }
-  recalculateStudentGrade(db.grades[studentId]);
+  if (isAlreadyGraded) {
+    db.grades[studentId].uasScore = finalGrade;
+    recalculateStudentGrade(db.grades[studentId]);
+  }
 
   if (!db.activeHeartbeats) db.activeHeartbeats = {};
   db.activeHeartbeats[studentId] = new Date().toISOString();
@@ -2530,21 +2520,17 @@ app.post('/api/uas-grade', (req, res) => {
   sub.gradedAt = new Date().toISOString();
 
   // Update grades record
+  if (!db.grades) db.grades = {};
   if (!db.grades[studentId]) {
     db.grades[studentId] = {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: Number(grade),
-      groupScore: Number(grade),
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
-  } else {
-    db.grades[studentId].uasScore = Number(grade);
-    db.grades[studentId].groupScore = Number(grade);
   }
+  db.grades[studentId].uasScore = Number(grade);
+  db.grades[studentId].groupScore = Number(grade);
+  if (feedback) db.grades[studentId].notes = feedback;
 
   recalculateStudentGrade(db.grades[studentId]);
 
@@ -3479,10 +3465,10 @@ app.post('/api/grades', (req, res) => {
 
   const att = Number(attendanceScore ?? 100);
   const attit = Number(attitudeScore ?? 85);
-  const indiv = Number(individualScore ?? 85);
-  const uts = Number(utsScore ?? 85);
-  const grp = Number(groupScore ?? 85);
-  const uas = Number(uasScore ?? grp ?? 85);
+  const indiv = (individualScore !== undefined && individualScore !== null && !isNaN(Number(individualScore)) && Number(individualScore) > 0) ? Number(individualScore) : undefined;
+  const uts = (utsScore !== undefined && utsScore !== null && !isNaN(Number(utsScore)) && Number(utsScore) > 0) ? Number(utsScore) : undefined;
+  const grp = (groupScore !== undefined && groupScore !== null && !isNaN(Number(groupScore)) && Number(groupScore) > 0) ? Number(groupScore) : undefined;
+  const uas = (uasScore !== undefined && uasScore !== null && !isNaN(Number(uasScore)) && Number(uasScore) > 0) ? Number(uasScore) : grp;
 
   const gradeObj: StudentGrade = {
     attendanceScore: att,
@@ -3491,14 +3477,14 @@ app.post('/api/grades', (req, res) => {
     utsScore: uts,
     uasScore: uas,
     groupScore: grp,
-    finalScore: 88,
-    letterGrade: 'A-',
+    finalScore: undefined,
+    letterGrade: '-',
     notes,
   };
   recalculateStudentGrade(gradeObj);
   db.grades[studentId] = gradeObj;
 
-  // Sync with db.submissions so student sees their grade immediately on dashboard
+  // Sync with db.submissions if individual score was specified
   if (!db.submissions) db.submissions = [];
   const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
   const stdName = std?.name?.toLowerCase().trim();
@@ -3509,26 +3495,11 @@ app.post('/api/grades', (req, res) => {
     (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
 
-  if (subs.length > 0) {
+  if (indiv !== undefined && subs.length > 0) {
     subs.forEach(s => {
       s.grade = indiv;
       if (notes) s.feedback = notes;
       s.gradedAt = new Date().toISOString();
-    });
-  } else if (std) {
-    db.submissions.push({
-      id: `sub-${Date.now()}-${std.id}`,
-      studentId: std.id,
-      studentName: std.name,
-      rpsPart: std.rpsPart || `Pertemuan ${std.meetingNumber || 2}`,
-      topic: std.topic || 'Tugas Presentasi RPS',
-      meetingNumber: std.meetingNumber || 2,
-      presentationType: 'individu',
-      pptType: 'link',
-      submittedAt: new Date().toISOString(),
-      grade: indiv,
-      feedback: notes || `Nilai Tugas Presentasi: ${indiv}`,
-      gradedAt: new Date().toISOString(),
     });
   }
 
@@ -5434,17 +5405,17 @@ app.post('/api/grades/recalculate-all', (req, res) => {
     }
     const attPercent = totalRecorded > 0 ? Math.round((hadirCount / totalRecorded) * 100) : 100;
 
-    // 2. Individual Task Score
+    // 2. Individual Task Score (Hanya jika mahasiswa telah mengumpulkan tugas & dinilai dosen)
     const indivSub = (db.submissions || []).find(sub => sub.studentId === s.id);
-    const indivScore = indivSub?.grade !== undefined ? indivSub.grade : (db.grades[s.id]?.individualScore ?? 85);
+    const indivScore = indivSub?.grade !== undefined ? indivSub.grade : (indivSub ? db.grades[s.id]?.individualScore : undefined);
 
-    // 3. UTS Score
+    // 3. UTS Score (Hanya jika mahasiswa telah mengumpulkan UTS & dinilai dosen)
     const utsSub = (db.utsSubmissions || []).find(u => u.studentId === s.id);
-    const utsScore = utsSub?.grade !== undefined ? utsSub.grade : (db.grades[s.id]?.utsScore ?? 85);
+    const utsScore = utsSub?.grade !== undefined ? utsSub.grade : undefined;
 
-    // 4. UAS / Group Video Score
+    // 4. UAS / Group Video Score (Hanya jika video kelompok terkirim & dinilai dosen)
     const grp = (db.groups || []).find(g => g.id === s.groupId || g.members.some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase()));
-    const uasScore = grp?.grade !== undefined ? grp.grade : (db.grades[s.id]?.uasScore ?? db.grades[s.id]?.groupScore ?? 85);
+    const uasScore = (grp && grp.submission?.videoUrl && grp.grade !== undefined) ? grp.grade : undefined;
 
     // 5. Attitude Score
     const attitScore = db.grades[s.id]?.attitudeScore ?? 85;
@@ -5456,8 +5427,8 @@ app.post('/api/grades/recalculate-all', (req, res) => {
       utsScore: utsScore,
       uasScore: uasScore,
       groupScore: uasScore,
-      finalScore: 88,
-      letterGrade: 'A-',
+      finalScore: undefined,
+      letterGrade: '-',
       notes: db.grades[s.id]?.notes,
     };
 

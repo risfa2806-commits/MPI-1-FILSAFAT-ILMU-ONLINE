@@ -127,12 +127,12 @@ export interface UtsSubmission {
 export interface StudentGrade {
   attendanceScore: number; // 15%
   attitudeScore: number;   // 10% (Sikap & Keaktifan)
-  individualScore: number; // 25% (PPT & Makalah)
-  utsScore?: number;       // 25% (Tugas UTS 5 Soal Essay)
-  uasScore?: number;       // 25% (Tugas UAS Video Kelompok)
-  groupScore: number;      // Video AI / UAS
-  finalScore: number;      // 100%
-  letterGrade: string;     // A, B+, etc.
+  individualScore?: number; // 25% (PPT & Makalah - hanya muncul setelah dinilai dosen)
+  utsScore?: number;       // 25% (Tugas UTS 5 Soal Essay - hanya muncul setelah dinilai dosen)
+  uasScore?: number;       // 25% (Tugas UAS Video Kelompok - hanya muncul setelah dinilai dosen)
+  groupScore?: number;      // Video AI / UAS
+  finalScore?: number;      // 100%
+  letterGrade: string;     // A, B+, -, etc.
   notes?: string;
 }
 

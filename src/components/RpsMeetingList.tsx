@@ -184,7 +184,12 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                         );
                         const isCurrent = currentStudent?.id === std.id;
                         const gradeObj = grades[std.id];
-                        const gradeScore = submission?.grade !== undefined ? submission.grade : gradeObj?.individualScore;
+                        const isSubmitted = Boolean(submission);
+                        const gradeScore = (submission && submission.grade !== undefined)
+                          ? submission.grade
+                          : (isSubmitted && gradeObj?.individualScore !== undefined && gradeObj.individualScore > 0 && submission?.feedback
+                              ? gradeObj.individualScore
+                              : undefined);
                         const isGraded = gradeScore !== undefined && gradeScore > 0;
                         const gradeFeedback = submission?.feedback || (isGraded ? gradeObj?.notes : undefined);
 
@@ -269,8 +274,8 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                 </div>
                               ) : submission ? (
                                 <div className="flex items-center gap-1">
-                                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                    <CheckCircle2 size={12} /> Terkirim
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-full">
+                                    <Clock size={12} /> Terkirim (Menunggu Nilai)
                                   </span>
 
                                   {/* Download PPT or link */}

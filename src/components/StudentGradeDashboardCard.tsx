@@ -45,13 +45,19 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
   const studentSubs = (submissions || []).filter(
     s => s.studentId === stdId || (Boolean(stdNim) && s.nim === stdNim) || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
-  // Pick graded submission if any, otherwise latest submission
+  // Mahasiswa harus benar-benar telah mengunggah tugas makalah/PPT
   const gradedIndSub = studentSubs.find(s => s.grade !== undefined);
   const indSub = gradedIndSub || studentSubs[0];
+  const hasSubmittedInd = Boolean(indSub);
 
   const studentGradeObj = grades[stdId] || (stdNim ? Object.values(grades).find((_, idx) => Object.keys(grades)[idx] === stdNim) : undefined);
 
-  const indScore = indSub?.grade !== undefined ? indSub.grade : studentGradeObj?.individualScore;
+  // Nilai tugas individu HANYA muncul jika mahasiswa sudah submit DAN dosen telah menilai (otomatis via rubrik atau manual)
+  const indScore = (indSub && indSub.grade !== undefined)
+    ? indSub.grade
+    : (hasSubmittedInd && studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0 && indSub?.feedback
+        ? studentGradeObj.individualScore
+        : undefined);
   const hasIndGrade = indScore !== undefined && indScore > 0;
   const indFeedback = indSub?.feedback || (hasIndGrade ? studentGradeObj?.notes : undefined);
 
@@ -59,7 +65,13 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
   const utsSub = (utsSubmissions || []).find(
     u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
   );
-  const utsScore = utsSub?.grade !== undefined ? utsSub.grade : studentGradeObj?.utsScore;
+  const hasSubmittedUts = Boolean(utsSub);
+  // Nilai UTS HANYA muncul jika mahasiswa sudah submit UTS DAN dosen telah menilai (otomatis atau manual)
+  const utsScore = (utsSub && utsSub.grade !== undefined)
+    ? utsSub.grade
+    : (hasSubmittedUts && studentGradeObj?.utsScore !== undefined && studentGradeObj.utsScore > 0 && utsSub?.feedback
+        ? studentGradeObj.utsScore
+        : undefined);
   const hasUtsGrade = utsScore !== undefined && utsScore > 0;
   const utsFeedback = utsSub?.feedback;
 
@@ -68,18 +80,39 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
     g.id === currentStudent.groupId
   );
-  const uasScore = studentGroup?.grade !== undefined ? studentGroup.grade : studentGradeObj?.uasScore;
+  const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl);
+  // Nilai UAS HANYA muncul jika video kelompok sudah dikirim DAN dosen telah menilai
+  const uasScore = (hasSubmittedUas && studentGroup?.grade !== undefined)
+    ? studentGroup.grade
+    : (hasSubmittedUas && studentGradeObj?.uasScore !== undefined && studentGradeObj.uasScore > 0
+        ? studentGradeObj.uasScore
+        : undefined);
   const hasUasGrade = uasScore !== undefined && uasScore > 0;
   const uasFeedback = studentGroup?.feedback;
 
   // 4. Cumulative Final Grade
-  const finalScore = studentGradeObj?.finalScore ?? (
-    hasIndGrade ? Math.round((studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10 + (indScore || 85) * 0.25 + (utsScore || 85) * 0.25 + (uasScore || 85) * 0.25) : 88
-  );
-  const letterGrade = studentGradeObj?.letterGrade || (
-    finalScore >= 85 ? 'A' : finalScore >= 80 ? 'A-' : finalScore >= 75 ? 'B+' : finalScore >= 70 ? 'B' : 'B-'
-  );
-  const isPassed = finalScore >= 60;
+  // Nilai akhir kumulatif HANYA dihitung dari komponen yang sudah dinilai dosen
+  const hasAnyGrade = hasIndGrade || hasUtsGrade || hasUasGrade;
+  let finalScore: number | undefined = undefined;
+  if (hasAnyGrade) {
+    if (studentGradeObj?.finalScore !== undefined && studentGradeObj.finalScore > 0) {
+      finalScore = studentGradeObj.finalScore;
+    } else {
+      let weight = 0.15 + 0.10;
+      let wScore = (studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10;
+      if (hasIndGrade) { wScore += indScore! * 0.25; weight += 0.25; }
+      if (hasUtsGrade) { wScore += utsScore! * 0.25; weight += 0.25; }
+      if (hasUasGrade) { wScore += uasScore! * 0.25; weight += 0.25; }
+      finalScore = Math.round(wScore / weight);
+    }
+  }
+
+  const letterGrade = hasAnyGrade
+    ? (studentGradeObj?.letterGrade && studentGradeObj.letterGrade !== '-'
+        ? studentGradeObj.letterGrade
+        : (finalScore! >= 85 ? 'A' : finalScore! >= 80 ? 'A-' : finalScore! >= 75 ? 'B+' : finalScore! >= 70 ? 'B' : finalScore! >= 60 ? 'C+' : 'D'))
+    : '-';
+  const isPassed = finalScore !== undefined && finalScore >= 60;
 
   // Assigned meeting info
   const meetingInfo = (meetings || []).find(m => m.meetingNumber === assignedMeetingNum);
@@ -118,7 +151,9 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
           <div className="flex items-center gap-3 self-start md:self-center bg-white/10 px-4 py-2.5 rounded-xl border border-white/15 backdrop-blur-xs">
             <div className="text-right">
               <div className="text-[10px] text-emerald-200 font-medium">Nilai Akhir Kumulatif</div>
-              <div className="text-xl font-black text-white">{finalScore} / 100</div>
+              <div className="text-xl font-black text-white">
+                {finalScore !== undefined ? `${finalScore} / 100` : '-'}
+              </div>
             </div>
             <div className="h-8 w-[1px] bg-white/20"></div>
             <div className="text-center">
@@ -128,13 +163,27 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
           </div>
         </div>
 
-        {/* Highlight notification if any task is graded */}
-        {hasIndGrade && (
+        {/* Highlight notification */}
+        {hasIndGrade ? (
           <div className="mt-3.5 pt-3 border-t border-emerald-700/50 flex items-center gap-2 text-xs text-emerald-200 bg-emerald-800/40 p-2.5 rounded-xl border border-emerald-600/30">
             <Sparkles size={16} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
             <span>
-              <strong>Pemberitahuan:</strong> Tugas Presentasi &amp; Makalah Anda telah dinilai oleh Dosen Pengampu dengan skor <strong className="text-white bg-emerald-600 px-1.5 py-0.5 rounded font-extrabold">{indScore}/100</strong>.
+              <strong>Pemberitahuan Nilai:</strong> Tugas Presentasi &amp; Makalah Anda telah dinilai oleh Dosen Pengampu dengan skor <strong className="text-white bg-emerald-600 px-1.5 py-0.5 rounded font-extrabold">{indScore}/100</strong>.
               {indFeedback && ` Catatan Dosen: "${indFeedback}"`}
+            </span>
+          </div>
+        ) : hasSubmittedInd ? (
+          <div className="mt-3.5 pt-3 border-t border-blue-700/50 flex items-center gap-2 text-xs text-blue-200 bg-blue-900/40 p-2.5 rounded-xl border border-blue-600/30">
+            <Clock size={16} className="text-blue-300 shrink-0" />
+            <span>
+              <strong>Status Tugas:</strong> Berkas Tugas Presentasi &amp; Makalah Pertemuan #{assignedMeetingNum} telah berhasil dikirim. Menunggu penilaian Dosen Pengampu (otomatis via rubrik maupun evaluasi manual). Nilai belum dirilis.
+            </span>
+          </div>
+        ) : (
+          <div className="mt-3.5 pt-3 border-t border-amber-700/50 flex items-center gap-2 text-xs text-amber-200 bg-amber-950/40 p-2.5 rounded-xl border border-amber-700/40">
+            <AlertCircle size={16} className="text-amber-400 shrink-0" />
+            <span>
+              <strong>Pengingat Tugas:</strong> Anda belum mengunggah Tugas Presentasi &amp; Makalah Pertemuan #{assignedMeetingNum}. Nilai tidak akan muncul sampai Anda mengirimkan tugas dan dinilai oleh Dosen Pengampu.
             </span>
           </div>
         )}
@@ -147,7 +196,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
         <div className={`p-4 rounded-xl border flex flex-col justify-between transition-all ${
           hasIndGrade
             ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-400/50 shadow-xs'
-            : indSub
+            : hasSubmittedInd
             ? 'bg-blue-50/80 border-blue-200'
             : 'bg-white border-slate-200'
         }`}>
@@ -186,22 +235,22 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                   <CheckCircle2 size={11} /> Tugas Selesai &amp; Dinilai Dosen
                 </div>
               </div>
-            ) : indSub ? (
+            ) : hasSubmittedInd ? (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200">
                   <Clock size={13} /> Berkas Terkirim
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Menunggu penilaian &amp; evaluasi dari Dosen Pengampu.
+                <p className="text-[11px] text-slate-600">
+                  Tugas telah berhasil dikirim. Menunggu Dosen Pengampu memberikan penilaian (otomatis maupun manual). Nilai belum dirilis.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                  <Clock size={12} /> Belum Dikirim
+                  <AlertCircle size={12} /> Belum Dikirim
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Unggah berkas PPT &amp; Makalah Pertemuan #{assignedMeetingNum}.
+                  Unggah berkas PPT &amp; Makalah Pertemuan #{assignedMeetingNum}. Nilai tidak akan muncul sebelum tugas dikirim dan dinilai dosen.
                 </p>
               </div>
             )}
@@ -219,7 +268,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            <span>{hasIndGrade ? 'Lihat Detail Nilai & Berkas' : indSub ? 'Periksa Berkas Terkirim' : 'Unggah Tugas Makalah'}</span>
+            <span>{hasIndGrade ? 'Lihat Detail Nilai & Berkas' : hasSubmittedInd ? 'Periksa Berkas Terkirim' : 'Unggah Tugas Makalah'}</span>
             <ArrowRight size={12} />
           </button>
         </div>
@@ -228,7 +277,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
         <div className={`p-4 rounded-xl border flex flex-col justify-between transition-all ${
           hasUtsGrade
             ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-400/50 shadow-xs'
-            : utsSub
+            : hasSubmittedUts
             ? 'bg-blue-50/80 border-blue-200'
             : 'bg-white border-slate-200'
         }`}>
@@ -267,22 +316,22 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                   <CheckCircle2 size={11} /> Lembar UTS Dinilai Dosen
                 </div>
               </div>
-            ) : utsSub ? (
+            ) : hasSubmittedUts ? (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200">
                   <Clock size={13} /> Jawaban Terkirim
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Jawaban esai telah dikirim, menunggu review dosen.
+                <p className="text-[11px] text-slate-600">
+                  Jawaban esai telah dikirim. Menunggu Dosen Pengampu menilai (otomatis via rubrik/AI maupun manual). Nilai belum dirilis.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                  <Clock size={12} /> Belum Dikerjakan
+                  <AlertCircle size={12} /> Belum Dikerjakan
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  5 soal esai evaluasi perkuliahan pertemuan 1-7.
+                  5 soal esai evaluasi perkuliahan pertemuan 1-7. Nilai tidak muncul sebelum lembar dikirim dan dinilai dosen.
                 </p>
               </div>
             )}
@@ -297,7 +346,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            <span>{hasUtsGrade ? 'Lihat Lembar Jawaban UTS' : utsSub ? 'Periksa Jawaban UTS' : 'Buka Lembar Soal UTS'}</span>
+            <span>{hasUtsGrade ? 'Lihat Lembar Jawaban UTS' : hasSubmittedUts ? 'Periksa Jawaban UTS' : 'Buka Lembar Soal UTS'}</span>
             <ArrowRight size={12} />
           </button>
         </div>
@@ -306,7 +355,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
         <div className={`p-4 rounded-xl border flex flex-col justify-between transition-all ${
           hasUasGrade
             ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-400/50 shadow-xs'
-            : studentGroup?.submission?.videoUrl
+            : hasSubmittedUas
             ? 'bg-blue-50/80 border-blue-200'
             : 'bg-white border-slate-200'
         }`}>
@@ -345,22 +394,22 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                   <CheckCircle2 size={11} /> Proyek Video Dinilai Dosen
                 </div>
               </div>
-            ) : studentGroup?.submission?.videoUrl ? (
+            ) : hasSubmittedUas ? (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200">
                   <Clock size={13} /> Video Terkirim
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Video AI kelompok telah dikirim, menunggu review dosen.
+                <p className="text-[11px] text-slate-600">
+                  Video AI kelompok telah dikirim. Menunggu Dosen Pengampu menilai proyek. Nilai belum dirilis.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                  <Clock size={12} /> Belum Unggah Video
+                  <AlertCircle size={12} /> Belum Unggah Video
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Kolaborasi video AI edukasi 1080p Kelompok {currentStudent.groupId}.
+                  Kolaborasi video AI edukasi 1080p Kelompok {currentStudent.groupId}. Nilai tidak muncul sebelum video dikirim dan dinilai dosen.
                 </p>
               </div>
             )}
@@ -375,7 +424,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                 : 'bg-slate-800 hover:bg-slate-900 text-white'
             }`}
           >
-            <span>{hasUasGrade ? 'Lihat Proyek UAS' : studentGroup?.submission?.videoUrl ? 'Periksa Proyek Video' : 'Buka Proyek UAS'}</span>
+            <span>{hasUasGrade ? 'Lihat Proyek UAS' : hasSubmittedUas ? 'Periksa Proyek Video' : 'Buka Proyek UAS'}</span>
             <ArrowRight size={12} />
           </button>
         </div>
@@ -389,9 +438,11 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                 Rekap Transkrip Nilai
               </span>
               <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                hasAnyGrade
+                  ? (isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800')
+                  : 'bg-amber-100 text-amber-800'
               }`}>
-                {isPassed ? 'LULUS' : 'TIDAK LULUS'}
+                {hasAnyGrade ? (isPassed ? 'LULUS' : 'TIDAK LULUS') : 'MENUNGGU NILAI'}
               </span>
             </div>
 
@@ -406,11 +457,21 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
               </div>
               <div className="flex justify-between py-0.5 border-b border-slate-100">
                 <span>Tugas Presentasi (25%):</span>
-                <span className="font-extrabold text-emerald-700">{indScore ?? 85}</span>
+                <span className="font-extrabold text-emerald-700">
+                  {hasIndGrade ? indScore : (hasSubmittedInd ? 'Menunggu Nilai' : '-')}
+                </span>
+              </div>
+              <div className="flex justify-between py-0.5 border-b border-slate-100">
+                <span>Ujian UTS (25%):</span>
+                <span className="font-extrabold text-indigo-700">
+                  {hasUtsGrade ? utsScore : (hasSubmittedUts ? 'Menunggu Nilai' : '-')}
+                </span>
               </div>
               <div className="flex justify-between py-0.5">
-                <span>UTS &amp; UAS (50%):</span>
-                <span className="font-bold text-slate-800">{utsScore ?? 85} &amp; {uasScore ?? 85}</span>
+                <span>Proyek UAS (25%):</span>
+                <span className="font-extrabold text-purple-700">
+                  {hasUasGrade ? uasScore : (hasSubmittedUas ? 'Menunggu Nilai' : '-')}
+                </span>
               </div>
             </div>
           </div>

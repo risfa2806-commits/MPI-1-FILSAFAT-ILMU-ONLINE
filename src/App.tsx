@@ -284,9 +284,9 @@ export default function App() {
     const indSubWithGrade = allIndSubs.find(s => s.grade !== undefined);
     let indGraded = indSubWithGrade || null;
 
-    if (!indGraded && studentGradeObj && studentGradeObj.individualScore !== undefined && studentGradeObj.individualScore > 0) {
+    if (!indGraded && allIndSubs.length > 0 && studentGradeObj && studentGradeObj.individualScore !== undefined && studentGradeObj.individualScore > 0) {
       indGraded = {
-        id: `grade-ind-${stdId}`,
+        id: allIndSubs[0].id || `grade-ind-${stdId}`,
         studentId: stdId,
         studentName: currentStudent.name,
         rpsPart: currentStudent.rpsPart || `Pertemuan ${currentStudent.meetingNumber || 2}`,
@@ -304,9 +304,9 @@ export default function App() {
     const utsSubWithGrade = allUtsSubs.find(u => u.grade !== undefined);
     let utsGraded = utsSubWithGrade || null;
 
-    if (!utsGraded && studentGradeObj && studentGradeObj.utsScore !== undefined && studentGradeObj.utsScore > 0) {
+    if (!utsGraded && allUtsSubs.length > 0 && studentGradeObj && studentGradeObj.utsScore !== undefined && studentGradeObj.utsScore > 0) {
       utsGraded = {
-        id: `grade-uts-${stdId}`,
+        id: allUtsSubs[0].id || `grade-uts-${stdId}`,
         studentId: stdId,
         studentName: currentStudent.name,
         grade: studentGradeObj.utsScore,
@@ -319,9 +319,9 @@ export default function App() {
       (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
       g.id === currentStudent.groupId
     );
-    let grpGraded = grp && grp.grade !== undefined ? grp : null;
+    let grpGraded = (grp && grp.submission?.videoUrl && grp.grade !== undefined) ? grp : null;
 
-    if (!grpGraded && studentGradeObj && studentGradeObj.uasScore !== undefined && studentGradeObj.uasScore > 0) {
+    if (!grpGraded && grp && grp.submission?.videoUrl && studentGradeObj && studentGradeObj.uasScore !== undefined && studentGradeObj.uasScore > 0) {
       grpGraded = {
         id: currentStudent.groupId || 1,
         name: grp ? grp.name : `Kelompok ${currentStudent.groupId || 1}`,

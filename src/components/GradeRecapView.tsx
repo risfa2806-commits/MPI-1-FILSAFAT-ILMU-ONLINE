@@ -120,17 +120,12 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
     const currentGrade = grades[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
     setEditingStudentId(std.id);
     setAttScore(currentGrade.attendanceScore);
     setAttitScore(currentGrade.attitudeScore);
-    setIndivScore(currentGrade.individualScore);
+    setIndivScore(currentGrade.individualScore ?? 85);
     setUtsScore(currentGrade.utsScore ?? 85);
     setUasScore(currentGrade.uasScore ?? currentGrade.groupScore ?? 85);
     setNotes(currentGrade.notes || '');
@@ -221,13 +216,9 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
       const g = grades[s.id] || {
         attendanceScore: 100,
         attitudeScore: 85,
-        individualScore: 85,
-        utsScore: 85,
-        uasScore: 85,
-        groupScore: 85,
-        finalScore: 88,
-        letterGrade: 'A-',
+        letterGrade: '-',
       };
+      const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
       return [
         idx + 1,
         `"${s.nim}"`,
@@ -236,12 +227,12 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
         `"Kelompok ${s.groupId}"`,
         g.attendanceScore,
         g.attitudeScore,
-        g.individualScore,
-        g.utsScore ?? 85,
-        g.uasScore ?? g.groupScore ?? 85,
-        g.finalScore,
-        `"${g.letterGrade}"`,
-        g.finalScore >= 60 ? '"LULUS"' : '"TIDAK LULUS"',
+        g.individualScore ?? '-',
+        g.utsScore ?? '-',
+        g.uasScore ?? g.groupScore ?? '-',
+        hasAny && g.finalScore !== undefined ? g.finalScore : '-',
+        `"${hasAny && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-'}"`,
+        hasAny && g.finalScore !== undefined ? (g.finalScore >= 60 ? '"LULUS"' : '"TIDAK LULUS"') : '"BELUM LENGKAP"',
         `"${(g.notes || '').replace(/"/g, '""')}"`,
       ].join(',');
     });
@@ -694,17 +685,38 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                 const g = grades[std.id] || {
                   attendanceScore: 100,
                   attitudeScore: 85,
-                  individualScore: 85,
-                  utsScore: 85,
-                  uasScore: 85,
-                  groupScore: 85,
-                  finalScore: 88,
-                  letterGrade: 'A-',
+                  letterGrade: '-',
                 };
 
-                const feedback = getStudentPersonalizedFeedback(std.name, std.nim, g.finalScore, std.topic, idx);
-                const isEditing = editingStudentId === std.id;
-                const isPassed = g.finalScore >= 60;
+                // Individual task submission check
+                const stdSubs = (submissions || []).filter(
+                  s => s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+                );
+                const hasSubInd = stdSubs.length > 0;
+                const gradedInd = stdSubs.find(s => s.grade !== undefined);
+                const displayInd = gradedInd?.grade !== undefined ? gradedInd.grade : (hasSubInd && g.individualScore !== undefined && g.individualScore > 0 ? g.individualScore : undefined);
+
+                // UTS submission check
+                const stdUts = (utsSubmissions || []).find(
+                  u => u.studentId === std.id || (Boolean(std.nim) && u.studentId === std.nim) || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+                );
+                const hasSubUts = Boolean(stdUts);
+                const displayUts = (stdUts && stdUts.grade !== undefined) ? stdUts.grade : (hasSubUts && g.utsScore !== undefined && g.utsScore > 0 ? g.utsScore : undefined);
+
+                // UAS group submission check
+                const stdGrp = (groups || []).find(grp =>
+                  grp.id === std.groupId || (grp.members || []).some(m => m && (m.toLowerCase().trim() === std.name.toLowerCase().trim() || m.includes(std.name)))
+                );
+                const hasSubUas = Boolean(stdGrp?.submission?.videoUrl);
+                const displayUas = (hasSubUas && stdGrp?.grade !== undefined) ? stdGrp.grade : (hasSubUas && g.uasScore !== undefined && g.uasScore > 0 ? (g.uasScore ?? g.groupScore) : undefined);
+
+                const hasAnyGraded = displayInd !== undefined || displayUts !== undefined || displayUas !== undefined;
+                const displayFinal = isEditing ? computedFinalScore : (hasAnyGraded && g.finalScore !== undefined ? g.finalScore : undefined);
+                const displayLetter = isEditing
+                  ? getLetterGrade(computedFinalScore)
+                  : (hasAnyGraded && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-');
+                const isPassed = displayFinal !== undefined && displayFinal >= 60;
+                const feedback = getStudentPersonalizedFeedback(std.name, std.nim, displayFinal || 85, std.topic, idx);
 
                 return (
                   <tr key={std.id} className="hover:bg-slate-50 transition-colors">
@@ -762,8 +774,12 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                           onChange={e => setIndivScore(Number(e.target.value))}
                           className="w-12 px-1 py-0.5 text-center text-xs border rounded bg-white font-bold"
                         />
+                      ) : displayInd !== undefined ? (
+                        <span className="font-bold text-slate-800">{displayInd}</span>
+                      ) : hasSubInd ? (
+                        <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">Menunggu Nilai</span>
                       ) : (
-                        <span className="font-bold text-slate-800">{g.individualScore}</span>
+                        <span className="text-slate-400 font-normal">-</span>
                       )}
                     </td>
 
@@ -778,10 +794,14 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                           onChange={e => setUtsScore(Number(e.target.value))}
                           className="w-12 px-1 py-0.5 text-center text-xs border rounded bg-white font-bold"
                         />
-                      ) : (
+                      ) : displayUts !== undefined ? (
                         <span className="font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
-                          {g.utsScore ?? 85}
+                          {displayUts}
                         </span>
+                      ) : hasSubUts ? (
+                        <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">Menunggu Nilai</span>
+                      ) : (
+                        <span className="text-slate-400 font-normal">-</span>
                       )}
                     </td>
 
@@ -796,39 +816,47 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                           onChange={e => setUasScore(Number(e.target.value))}
                           className="w-12 px-1 py-0.5 text-center text-xs border rounded bg-white font-bold"
                         />
-                      ) : (
+                      ) : displayUas !== undefined ? (
                         <span className="font-bold text-indigo-800 bg-indigo-50 px-1.5 py-0.5 rounded">
-                          {g.uasScore ?? g.groupScore ?? 85}
+                          {displayUas}
                         </span>
+                      ) : hasSubUas ? (
+                        <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">Menunggu Nilai</span>
+                      ) : (
+                        <span className="text-slate-400 font-normal">-</span>
                       )}
                     </td>
 
                     {/* Final Score */}
                     <td className="py-3 px-3 text-center">
                       <span className="text-sm font-extrabold bg-emerald-50 text-emerald-900 px-2.5 py-1 rounded-md border border-emerald-200">
-                        {isEditing ? computedFinalScore : g.finalScore}
+                        {displayFinal !== undefined ? displayFinal : '-'}
                       </span>
                     </td>
 
                     {/* Letter Grade */}
                     <td className="py-3 px-2 text-center">
                       <span className={`px-2 py-0.5 rounded text-xs font-black ${
-                        (isEditing ? getLetterGrade(computedFinalScore) : g.letterGrade).startsWith('A')
+                        displayLetter.startsWith('A')
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : (isEditing ? getLetterGrade(computedFinalScore) : g.letterGrade).startsWith('B')
+                          : displayLetter.startsWith('B')
                           ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                          : 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : displayLetter.startsWith('C')
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-slate-100 text-slate-700 border border-slate-300'
                       }`}>
-                        {isEditing ? getLetterGrade(computedFinalScore) : g.letterGrade}
+                        {displayLetter}
                       </span>
                     </td>
 
                     {/* Status */}
                     <td className="py-3 px-3 text-center">
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                        isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                        displayFinal !== undefined
+                          ? (isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800')
+                          : 'bg-amber-100 text-amber-800'
                       }`}>
-                        {isPassed ? 'LULUS' : 'TIDAK LULUS'}
+                        {displayFinal !== undefined ? (isPassed ? 'LULUS' : 'TIDAK LULUS') : 'Menunggu Nilai'}
                       </span>
                     </td>
 

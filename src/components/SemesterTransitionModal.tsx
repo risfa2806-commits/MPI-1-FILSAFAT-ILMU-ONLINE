@@ -163,25 +163,21 @@ export const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = (
       const g = grades[std.id] || {
         attendanceScore: 100,
         attitudeScore: 85,
-        individualScore: 85,
-        utsScore: 85,
-        uasScore: 85,
-        groupScore: 85,
-        finalScore: 88,
-        letterGrade: 'A-',
+        letterGrade: '-',
       };
+      const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
       return [
         idx + 1,
         `"${std.nim}"`,
         `"${std.name}"`,
         g.attendanceScore,
         g.attitudeScore,
-        g.individualScore,
-        g.utsScore ?? 85,
-        g.uasScore ?? g.groupScore ?? 85,
-        g.finalScore,
-        `"${g.letterGrade}"`,
-        g.finalScore >= 60 ? '"LULUS"' : '"TIDAK LULUS"',
+        g.individualScore ?? '-',
+        g.utsScore ?? '-',
+        g.uasScore ?? g.groupScore ?? '-',
+        hasAny && g.finalScore !== undefined ? g.finalScore : '-',
+        `"${hasAny && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-'}"`,
+        hasAny && g.finalScore !== undefined ? (g.finalScore >= 60 ? '"LULUS"' : '"TIDAK LULUS"') : '"BELUM LENGKAP"',
       ].join(',');
     });
 
@@ -759,8 +755,20 @@ export const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = (
                           onClick={() => {
                             const headers = ['No', 'NIM', 'Nama Mahasiswa', 'Presensi', 'Sikap', 'PPT/Makalah', 'UTS', 'UAS', 'Nilai Akhir', 'Grade'];
                             const rows = (arch.students || []).map((std, idx) => {
-                              const g = (arch.grades || {})[std.id] || { attendanceScore: 100, attitudeScore: 85, individualScore: 85, utsScore: 85, uasScore: 85, finalScore: 88, letterGrade: 'A-' };
-                              return [idx + 1, `"${std.nim}"`, `"${std.name}"`, g.attendanceScore, g.attitudeScore, g.individualScore, g.utsScore, g.uasScore, g.finalScore, `"${g.letterGrade}"`].join(',');
+                              const g = (arch.grades || {})[std.id] || { attendanceScore: 100, attitudeScore: 85, letterGrade: '-' };
+                              const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
+                              return [
+                                idx + 1,
+                                `"${std.nim}"`,
+                                `"${std.name}"`,
+                                g.attendanceScore,
+                                g.attitudeScore,
+                                g.individualScore ?? '-',
+                                g.utsScore ?? '-',
+                                g.uasScore ?? '-',
+                                hasAny && g.finalScore !== undefined ? g.finalScore : '-',
+                                `"${hasAny && g.letterGrade && g.letterGrade !== '-' ? g.letterGrade : '-'}"`
+                              ].join(',');
                             });
                             const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
                             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

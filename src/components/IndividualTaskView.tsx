@@ -213,11 +213,14 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     );
   }, [effectiveSubmissions, targetStudent, selectedMeetingNumber]);
 
-  // Effective grade from either submission or grades table fallback
+  // Effective grade from either submission or grades table fallback (hanya jika mahasiswa telah mengirimkan tugas)
   const currentGradeObj = grades[targetStudent?.id || ''];
-  const effectiveGrade = existingSubmission?.grade !== undefined
+  const hasSubmitted = Boolean(existingSubmission);
+  const effectiveGrade = (existingSubmission && existingSubmission.grade !== undefined)
     ? existingSubmission.grade
-    : (selectedMeetingNumber === (targetStudent?.meetingNumber || 2) ? currentGradeObj?.individualScore : undefined);
+    : (hasSubmitted && selectedMeetingNumber === (targetStudent?.meetingNumber || 2) && currentGradeObj?.individualScore !== undefined && currentGradeObj.individualScore > 0 && existingSubmission?.feedback
+        ? currentGradeObj.individualScore
+        : undefined);
   const effectiveFeedback = existingSubmission?.feedback || (effectiveGrade !== undefined ? currentGradeObj?.notes : undefined);
   const hasEffectiveGrade = effectiveGrade !== undefined && effectiveGrade > 0;
 
