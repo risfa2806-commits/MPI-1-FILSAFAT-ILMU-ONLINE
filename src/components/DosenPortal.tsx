@@ -2427,9 +2427,9 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                         type="button"
                         onClick={() => {
                           setGradingMeetingGroup(isGradingThis ? null : meeting.meetingNumber);
-                          const firstGrade = meetingStudents.find(s => grades[s.id]?.individualGrade);
-                          if (firstGrade && grades[firstGrade.id]?.individualGrade) {
-                            setMeetingGroupScore(grades[firstGrade.id].individualGrade!);
+                          const firstGrade = meetingStudents.find(s => grades[s.id]?.individualScore);
+                          if (firstGrade && grades[firstGrade.id]?.individualScore) {
+                            setMeetingGroupScore(grades[firstGrade.id].individualScore!);
                           }
                         }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
@@ -2615,7 +2615,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                     {(meetingStudents?.length || 0) > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                         {meetingStudents.map((std) => {
-                          const stdGrade = grades[std.id]?.individualGrade;
+                          const stdGrade = grades[std.id]?.individualScore ?? (submissions || []).find(s => s.studentId === std.id)?.grade;
                           const hasSub = (submissions || []).find(s => s.studentId === std.id);
 
                           return (

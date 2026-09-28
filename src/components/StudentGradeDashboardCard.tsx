@@ -52,10 +52,10 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
 
   const studentGradeObj = grades[stdId] || (stdNim ? Object.values(grades).find((_, idx) => Object.keys(grades)[idx] === stdNim) : undefined);
 
-  // Nilai tugas individu HANYA muncul jika mahasiswa sudah submit DAN dosen telah menilai (otomatis via rubrik atau manual)
+  // Nilai tugas individu HANYA muncul jika dosen telah menilai (baik di berkas pengumpulan atau di rekap nilai SIAKAD)
   const indScore = (indSub && indSub.grade !== undefined)
     ? indSub.grade
-    : (hasSubmittedInd && studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0 && indSub?.feedback
+    : (studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0
         ? studentGradeObj.individualScore
         : undefined);
   const hasIndGrade = indScore !== undefined && indScore > 0;
@@ -66,14 +66,14 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
   );
   const hasSubmittedUts = Boolean(utsSub);
-  // Nilai UTS HANYA muncul jika mahasiswa sudah submit UTS DAN dosen telah menilai (otomatis atau manual)
+  // Nilai UTS HANYA muncul jika dosen telah menilai (otomatis atau manual)
   const utsScore = (utsSub && utsSub.grade !== undefined)
     ? utsSub.grade
-    : (hasSubmittedUts && studentGradeObj?.utsScore !== undefined && studentGradeObj.utsScore > 0 && utsSub?.feedback
+    : (studentGradeObj?.utsScore !== undefined && studentGradeObj.utsScore > 0
         ? studentGradeObj.utsScore
         : undefined);
   const hasUtsGrade = utsScore !== undefined && utsScore > 0;
-  const utsFeedback = utsSub?.feedback;
+  const utsFeedback = utsSub?.feedback || (hasUtsGrade ? studentGradeObj?.notes : undefined);
 
   // 3. UAS Group Submission & Grade
   const studentGroup = (groups || []).find(g =>
@@ -81,14 +81,14 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     g.id === currentStudent.groupId
   );
   const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl);
-  // Nilai UAS HANYA muncul jika video kelompok sudah dikirim DAN dosen telah menilai
-  const uasScore = (hasSubmittedUas && studentGroup?.grade !== undefined)
+  // Nilai UAS HANYA muncul jika dosen telah menilai
+  const uasScore = (studentGroup && studentGroup.grade !== undefined)
     ? studentGroup.grade
-    : (hasSubmittedUas && studentGradeObj?.uasScore !== undefined && studentGradeObj.uasScore > 0
+    : (studentGradeObj?.uasScore !== undefined && studentGradeObj.uasScore > 0
         ? studentGradeObj.uasScore
-        : undefined);
+        : (studentGradeObj?.groupScore !== undefined && studentGradeObj.groupScore > 0 ? studentGradeObj.groupScore : undefined));
   const hasUasGrade = uasScore !== undefined && uasScore > 0;
-  const uasFeedback = studentGroup?.feedback;
+  const uasFeedback = studentGroup?.feedback || (hasUasGrade ? studentGradeObj?.notes : undefined);
 
   // 4. Cumulative Final Grade
   // Nilai akhir kumulatif HANYA dihitung dari komponen yang sudah dinilai dosen

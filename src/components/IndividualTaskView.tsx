@@ -218,7 +218,7 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   const hasSubmitted = Boolean(existingSubmission);
   const effectiveGrade = (existingSubmission && existingSubmission.grade !== undefined)
     ? existingSubmission.grade
-    : (hasSubmitted && selectedMeetingNumber === (targetStudent?.meetingNumber || 2) && currentGradeObj?.individualScore !== undefined && currentGradeObj.individualScore > 0 && existingSubmission?.feedback
+    : (selectedMeetingNumber === (targetStudent?.meetingNumber || 2) && currentGradeObj?.individualScore !== undefined && currentGradeObj.individualScore > 0
         ? currentGradeObj.individualScore
         : undefined);
   const effectiveFeedback = existingSubmission?.feedback || (effectiveGrade !== undefined ? currentGradeObj?.notes : undefined);

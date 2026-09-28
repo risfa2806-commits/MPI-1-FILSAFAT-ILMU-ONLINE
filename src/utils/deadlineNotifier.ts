@@ -252,19 +252,45 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     });
 
     // 1b. Graded notification from Lecturer
-    if (sub.grade !== undefined) {
+    const effectiveGrade = sub.grade !== undefined ? sub.grade : db.grades?.[sub.studentId]?.individualScore;
+    const effectiveFeedback = sub.feedback || db.grades?.[sub.studentId]?.notes;
+    if (effectiveGrade !== undefined && effectiveGrade > 0) {
       notifications.push({
-        id: `grade-ind-${sub.id}-${sub.gradedAt || sub.grade}`,
+        id: `grade-ind-${sub.id}-${sub.gradedAt || effectiveGrade}`,
         type: 'grade',
         title: `Tugas Dinilai Dosen: ${sub.rpsPart || 'Presentasi'}`,
-        message: `Tugas presentasi "${sub.topic || 'Materi'}" telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${sub.grade}/100.${sub.feedback ? ` Catatan Evaluasi: "${sub.feedback}"` : ''}`,
+        message: `Tugas presentasi "${sub.topic || 'Materi'}" telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${effectiveGrade}/100.${effectiveFeedback ? ` Catatan Evaluasi: "${effectiveFeedback}"` : ''}`,
         timestamp: sub.gradedAt || sub.submittedAt || new Date().toISOString(),
         taskType: 'Penilaian Dosen',
         studentName: sub.studentName,
         studentId: sub.studentId,
         targetTab: 'tugas-individu',
-        read: isNotificationRead(`grade-ind-${sub.id}-${sub.gradedAt || sub.grade}`),
+        read: isNotificationRead(`grade-ind-${sub.id}-${sub.gradedAt || effectiveGrade}`),
       });
+    }
+  });
+
+  // 1c. Also add presentation grade notifications for students graded directly in db.grades
+  (db.students || []).forEach(std => {
+    const g = db.grades?.[std.id];
+    if (g?.individualScore !== undefined && g.individualScore > 0) {
+      const alreadyAdded = notifications.some(
+        n => n.type === 'grade' && (n.studentId === std.id || (n.studentName && n.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())) && n.targetTab === 'tugas-individu'
+      );
+      if (!alreadyAdded) {
+        notifications.push({
+          id: `grade-ind-std-${std.id}-${g.individualScore}`,
+          type: 'grade',
+          title: `Tugas Dinilai Dosen: ${std.rpsPart || 'Presentasi'}`,
+          message: `Tugas presentasi "${std.topic || 'Materi Kuliah'}" telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${g.individualScore}/100.${g.notes ? ` Catatan Evaluasi: "${g.notes}"` : ''}`,
+          timestamp: new Date().toISOString(),
+          taskType: 'Penilaian Dosen',
+          studentName: std.name,
+          studentId: std.id,
+          targetTab: 'tugas-individu',
+          read: isNotificationRead(`grade-ind-std-${std.id}-${g.individualScore}`),
+        });
+      }
     }
   });
 
@@ -283,19 +309,45 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       read: isNotificationRead(`sub-uts-${uts.id}`),
     });
 
-    if (uts.grade !== undefined) {
+    const effectiveUtsGrade = uts.grade !== undefined ? uts.grade : db.grades?.[uts.studentId]?.utsScore;
+    const effectiveUtsFeedback = uts.feedback || db.grades?.[uts.studentId]?.notes;
+    if (effectiveUtsGrade !== undefined && effectiveUtsGrade > 0) {
       notifications.push({
-        id: `grade-uts-${uts.id}-${uts.gradedAt || uts.grade}`,
+        id: `grade-uts-${uts.id}-${uts.gradedAt || effectiveUtsGrade}`,
         type: 'grade',
         title: 'UTS Telah Dinilai Dosen',
-        message: `Lembar jawaban UTS Anda telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${uts.grade}/100.${uts.feedback ? ` Catatan: "${uts.feedback}"` : ''}`,
+        message: `Lembar jawaban UTS Anda telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${effectiveUtsGrade}/100.${effectiveUtsFeedback ? ` Catatan: "${effectiveUtsFeedback}"` : ''}`,
         timestamp: uts.gradedAt || uts.submittedAt || new Date().toISOString(),
         taskType: 'Penilaian Dosen',
         studentName: uts.studentName,
         studentId: uts.studentId,
         targetTab: 'tugas-uts',
-        read: isNotificationRead(`grade-uts-${uts.id}-${uts.gradedAt || uts.grade}`),
+        read: isNotificationRead(`grade-uts-${uts.id}-${uts.gradedAt || effectiveUtsGrade}`),
       });
+    }
+  });
+
+  // 2b. Also add UTS grade notifications for students graded directly in db.grades
+  (db.students || []).forEach(std => {
+    const g = db.grades?.[std.id];
+    if (g?.utsScore !== undefined && g.utsScore > 0) {
+      const alreadyAdded = notifications.some(
+        n => n.type === 'grade' && (n.studentId === std.id || (n.studentName && n.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())) && n.targetTab === 'tugas-uts'
+      );
+      if (!alreadyAdded) {
+        notifications.push({
+          id: `grade-uts-std-${std.id}-${g.utsScore}`,
+          type: 'grade',
+          title: 'UTS Telah Dinilai Dosen',
+          message: `Lembar evaluasi UTS Anda telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${g.utsScore}/100.${g.notes ? ` Catatan: "${g.notes}"` : ''}`,
+          timestamp: new Date().toISOString(),
+          taskType: 'Penilaian Dosen',
+          studentName: std.name,
+          studentId: std.id,
+          targetTab: 'tugas-uts',
+          read: isNotificationRead(`grade-uts-std-${std.id}-${g.utsScore}`),
+        });
+      }
     }
   });
 
@@ -315,7 +367,7 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       });
     }
 
-    if (grp.grade !== undefined) {
+    if (grp.grade !== undefined && grp.grade > 0) {
       notifications.push({
         id: `grade-group-${grp.id}-${grp.gradedAt || grp.grade}`,
         type: 'grade',
@@ -327,6 +379,31 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
         targetTab: 'tugas-uas',
         read: isNotificationRead(`grade-group-${grp.id}-${grp.gradedAt || grp.grade}`),
       });
+    }
+  });
+
+  // 3b. Also add UAS grade notifications for students graded directly in db.grades
+  (db.students || []).forEach(std => {
+    const g = db.grades?.[std.id];
+    const uasVal = g?.uasScore ?? g?.groupScore;
+    if (uasVal !== undefined && uasVal > 0) {
+      const alreadyAdded = notifications.some(
+        n => n.type === 'grade' && (n.studentId === std.id || (n.studentName && n.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())) && n.targetTab === 'tugas-uas'
+      );
+      if (!alreadyAdded) {
+        notifications.push({
+          id: `grade-uas-std-${std.id}-${uasVal}`,
+          type: 'grade',
+          title: 'Proyek UAS Telah Dinilai Dosen',
+          message: `Nilai evaluasi tugas proyek UAS Anda telah dinilai oleh Dosen Pengampu dengan Nilai: ${uasVal}/100.${g.notes ? ` Catatan: "${g.notes}"` : ''}`,
+          timestamp: new Date().toISOString(),
+          taskType: 'Penilaian Dosen',
+          studentName: std.name,
+          studentId: std.id,
+          targetTab: 'tugas-uas',
+          read: isNotificationRead(`grade-uas-std-${std.id}-${uasVal}`),
+        });
+      }
     }
   });
 

@@ -419,7 +419,35 @@ export async function gradeIndividualTask(studentId: string, grade: number, feed
       headers: getDosenAuthHeaders(),
       body: JSON.stringify({ studentId, grade, feedback }),
     });
-    return res.ok;
+    const json = await safeJson(res, null);
+    if (res.ok) {
+      if (json?.data) {
+        saveLocalCache(json.data);
+      } else {
+        const localDb = getLocalCache();
+        if (localDb.submissions) {
+          const s = localDb.submissions.find(sub => sub.studentId === studentId);
+          if (s) {
+            s.grade = Number(grade);
+            s.feedback = feedback;
+            s.gradedAt = new Date().toISOString();
+          }
+        }
+        if (!localDb.grades) localDb.grades = {};
+        if (!localDb.grades[studentId]) {
+          localDb.grades[studentId] = {
+            attendanceScore: 100,
+            attitudeScore: 85,
+            letterGrade: '-',
+          };
+        }
+        localDb.grades[studentId].individualScore = Number(grade);
+        if (feedback) localDb.grades[studentId].notes = feedback;
+        saveLocalCache(localDb);
+      }
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -433,7 +461,23 @@ export async function gradeGroupProject(groupId: number, grade: number, feedback
       headers: getDosenAuthHeaders(),
       body: JSON.stringify({ groupId, grade, feedback, examType }),
     });
-    return res.ok;
+    const json = await safeJson(res, null);
+    if (res.ok) {
+      if (json?.data) {
+        saveLocalCache(json.data);
+      } else {
+        const localDb = getLocalCache();
+        const grp = (localDb.groups || []).find(g => g.id === groupId);
+        if (grp) {
+          grp.grade = Number(grade);
+          grp.feedback = feedback;
+          grp.gradedAt = new Date().toISOString();
+        }
+        saveLocalCache(localDb);
+      }
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -529,7 +573,33 @@ export async function gradeUtsSubmissionApi(payload: {
       headers: getDosenAuthHeaders(),
       body: JSON.stringify(payload),
     });
-    return res.ok;
+    const json = await safeJson(res, null);
+    if (res.ok) {
+      if (json?.data) {
+        saveLocalCache(json.data);
+      } else {
+        const localDb = getLocalCache();
+        const utsSub = (localDb.utsSubmissions || []).find(u => u.studentId === payload.studentId);
+        if (utsSub) {
+          utsSub.grade = Number(payload.grade);
+          utsSub.feedback = payload.feedback;
+          utsSub.gradedAt = new Date().toISOString();
+        }
+        if (!localDb.grades) localDb.grades = {};
+        if (!localDb.grades[payload.studentId]) {
+          localDb.grades[payload.studentId] = {
+            attendanceScore: 100,
+            attitudeScore: 85,
+            letterGrade: '-',
+          };
+        }
+        localDb.grades[payload.studentId].utsScore = Number(payload.grade);
+        if (payload.feedback) localDb.grades[payload.studentId].notes = payload.feedback;
+        saveLocalCache(localDb);
+      }
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }

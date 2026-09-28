@@ -682,6 +682,7 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.map((std, idx) => {
+                const isEditing = editingStudentId === std.id;
                 const g = grades[std.id] || {
                   attendanceScore: 100,
                   attitudeScore: 85,
@@ -986,19 +987,14 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
         const g = grades[selectedGradeStudent.id] || {
           attendanceScore: 100,
           attitudeScore: 85,
-          individualScore: 85,
-          utsScore: 85,
-          uasScore: 85,
-          groupScore: 85,
-          finalScore: 88,
-          letterGrade: 'A-',
+          letterGrade: '-',
         };
         const sub = (submissions || []).find(s => s.studentId === selectedGradeStudent.id);
         const grp = (groups || []).find(gr => gr.id === selectedGradeStudent.groupId);
         const feedback = getStudentPersonalizedFeedback(
           selectedGradeStudent.name,
           selectedGradeStudent.nim,
-          g.finalScore,
+          g.finalScore || 85,
           selectedGradeStudent.topic
         );
 
@@ -1061,15 +1057,15 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
                     <span className="text-slate-600">Tugas PPT & Makalah (25%):</span>
-                    <strong className="text-slate-900 text-sm">{g.individualScore}</strong>
+                    <strong className="text-slate-900 text-sm">{g.individualScore !== undefined ? g.individualScore : '-'}</strong>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
                     <span className="text-slate-600">UTS 5 Soal Essay (25%):</span>
-                    <strong className="text-slate-900 text-sm">{g.utsScore ?? 85}</strong>
+                    <strong className="text-slate-900 text-sm">{g.utsScore !== undefined ? g.utsScore : '-'}</strong>
                   </div>
                   <div className="col-span-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
                     <span className="text-slate-600">UAS Video Kelompok AI (25%):</span>
-                    <strong className="text-slate-900 text-sm">{g.uasScore ?? g.groupScore ?? 85}</strong>
+                    <strong className="text-slate-900 text-sm">{g.uasScore !== undefined ? g.uasScore : (g.groupScore !== undefined ? g.groupScore : '-')}</strong>
                   </div>
                 </div>
               </div>
@@ -1078,11 +1074,17 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between mb-4">
                 <div>
                   <span className="text-xs text-emerald-800 block font-semibold">NILAI AKHIR KUMULATIF</span>
-                  <div className="text-2xl font-black text-emerald-950">{g.finalScore} / 100</div>
+                  <div className="text-2xl font-black text-emerald-950">
+                    {g.finalScore !== undefined ? `${g.finalScore} / 100` : '-'}
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-emerald-800 block font-semibold">PREDIKAT AKADEMIK</span>
-                  <div className="text-2xl font-black text-emerald-700">{g.letterGrade} ({g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS'})</div>
+                  <div className="text-2xl font-black text-emerald-700">
+                    {g.finalScore !== undefined && g.letterGrade && g.letterGrade !== '-'
+                      ? `${g.letterGrade} (${g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS'})`
+                      : 'Menunggu Nilai'}
+                  </div>
                 </div>
               </div>
 

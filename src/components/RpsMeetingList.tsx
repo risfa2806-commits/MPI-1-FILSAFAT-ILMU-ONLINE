@@ -187,7 +187,7 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                         const isSubmitted = Boolean(submission);
                         const gradeScore = (submission && submission.grade !== undefined)
                           ? submission.grade
-                          : (isSubmitted && gradeObj?.individualScore !== undefined && gradeObj.individualScore > 0 && submission?.feedback
+                          : (gradeObj?.individualScore !== undefined && gradeObj.individualScore > 0
                               ? gradeObj.individualScore
                               : undefined);
                         const isGraded = gradeScore !== undefined && gradeScore > 0;

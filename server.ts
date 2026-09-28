@@ -2024,7 +2024,8 @@ app.post('/api/group-grade', (req, res) => {
   }
 
   saveDatabase();
-  res.json({ success: true, group });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, data: safeDb, group });
 });
 
 // 7. Grade individual task (PPT & Makalah) (Dosen)
@@ -2045,7 +2046,7 @@ app.post('/api/individual-grade', (req, res) => {
 
   let matchedSubs = (db.submissions || []).filter(s =>
     s.studentId === studentId ||
-    (Boolean(stdNim) && s.nim === stdNim) ||
+    (Boolean(stdNim) && (s as any).nim === stdNim) ||
     (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
 
@@ -2101,7 +2102,8 @@ app.post('/api/individual-grade', (req, res) => {
   }
 
   saveDatabase();
-  res.json({ success: true, submission: sub, studentGrade: db.grades[targetGradeKey] });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, data: safeDb, submission: sub, studentGrade: db.grades[targetGradeKey] });
 });
 
 // 7b. Submit UTS answers (Mahasiswa - 5 Soal Essay dengan Deteksi AI & Penilaian Otomatis)
@@ -2276,7 +2278,8 @@ app.post('/api/uts-grade', (req, res) => {
   recalculateStudentGrade(db.grades[studentId]);
 
   saveDatabase();
-  res.json({ success: true, submission: sub, grade: db.grades[studentId] });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, data: safeDb, submission: sub, grade: db.grades[studentId] });
 });
 
 // 7d. Save UTS Questions (Dosen: Add, Edit, Remove questions)
@@ -2540,7 +2543,8 @@ app.post('/api/uas-grade', (req, res) => {
   }
 
   saveDatabase();
-  res.json({ success: true, submission: sub, grade: db.grades[studentId] });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, data: safeDb, submission: sub, grade: db.grades[studentId] });
 });
 
 // 7h-1a. Complete Comprehensive Semester Backup (ZIP Archive)
@@ -3491,16 +3495,33 @@ app.post('/api/grades', (req, res) => {
   const stdNim = std?.nim;
   const subs = (db.submissions || []).filter(s =>
     s.studentId === studentId ||
-    (Boolean(stdNim) && s.nim === stdNim) ||
+    (Boolean(stdNim) && (s as any).nim === stdNim) ||
     (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
 
-  if (indiv !== undefined && subs.length > 0) {
-    subs.forEach(s => {
-      s.grade = indiv;
-      if (notes) s.feedback = notes;
-      s.gradedAt = new Date().toISOString();
-    });
+  if (indiv !== undefined) {
+    if (subs.length > 0) {
+      subs.forEach(s => {
+        s.grade = indiv;
+        if (notes) s.feedback = notes;
+        s.gradedAt = new Date().toISOString();
+      });
+    } else {
+      db.submissions.push({
+        id: `sub-${Date.now()}-${studentId}`,
+        studentId: std ? std.id : studentId,
+        studentName: std ? std.name : 'Mahasiswa',
+        rpsPart: std?.rpsPart || 'Presentasi',
+        topic: std?.topic || 'Materi Perkuliahan',
+        meetingNumber: std?.meetingNumber || 2,
+        presentationType: 'individu',
+        pptType: 'link',
+        submittedAt: new Date().toISOString(),
+        grade: indiv,
+        feedback: notes || 'Dinilai oleh Dosen Pengampu',
+        gradedAt: new Date().toISOString(),
+      });
+    }
   }
 
   if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
@@ -3509,7 +3530,8 @@ app.post('/api/grades', (req, res) => {
   }
 
   saveDatabase();
-  res.json({ success: true, grade: db.grades[studentId] });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, data: safeDb, grade: db.grades[studentId] });
 });
 
 // 10. Add student (Only Dosen)
@@ -5150,11 +5172,7 @@ app.post('/api/presentation-group-grade', (req, res) => {
         attendanceScore: 100,
         attitudeScore: 85,
         individualScore: numericGrade,
-        utsScore: 85,
-        uasScore: 85,
-        groupScore: 85,
-        finalScore: 88,
-        letterGrade: 'A-',
+        letterGrade: '-',
       };
     } else {
       db.grades[std.id].individualScore = numericGrade;

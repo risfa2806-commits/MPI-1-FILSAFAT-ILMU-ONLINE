@@ -56,15 +56,32 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'deadlines' | 'submissions' | 'grades' | 'settings'>('all');
 
-  const gradesFeed = submissionsFeed.filter(s => s.type === 'grade');
-  const taskSubmissionsFeed = submissionsFeed.filter(s => s.type !== 'grade');
+  // Filter notifications for student vs dosen
+  const userSubmissionsFeed = isDosen
+    ? submissionsFeed
+    : (currentStudent
+        ? submissionsFeed.filter(s =>
+            !s.studentId ||
+            s.studentId === currentStudent.id ||
+            (currentStudent.nim && s.studentId === currentStudent.nim) ||
+            (s.studentName && s.studentName.toLowerCase().trim() === currentStudent.name.toLowerCase().trim()) ||
+            (s.studentName && currentStudent.name.toLowerCase().includes(s.studentName.toLowerCase())) ||
+            (currentStudent.groupId && s.targetTab === 'tugas-uas' && (
+              s.studentName?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`) ||
+              s.title?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`)
+            ))
+          )
+        : submissionsFeed);
+
+  const gradesFeed = userSubmissionsFeed.filter(s => s.type === 'grade');
+  const taskSubmissionsFeed = userSubmissionsFeed.filter(s => s.type !== 'grade');
 
   // Filtered submissions list based on active tab
   const displayedSubmissions = activeFilter === 'grades'
     ? gradesFeed
     : activeFilter === 'submissions'
     ? taskSubmissionsFeed
-    : submissionsFeed;
+    : userSubmissionsFeed;
 
   // Ensure student cannot access settings filter
   useEffect(() => {

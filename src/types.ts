@@ -53,6 +53,7 @@ export interface PeerReview {
 export interface IndividualSubmission {
   id: string;
   studentId: string;
+  nim?: string;
   studentName: string;
   rpsPart: string;
   topic: string;
