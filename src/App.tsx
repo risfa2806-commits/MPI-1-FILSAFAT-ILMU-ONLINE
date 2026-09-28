@@ -6,6 +6,8 @@ import {
   sendHeartbeat,
   addStudentApi,
   isStudentOnline,
+  deleteNotificationApi,
+  deleteAllNotificationsApi,
 } from './services/api';
 import { soundAlert } from './utils/soundAlert';
 
@@ -42,6 +44,8 @@ import {
   setCustomDeadline,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  deleteNotification,
+  deleteAllNotifications,
 } from './utils/deadlineNotifier';
 
 import {
@@ -386,6 +390,20 @@ export default function App() {
     setCustomDeadline(taskId, isoDate);
     reloadData();
   };
+
+  const handleDeleteNotification = useCallback(async (id: string) => {
+    if (!isDosen) return;
+    deleteNotification(id);
+    await deleteNotificationApi(id);
+    reloadData();
+  }, [isDosen, reloadData]);
+
+  const handleDeleteAllNotifications = useCallback(async (ids: string[]) => {
+    if (!isDosen) return;
+    deleteAllNotifications(ids);
+    await deleteAllNotificationsApi(ids);
+    reloadData();
+  }, [isDosen, reloadData]);
 
   const handleTriggerTestSubmissionNotif = () => {
     setActiveToast({
@@ -930,6 +948,8 @@ export default function App() {
           markNotificationAsRead(id);
           reloadData();
         }}
+        onDeleteNotification={handleDeleteNotification}
+        onDeleteAllNotifications={handleDeleteAllNotifications}
         isSimulated={isDeadlineSimulated}
         onToggleSimulation={handleToggleDeadlineSimulation}
         onTriggerTestSubmissionNotif={handleTriggerTestSubmissionNotif}

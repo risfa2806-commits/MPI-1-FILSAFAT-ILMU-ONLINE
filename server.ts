@@ -1354,6 +1354,7 @@ function loadDatabase(): SiakadDatabase {
           description: 'Mata kuliah ini membahas fondasi ontologis, epistemologis, dan aksiologis keilmuan dalam tata kelola lembaga pendidikan Islam kontemporer.',
         },
         rpsRawText: parsed.rpsRawText || '',
+        deletedNotificationIds: parsed.deletedNotificationIds || [],
         dosenPassword: parsed.dosenPassword || 'filsafat2026',
       };
 
@@ -5408,6 +5409,7 @@ app.post('/api/grades/recalculate-all', (req, res) => {
   if (!isDosenAuthorized(req)) {
     return res.status(403).json({ error: 'Akses ditolak. Hanya Dosen yang berwenang menghitung ulang nilai.' });
   }
+  db.grades = db.grades || {};
   (db.students || []).forEach(s => {
     // 1. Attendance Score
     let hadirCount = 0;
@@ -5424,16 +5426,41 @@ app.post('/api/grades/recalculate-all', (req, res) => {
     const attPercent = totalRecorded > 0 ? Math.round((hadirCount / totalRecorded) * 100) : 100;
 
     // 2. Individual Task Score (Hanya jika mahasiswa telah mengumpulkan tugas & dinilai dosen)
-    const indivSub = (db.submissions || []).find(sub => sub.studentId === s.id);
-    const indivScore = indivSub?.grade !== undefined ? indivSub.grade : (indivSub ? db.grades[s.id]?.individualScore : undefined);
+    const indivSub = (db.submissions || []).find(sub =>
+      sub.studentId === s.id || (sub as any).nim === s.nim || sub.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
+    );
+    const meetingPres = (db.meetings || []).find(m =>
+      m.presenters?.some(p => p.trim().toLowerCase() === s.name.trim().toLowerCase()) && (m as any).grade !== undefined
+    );
+    const existingIndiv = db.grades[s.id]?.individualScore;
+    const indivScore = indivSub?.grade !== undefined && indivSub.grade > 0
+      ? indivSub.grade
+      : (meetingPres && (meetingPres as any).grade > 0
+        ? (meetingPres as any).grade
+        : (indivSub && existingIndiv !== undefined && existingIndiv > 0 ? existingIndiv : undefined));
 
     // 3. UTS Score (Hanya jika mahasiswa telah mengumpulkan UTS & dinilai dosen)
-    const utsSub = (db.utsSubmissions || []).find(u => u.studentId === s.id);
-    const utsScore = utsSub?.grade !== undefined ? utsSub.grade : undefined;
+    const utsSub = (db.utsSubmissions || []).find(u =>
+      u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
+    );
+    const existingUts = db.grades[s.id]?.utsScore;
+    const utsScore = utsSub?.grade !== undefined && utsSub.grade > 0
+      ? utsSub.grade
+      : (utsSub && existingUts !== undefined && existingUts > 0 ? existingUts : undefined);
 
-    // 4. UAS / Group Video Score (Hanya jika video kelompok terkirim & dinilai dosen)
-    const grp = (db.groups || []).find(g => g.id === s.groupId || g.members.some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase()));
-    const uasScore = (grp && grp.submission?.videoUrl && grp.grade !== undefined) ? grp.grade : undefined;
+    // 4. UAS / Group Video Score (Hanya jika video kelompok terkirim & dinilai dosen atau naskah UAS dinilai)
+    const grp = (db.groups || []).find(g =>
+      g.id === s.groupId || (g.members || []).some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase())
+    );
+    const uasSub = (db.uasSubmissions || []).find(u =>
+      u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
+    );
+    const existingUas = db.grades[s.id]?.uasScore;
+    const uasScore = uasSub?.grade !== undefined && uasSub.grade > 0
+      ? uasSub.grade
+      : (grp && (grp.submission?.videoUrl || grp.submission?.submittedAt) && grp.grade !== undefined && grp.grade > 0
+        ? grp.grade
+        : (uasSub && existingUas !== undefined && existingUas > 0 ? existingUas : undefined));
 
     // 5. Attitude Score
     const attitScore = db.grades[s.id]?.attitudeScore ?? 85;
@@ -5454,8 +5481,39 @@ app.post('/api/grades/recalculate-all', (req, res) => {
     db.grades[s.id] = gradeObj;
   });
 
+  if (db.activeCourseId && db.allCoursesData?.[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].grades = db.grades;
+  }
+
   saveDatabase();
-  res.json({ success: true, grades: db.grades });
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, grades: db.grades, data: safeDb });
+});
+
+// 10o. Delete Notification (Only Dosen)
+app.post('/api/notifications/delete', (req, res) => {
+  if (!isDosenAuthorized(req)) {
+    return res.status(403).json({ error: 'Akses ditolak. Hanya Dosen yang berwenang menghapus notifikasi.' });
+  }
+
+  const { notificationId, all, ids } = req.body;
+  db.deletedNotificationIds = db.deletedNotificationIds || [];
+
+  if (all && Array.isArray(ids)) {
+    ids.forEach((id: string) => {
+      if (!db.deletedNotificationIds!.includes(id)) {
+        db.deletedNotificationIds!.push(id);
+      }
+    });
+  } else if (notificationId && typeof notificationId === 'string') {
+    if (!db.deletedNotificationIds.includes(notificationId)) {
+      db.deletedNotificationIds.push(notificationId);
+    }
+  }
+
+  saveDatabase();
+  const { dosenPassword, ...safeDb } = db;
+  res.json({ success: true, deletedNotificationIds: db.deletedNotificationIds, data: safeDb });
 });
 
 // 11. Dosen Login authentication

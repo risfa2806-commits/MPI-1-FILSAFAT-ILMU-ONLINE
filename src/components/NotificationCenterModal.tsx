@@ -30,6 +30,8 @@ interface NotificationCenterModalProps {
   onNavigateTab: (tab: string) => void;
   onMarkAllRead: () => void;
   onMarkSingleRead: (id: string) => void;
+  onDeleteNotification?: (id: string) => void;
+  onDeleteAllNotifications?: (ids: string[]) => void;
   isSimulated: boolean;
   onToggleSimulation: (enabled: boolean) => void;
   onTriggerTestSubmissionNotif: () => void;
@@ -48,6 +50,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   onNavigateTab,
   onMarkAllRead,
   onMarkSingleRead,
+  onDeleteNotification,
+  onDeleteAllNotifications,
   isSimulated,
   onToggleSimulation,
   onTriggerTestSubmissionNotif,
@@ -224,13 +228,32 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             )}
           </div>
 
-          <button
-            onClick={onMarkAllRead}
-            className="text-[11px] font-semibold text-slate-500 hover:text-emerald-700 py-2 flex items-center gap-1 cursor-pointer"
-          >
-            <Check size={13} />
-            <span>Tandai Semua Dibaca</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onMarkAllRead}
+              className="text-[11px] font-semibold text-slate-500 hover:text-emerald-700 py-2 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <Check size={13} />
+              <span>Tandai Semua Dibaca</span>
+            </button>
+
+            {isDosen && displayedSubmissions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const ids = displayedSubmissions.map(s => s.id);
+                  if (ids.length > 0 && window.confirm(`Hapus ${ids.length} notifikasi ini? Tindakan ini hanya dapat dilakukan oleh Dosen Pengampu.`)) {
+                    if (onDeleteAllNotifications) onDeleteAllNotifications(ids);
+                  }
+                }}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 py-2 flex items-center gap-1 cursor-pointer transition-colors pl-2 border-l border-slate-200"
+                title="Hapus seluruh notifikasi (Hanya Dosen)"
+              >
+                <Trash2 size={13} />
+                <span>Hapus Semua</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Content Body */}
@@ -244,9 +267,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   SIA
                 </span>
                 <div>
-                  <p className="text-xs font-bold text-emerald-950">Mode Siswa / Mahasiswa: Pantau Notifikasi</p>
+                  <p className="text-xs font-bold text-emerald-950">Mode Mahasiswa: Notifikasi Akademik Resmi</p>
                   <p className="text-[11px] text-emerald-800/80">
-                    Pengaturan jadwal tenggat waktu dan simulasi notifikasi dikelola penuh oleh Dosen Pengampu.
+                    Notifikasi penilaian hanya muncul setelah Anda mengumpulkan tugas dan Dosen Pengampu selesai menilai. Penghapusan riwayat notifikasi hanya berwenang dilakukan oleh Dosen.
                   </p>
                 </div>
               </div>
@@ -426,17 +449,40 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                         </div>
                       </div>
 
-                      <button
-                        className={`text-xs font-bold flex items-center gap-1 flex-shrink-0 self-center px-2.5 py-1.5 rounded-lg transition-colors ${
-                          sub.type === 'grade'
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
-                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
-                        }`}
-                        title="Buka tugas"
-                      >
-                        <span>{sub.type === 'grade' ? 'Lihat Nilai' : 'Lihat'}</span>
-                        <ExternalLink size={12} />
-                      </button>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 self-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNavigate(sub.targetTab || 'tugas-individu', sub.id);
+                          }}
+                          className={`text-xs font-bold flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                            sub.type === 'grade'
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
+                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                          }`}
+                          title="Buka tugas"
+                        >
+                          <span>{sub.type === 'grade' ? 'Lihat Nilai' : 'Lihat'}</span>
+                          <ExternalLink size={12} />
+                        </button>
+
+                        {isDosen && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onDeleteNotification) {
+                                onDeleteNotification(sub.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Hapus notifikasi ini (Hanya Dosen)"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

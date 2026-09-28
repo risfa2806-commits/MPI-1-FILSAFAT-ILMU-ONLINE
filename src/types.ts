@@ -293,6 +293,7 @@ export interface SiakadDatabase {
   rpsRawText?: string;
   dosenPassword?: string;
   messages?: StudentDosenMessage[];
+  deletedNotificationIds?: string[];
   lastUpdated: string;
 }
 

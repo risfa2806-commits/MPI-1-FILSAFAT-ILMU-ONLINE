@@ -824,5 +824,6 @@ export const INITIAL_DATABASE: SiakadDatabase = {
   activeHeartbeats: {},
   dosenPassword: 'filsafat2026',
   messages: [],
+  deletedNotificationIds: [],
   lastUpdated: new Date().toISOString(),
 };
