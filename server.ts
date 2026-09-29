@@ -1997,11 +1997,15 @@ app.post('/api/group-grade', (req, res) => {
   group.grade = Number(grade);
   group.feedback = feedback || '';
   group.gradedAt = new Date().toISOString();
+  if (group.submission) {
+    group.submission.grade = Number(grade);
+    group.submission.feedback = feedback || '';
+  }
 
   // Also update groupScore & uasScore/utsScore for each student in this group
   const memberNames = group.members || [];
   db.students.forEach(std => {
-    if (memberNames.includes(std.name)) {
+    if (std.groupId === Number(groupId) || memberNames.some(m => m.trim().toLowerCase() === std.name.trim().toLowerCase())) {
       if (!db.grades[std.id]) {
         db.grades[std.id] = {
           attendanceScore: 100,
@@ -2015,6 +2019,7 @@ app.post('/api/group-grade', (req, res) => {
         db.grades[std.id].groupScore = Number(grade);
         db.grades[std.id].uasScore = Number(grade);
       }
+      if (feedback) db.grades[std.id].notes = feedback;
       recalculateStudentGrade(db.grades[std.id]);
     }
   });
@@ -5425,42 +5430,36 @@ app.post('/api/grades/recalculate-all', (req, res) => {
     }
     const attPercent = totalRecorded > 0 ? Math.round((hadirCount / totalRecorded) * 100) : 100;
 
-    // 2. Individual Task Score (Hanya jika mahasiswa telah mengumpulkan tugas & dinilai dosen)
+    // 2. Individual Task Score (HANYA jika mahasiswa telah mengumpulkan tugas & dinilai dosen)
     const indivSub = (db.submissions || []).find(sub =>
       sub.studentId === s.id || (sub as any).nim === s.nim || sub.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
     );
-    const meetingPres = (db.meetings || []).find(m =>
-      m.presenters?.some(p => p.trim().toLowerCase() === s.name.trim().toLowerCase()) && (m as any).grade !== undefined
-    );
-    const existingIndiv = db.grades[s.id]?.individualScore;
-    const indivScore = indivSub?.grade !== undefined && indivSub.grade > 0
+    const indivScore = (indivSub && indivSub.grade !== undefined && indivSub.grade > 0)
       ? indivSub.grade
-      : (meetingPres && (meetingPres as any).grade > 0
-        ? (meetingPres as any).grade
-        : (indivSub && existingIndiv !== undefined && existingIndiv > 0 ? existingIndiv : undefined));
+      : undefined;
 
-    // 3. UTS Score (Hanya jika mahasiswa telah mengumpulkan UTS & dinilai dosen)
+    // 3. UTS Score (HANYA jika mahasiswa telah mengumpulkan UTS & dinilai dosen)
     const utsSub = (db.utsSubmissions || []).find(u =>
       u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
     );
-    const existingUts = db.grades[s.id]?.utsScore;
-    const utsScore = utsSub?.grade !== undefined && utsSub.grade > 0
+    const utsScore = (utsSub && utsSub.grade !== undefined && utsSub.grade > 0)
       ? utsSub.grade
-      : (utsSub && existingUts !== undefined && existingUts > 0 ? existingUts : undefined);
+      : undefined;
 
-    // 4. UAS / Group Video Score (Hanya jika video kelompok terkirim & dinilai dosen atau naskah UAS dinilai)
+    // 4. UAS / Group Video Score (HANYA jika video kelompok terkirim & dinilai dosen atau naskah UAS dinilai)
     const grp = (db.groups || []).find(g =>
       g.id === s.groupId || (g.members || []).some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase())
     );
     const uasSub = (db.uasSubmissions || []).find(u =>
       u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
     );
-    const existingUas = db.grades[s.id]?.uasScore;
-    const uasScore = uasSub?.grade !== undefined && uasSub.grade > 0
+    const hasGroupVideo = Boolean(grp && (grp.submission?.videoUrl || grp.submission?.submittedAt));
+    const groupGrade = (grp && grp.grade !== undefined && grp.grade > 0)
+      ? grp.grade
+      : (grp?.submission?.grade !== undefined && grp.submission.grade > 0 ? grp.submission.grade : undefined);
+    const uasScore = (uasSub && uasSub.grade !== undefined && uasSub.grade > 0)
       ? uasSub.grade
-      : (grp && (grp.submission?.videoUrl || grp.submission?.submittedAt) && grp.grade !== undefined && grp.grade > 0
-        ? grp.grade
-        : (uasSub && existingUas !== undefined && existingUas > 0 ? existingUas : undefined));
+      : (hasGroupVideo && groupGrade !== undefined ? groupGrade : undefined);
 
     // 5. Attitude Score
     const attitScore = db.grades[s.id]?.attitudeScore ?? 85;

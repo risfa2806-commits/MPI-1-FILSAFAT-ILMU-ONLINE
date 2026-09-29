@@ -694,22 +694,24 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                   s => s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
                 );
                 const hasSubInd = stdSubs.length > 0;
-                const gradedInd = stdSubs.find(s => s.grade !== undefined);
-                const displayInd = gradedInd?.grade !== undefined ? gradedInd.grade : (hasSubInd && g.individualScore !== undefined && g.individualScore > 0 ? g.individualScore : undefined);
+                const gradedInd = stdSubs.find(s => s.grade !== undefined && s.grade > 0);
+                const displayInd = gradedInd?.grade !== undefined ? gradedInd.grade : undefined;
 
                 // UTS submission check
                 const stdUts = (utsSubmissions || []).find(
                   u => u.studentId === std.id || (Boolean(std.nim) && u.studentId === std.nim) || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
                 );
                 const hasSubUts = Boolean(stdUts);
-                const displayUts = (stdUts && stdUts.grade !== undefined) ? stdUts.grade : (hasSubUts && g.utsScore !== undefined && g.utsScore > 0 ? g.utsScore : undefined);
+                const displayUts = (stdUts && stdUts.grade !== undefined && stdUts.grade > 0) ? stdUts.grade : undefined;
 
                 // UAS group submission check
                 const stdGrp = (groups || []).find(grp =>
                   grp.id === std.groupId || (grp.members || []).some(m => m && (m.toLowerCase().trim() === std.name.toLowerCase().trim() || m.includes(std.name)))
                 );
-                const hasSubUas = Boolean(stdGrp?.submission?.videoUrl);
-                const displayUas = (hasSubUas && stdGrp?.grade !== undefined) ? stdGrp.grade : (hasSubUas && g.uasScore !== undefined && g.uasScore > 0 ? (g.uasScore ?? g.groupScore) : undefined);
+                const hasSubUas = Boolean(stdGrp?.submission?.videoUrl || stdGrp?.submission?.submittedAt);
+                const displayUas = (hasSubUas && stdGrp?.grade !== undefined && stdGrp.grade > 0)
+                  ? stdGrp.grade
+                  : (hasSubUas && stdGrp?.submission?.grade !== undefined && stdGrp.submission.grade > 0 ? stdGrp.submission.grade : undefined);
 
                 const hasAnyGraded = displayInd !== undefined || displayUts !== undefined || displayUas !== undefined;
                 const displayFinal = isEditing ? computedFinalScore : (hasAnyGraded && g.finalScore !== undefined ? g.finalScore : undefined);

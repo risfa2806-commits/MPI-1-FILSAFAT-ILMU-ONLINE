@@ -1411,7 +1411,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                     </div>
                   </div>
 
-                  {activeGroup.grade !== undefined && (
+                  {(activeGroup.grade !== undefined && activeGroup.grade > 0) && (
                     <div className="p-3.5 bg-indigo-50 rounded-xl border border-indigo-300">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-indigo-950 flex items-center gap-1">
@@ -2296,7 +2296,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                         </div>
                       </div>
 
-                      {studentSubmission.grade !== undefined ? (
+                      {(studentSubmission.grade !== undefined && studentSubmission.grade > 0) ? (
                         <div className="text-right">
                           <span className="text-[10px] text-indigo-700 uppercase font-semibold block">Nilai UAS:</span>
                           <span className="text-2xl font-black text-indigo-900">{studentSubmission.grade} / 100</span>
@@ -2356,7 +2356,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                     )}
 
                     {/* Auto-grading and Feedback */}
-                    {studentSubmission.autoGraded && (
+                    {(studentSubmission.autoGraded && studentSubmission.grade !== undefined && studentSubmission.grade > 0) && (
                       <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Sparkles size={16} className="text-indigo-600" />
@@ -2570,7 +2570,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                               </td>
                               <td className="py-3 px-3 text-center">
                                 <span className="font-extrabold text-sm text-indigo-800 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
-                                  {sub.grade !== undefined ? `${sub.grade} Poin` : '—'}
+                                  {(sub.grade !== undefined && sub.grade > 0) ? `${sub.grade} Poin` : '—'}
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-center">

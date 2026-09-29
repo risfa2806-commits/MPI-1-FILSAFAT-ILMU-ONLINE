@@ -307,8 +307,8 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
 
     // 1b. Graded notification from Lecturer (Hanya jika tugas telah dikumpulkan DAN telah dinilai dosen)
-    const effectiveGrade = sub.grade !== undefined ? sub.grade : db.grades?.[sub.studentId]?.individualScore;
-    const effectiveFeedback = sub.feedback || db.grades?.[sub.studentId]?.notes;
+    const effectiveGrade = sub.grade !== undefined && sub.grade > 0 ? sub.grade : undefined;
+    const effectiveFeedback = sub.feedback || (effectiveGrade !== undefined ? db.grades?.[sub.studentId]?.notes : undefined);
     const gradeNotifId = `grade-ind-${sub.id}-${sub.gradedAt || effectiveGrade}`;
     if (sub.submittedAt && effectiveGrade !== undefined && effectiveGrade > 0 && !deletedIds.has(gradeNotifId)) {
       notifications.push({
@@ -345,8 +345,8 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
 
     // 2b. UTS Graded notification (Hanya jika UTS telah dikumpulkan DAN dinilai dosen)
-    const effectiveUtsGrade = uts.grade !== undefined ? uts.grade : db.grades?.[uts.studentId]?.utsScore;
-    const effectiveUtsFeedback = uts.feedback || db.grades?.[uts.studentId]?.notes;
+    const effectiveUtsGrade = uts.grade !== undefined && uts.grade > 0 ? uts.grade : undefined;
+    const effectiveUtsFeedback = uts.feedback || (effectiveUtsGrade !== undefined ? db.grades?.[uts.studentId]?.notes : undefined);
     const gradeUtsId = `grade-uts-${uts.id}-${uts.gradedAt || effectiveUtsGrade}`;
     if (uts.submittedAt && effectiveUtsGrade !== undefined && effectiveUtsGrade > 0 && !deletedIds.has(gradeUtsId)) {
       notifications.push({

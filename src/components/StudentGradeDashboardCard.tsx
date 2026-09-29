@@ -46,18 +46,17 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     s => s.studentId === stdId || (Boolean(stdNim) && s.nim === stdNim) || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
   // Mahasiswa harus benar-benar telah mengunggah tugas makalah/PPT
-  const gradedIndSub = studentSubs.find(s => s.grade !== undefined);
+  const gradedIndSub = studentSubs.find(s => s.grade !== undefined && s.grade > 0);
   const indSub = gradedIndSub || studentSubs[0];
   const hasSubmittedInd = Boolean(indSub);
+  const hasUploadedPpt = Boolean(indSub && (indSub.pptUrl || indSub.pptFileData));
 
   const studentGradeObj = grades[stdId] || (stdNim ? Object.values(grades).find((_, idx) => Object.keys(grades)[idx] === stdNim) : undefined);
 
-  // Nilai tugas individu HANYA muncul jika dosen telah menilai (baik di berkas pengumpulan atau di rekap nilai SIAKAD)
-  const indScore = (indSub && indSub.grade !== undefined)
+  // Nilai tugas individu HANYA muncul jika mahasiswa sudah mengumpulkan berkas DAN dosen telah memberikan nilai resmi di form review
+  const indScore = (indSub && indSub.grade !== undefined && indSub.grade > 0)
     ? indSub.grade
-    : (studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0
-        ? studentGradeObj.individualScore
-        : undefined);
+    : undefined;
   const hasIndGrade = indScore !== undefined && indScore > 0;
   const indFeedback = indSub?.feedback || (hasIndGrade ? studentGradeObj?.notes : undefined);
 
@@ -66,12 +65,10 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
   );
   const hasSubmittedUts = Boolean(utsSub);
-  // Nilai UTS HANYA muncul jika dosen telah menilai (otomatis atau manual)
-  const utsScore = (utsSub && utsSub.grade !== undefined)
+  // Nilai UTS HANYA muncul jika mahasiswa telah mengumpulkan lembar jawaban DAN dosen telah resmi memberikan penilaian di review
+  const utsScore = (utsSub && utsSub.grade !== undefined && utsSub.grade > 0)
     ? utsSub.grade
-    : (studentGradeObj?.utsScore !== undefined && studentGradeObj.utsScore > 0
-        ? studentGradeObj.utsScore
-        : undefined);
+    : undefined;
   const hasUtsGrade = utsScore !== undefined && utsScore > 0;
   const utsFeedback = utsSub?.feedback || (hasUtsGrade ? studentGradeObj?.notes : undefined);
 
@@ -80,31 +77,28 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
     (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
     g.id === currentStudent.groupId
   );
-  const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl);
-  // Nilai UAS HANYA muncul jika dosen telah menilai
-  const uasScore = (studentGroup && studentGroup.grade !== undefined)
+  const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl || studentGroup?.submission?.submittedAt);
+  // Nilai UAS HANYA muncul jika kelompok telah mengunggah video proyek DAN dosen telah memberikan penilaian di review
+  const effectiveUasGrade = (studentGroup && studentGroup.grade !== undefined && studentGroup.grade > 0)
     ? studentGroup.grade
-    : (studentGradeObj?.uasScore !== undefined && studentGradeObj.uasScore > 0
-        ? studentGradeObj.uasScore
-        : (studentGradeObj?.groupScore !== undefined && studentGradeObj.groupScore > 0 ? studentGradeObj.groupScore : undefined));
+    : (studentGroup?.submission?.grade !== undefined && studentGroup.submission.grade > 0
+        ? studentGroup.submission.grade
+        : undefined);
+  const uasScore = hasSubmittedUas ? effectiveUasGrade : undefined;
   const hasUasGrade = uasScore !== undefined && uasScore > 0;
-  const uasFeedback = studentGroup?.feedback || (hasUasGrade ? studentGradeObj?.notes : undefined);
+  const uasFeedback = studentGroup?.feedback || studentGroup?.submission?.feedback || (hasUasGrade ? studentGradeObj?.notes : undefined);
 
   // 4. Cumulative Final Grade
-  // Nilai akhir kumulatif HANYA dihitung dari komponen yang sudah dinilai dosen
+  // Nilai akhir kumulatif HANYA dihitung jika sudah ada komponen tugas/ujian yang dinilai resmi oleh dosen
   const hasAnyGrade = hasIndGrade || hasUtsGrade || hasUasGrade;
   let finalScore: number | undefined = undefined;
   if (hasAnyGrade) {
-    if (studentGradeObj?.finalScore !== undefined && studentGradeObj.finalScore > 0) {
-      finalScore = studentGradeObj.finalScore;
-    } else {
-      let weight = 0.15 + 0.10;
-      let wScore = (studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10;
-      if (hasIndGrade) { wScore += indScore! * 0.25; weight += 0.25; }
-      if (hasUtsGrade) { wScore += utsScore! * 0.25; weight += 0.25; }
-      if (hasUasGrade) { wScore += uasScore! * 0.25; weight += 0.25; }
-      finalScore = Math.round(wScore / weight);
-    }
+    let weight = 0.15 + 0.10;
+    let wScore = (studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10;
+    if (hasIndGrade) { wScore += indScore! * 0.25; weight += 0.25; }
+    if (hasUtsGrade) { wScore += utsScore! * 0.25; weight += 0.25; }
+    if (hasUasGrade) { wScore += uasScore! * 0.25; weight += 0.25; }
+    finalScore = Math.round(wScore / weight);
   }
 
   const letterGrade = hasAnyGrade
@@ -235,22 +229,22 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                   <CheckCircle2 size={11} /> Tugas Selesai &amp; Dinilai Dosen
                 </div>
               </div>
-            ) : hasSubmittedInd ? (
+            ) : hasSubmittedInd && hasUploadedPpt ? (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200">
-                  <Clock size={13} /> Berkas Terkirim
+                  <Clock size={13} /> PPT Terkirim (Menunggu Penilaian)
                 </div>
                 <p className="text-[11px] text-slate-600">
-                  Tugas telah berhasil dikirim. Menunggu Dosen Pengampu memberikan penilaian (otomatis maupun manual). Nilai belum dirilis.
+                  Berkas PPT &amp; Makalah telah berhasil dikirim. Menunggu Dosen Pengampu memberikan penilaian (otomatis via rubrik maupun manual). Nilai belum dirilis.
                 </p>
               </div>
             ) : (
               <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                  <AlertCircle size={12} /> Belum Dikirim
+                <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                  <AlertCircle size={13} className="text-amber-700" /> Belum Unggah PPT
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Unggah berkas PPT &amp; Makalah Pertemuan #{assignedMeetingNum}. Nilai tidak akan muncul sebelum tugas dikirim dan dinilai dosen.
+                  Silakan unggah PPT Presentasi &amp; Makalah Pertemuan #{assignedMeetingNum}. Nilai tidak akan muncul sebelum berkas diunggah dan dinilai dosen.
                 </p>
               </div>
             )}
@@ -262,14 +256,22 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
               if (onSelectStudentTask) onSelectStudentTask(currentStudent, assignedMeetingNum);
               onNavigateTab('tugas-individu');
             }}
-            className={`mt-3 w-full py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-2xs ${
+            className={`mt-3 w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
               hasIndGrade
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-slate-800 hover:bg-slate-900 text-white'
+                : (hasSubmittedInd && hasUploadedPpt)
+                ? 'bg-blue-700 hover:bg-blue-800 text-white'
+                : 'bg-amber-600 hover:bg-amber-700 text-white font-black'
             }`}
           >
-            <span>{hasIndGrade ? 'Lihat Detail Nilai & Berkas' : hasSubmittedInd ? 'Periksa Berkas Terkirim' : 'Unggah Tugas Makalah'}</span>
-            <ArrowRight size={12} />
+            <span>
+              {hasIndGrade
+                ? 'Lihat Detail Nilai & Berkas'
+                : (hasSubmittedInd && hasUploadedPpt)
+                ? 'Periksa Berkas PPT Terkirim'
+                : 'Unggah PPT'}
+            </span>
+            <ArrowRight size={13} />
           </button>
         </div>
 
@@ -457,19 +459,19 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
               </div>
               <div className="flex justify-between py-0.5 border-b border-slate-100">
                 <span>Tugas Presentasi (25%):</span>
-                <span className="font-extrabold text-emerald-700">
-                  {hasIndGrade ? indScore : (hasSubmittedInd ? 'Menunggu Nilai' : '-')}
+                <span className={`font-extrabold ${hasIndGrade ? 'text-emerald-700' : hasSubmittedInd ? 'text-blue-700' : 'text-amber-700'}`}>
+                  {hasIndGrade ? indScore : (hasSubmittedInd ? (hasUploadedPpt ? 'Menunggu Nilai' : 'Belum Unggah PPT') : 'Belum Unggah PPT')}
                 </span>
               </div>
               <div className="flex justify-between py-0.5 border-b border-slate-100">
                 <span>Ujian UTS (25%):</span>
-                <span className="font-extrabold text-indigo-700">
+                <span className={`font-extrabold ${hasUtsGrade ? 'text-indigo-700' : hasSubmittedUts ? 'text-blue-700' : 'text-slate-500'}`}>
                   {hasUtsGrade ? utsScore : (hasSubmittedUts ? 'Menunggu Nilai' : '-')}
                 </span>
               </div>
               <div className="flex justify-between py-0.5">
                 <span>Proyek UAS (25%):</span>
-                <span className="font-extrabold text-purple-700">
+                <span className={`font-extrabold ${hasUasGrade ? 'text-purple-700' : hasSubmittedUas ? 'text-blue-700' : 'text-slate-500'}`}>
                   {hasUasGrade ? uasScore : (hasSubmittedUas ? 'Menunggu Nilai' : '-')}
                 </span>
               </div>

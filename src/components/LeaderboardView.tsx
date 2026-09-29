@@ -53,8 +53,8 @@ export interface StudentScoreCard {
   isOnline: boolean;
   hasSubmittedTask: boolean;
   quizBestScore: number;
-  utsScore: number;
-  uasScore: number;
+  utsScore?: number;
+  uasScore?: number;
   badges: Array<{ name: string; icon: string; color: string }>;
 }
 
@@ -87,8 +87,8 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
       const uts = utsSubmissions.find(u => u.studentId === std.id);
       const uas = uasSubmissions.find(u => u.studentId === std.id);
-      const utsScore = uts?.grade ?? (studentGrade?.utsScore ?? 85);
-      const uasScore = uas?.grade ?? (studentGrade?.uasScore ?? 85);
+      const utsScore = (uts && uts.grade !== undefined && uts.grade > 0) ? uts.grade : undefined;
+      const uasScore = (uas && uas.grade !== undefined && uas.grade > 0) ? uas.grade : undefined;
 
       // Attendance calculation: count meetings marked 'H'
       let attendedCount = 0;
@@ -103,19 +103,24 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       const attendancePercent = totalRecorded > 0 ? (attendedCount / totalRecorded) * 100 : 100;
       const attendancePoints = Math.round(attendancePercent);
 
-      // Presentation score
+      // Presentation score (hanya dihitung jika tugas telah resmi dinilai dosen)
       let presentationPoints = 0;
-      if (sub) {
-        presentationPoints = sub.grade !== undefined ? sub.grade : 88;
-      } else {
-        presentationPoints = studentGrade?.individualScore ?? 75;
+      if (sub && sub.grade !== undefined && sub.grade > 0) {
+        presentationPoints = sub.grade;
       }
 
       // Quiz Points
-      const quizPoints = bestQuizScore > 0 ? bestQuizScore : (studentGrade ? 85 : 80);
+      const quizPoints = bestQuizScore > 0 ? bestQuizScore : 0;
 
-      // Exam Points (average of UTS & UAS)
-      const examPoints = Math.round((utsScore + uasScore) / 2);
+      // Exam Points (hanya dihitung dari UTS & UAS yang telah dinilai)
+      let examPoints = 0;
+      if (utsScore !== undefined && uasScore !== undefined) {
+        examPoints = Math.round((utsScore + uasScore) / 2);
+      } else if (utsScore !== undefined) {
+        examPoints = utsScore;
+      } else if (uasScore !== undefined) {
+        examPoints = uasScore;
+      }
 
       // Bonus Points (online active status & promptness)
       const isOnline = isStudentOnline(std.lastActive);
@@ -575,7 +580,7 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                           {item.examPoints}
                         </span>
                         <span className="text-[10px] text-slate-400">
-                          UTS: {item.utsScore} | UAS: {item.uasScore}
+                          UTS: {item.utsScore ?? '-'} | UAS: {item.uasScore ?? '-'}
                         </span>
                       </div>
                     </td>

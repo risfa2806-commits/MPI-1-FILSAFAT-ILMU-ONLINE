@@ -1244,7 +1244,7 @@ export const GroupProjectView: React.FC<GroupProjectViewProps> = ({
                   </div>
                 )}
 
-                {activeGroup.grade !== undefined && (
+                {(activeGroup.grade !== undefined && activeGroup.grade > 0) && (
                   <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-300 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] font-bold text-emerald-800 uppercase block">Nilai Proyek UAS</span>

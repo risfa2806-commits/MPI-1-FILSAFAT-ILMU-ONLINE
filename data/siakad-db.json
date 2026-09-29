@@ -923,10 +923,7 @@
     "mhs-3": {
       "attendanceScore": 100,
       "attitudeScore": 85,
-      "letterGrade": "A",
-      "individualScore": 92,
-      "notes": "Pemaparan ontologi sangat mendalam dan slide rapi.",
-      "finalScore": 93
+      "letterGrade": "-"
     },
     "mhs-4": {
       "attendanceScore": 100,
@@ -1313,162 +1310,82 @@
         "mhs-1": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-2": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-3": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-4": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-5": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-6": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-7": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-8": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-9": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-10": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-11": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-12": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-13": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-14": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-15": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         },
         "mhs-1789289459487-4i91": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "utsScore": 85,
-          "uasScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         }
       },
       "attendance": {
@@ -2032,130 +1949,82 @@
         "mhs-1": {
           "attendanceScore": 100,
           "attitudeScore": 88,
-          "individualScore": 88,
-          "groupScore": 90,
-          "finalScore": 90,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-2": {
           "attendanceScore": 100,
           "attitudeScore": 87,
-          "individualScore": 86,
-          "groupScore": 90,
-          "finalScore": 89,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-3": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 87,
-          "groupScore": 90,
-          "finalScore": 90,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-4": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-5": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-6": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-7": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-8": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-9": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-10": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-11": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-12": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-13": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-14": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-15": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 87,
-          "letterGrade": "A"
+          "letterGrade": "-"
         },
         "mhs-1789289459487-4i91": {
           "attendanceScore": 100,
           "attitudeScore": 85,
-          "individualScore": 85,
-          "groupScore": 85,
-          "finalScore": 88,
-          "letterGrade": "A-"
+          "letterGrade": "-"
         }
       },
       "attendance": {

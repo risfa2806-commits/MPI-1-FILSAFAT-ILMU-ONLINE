@@ -819,7 +819,7 @@ export const INITIAL_DATABASE: SiakadDatabase = {
   grades: {
     'mhs-1': { attendanceScore: 100, attitudeScore: 100, letterGrade: '-', notes: 'Poin Kuis Interaktif RPS: 100/100' },
     'mhs-2': { attendanceScore: 100, attitudeScore: 85, letterGrade: '-' },
-    'mhs-3': { attendanceScore: 100, attitudeScore: 85, individualScore: 92, notes: 'Pemaparan ontologi sangat mendalam dan slide rapi.', finalScore: 93, letterGrade: 'A' },
+    'mhs-3': { attendanceScore: 100, attitudeScore: 85, letterGrade: '-' },
   },
   activeHeartbeats: {},
   dosenPassword: 'filsafat2026',

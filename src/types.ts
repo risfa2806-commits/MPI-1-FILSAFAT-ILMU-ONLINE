@@ -35,6 +35,10 @@ export interface GroupProject {
     submittedBy: string;
     fileName?: string;
     fileData?: string;
+    grade?: number;
+    feedback?: string;
+    gradedAt?: string;
+    gradedBy?: string;
   };
   grade?: number;
   feedback?: string;

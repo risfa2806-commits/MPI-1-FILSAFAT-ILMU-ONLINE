@@ -185,11 +185,10 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                         const isCurrent = currentStudent?.id === std.id;
                         const gradeObj = grades[std.id];
                         const isSubmitted = Boolean(submission);
-                        const gradeScore = (submission && submission.grade !== undefined)
+                        const hasPpt = Boolean(submission && (submission.pptUrl || submission.pptFileData));
+                        const gradeScore = (submission && submission.grade !== undefined && submission.grade > 0)
                           ? submission.grade
-                          : (gradeObj?.individualScore !== undefined && gradeObj.individualScore > 0
-                              ? gradeObj.individualScore
-                              : undefined);
+                          : undefined;
                         const isGraded = gradeScore !== undefined && gradeScore > 0;
                         const gradeFeedback = submission?.feedback || (isGraded ? gradeObj?.notes : undefined);
 
@@ -272,10 +271,10 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                     <Award size={13} className="text-emerald-600" />
                                   </button>
                                 </div>
-                              ) : submission ? (
+                              ) : (isSubmitted && hasPpt) ? (
                                 <div className="flex items-center gap-1">
                                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-full">
-                                    <Clock size={12} /> Terkirim (Menunggu Nilai)
+                                    <Clock size={12} /> PPT Terkirim (Menunggu Nilai)
                                   </span>
 
                                   {/* Download PPT or link */}
@@ -321,9 +320,9 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                                     onSelectStudentTask(std, meeting.meetingNumber);
                                     onOpenUploadForStudent(std, meeting.meetingNumber);
                                   }}
-                                  className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
+                                  className="text-[11px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
                                 >
-                                  <Clock size={11} />
+                                  <Clock size={11} className="text-amber-700" />
                                   <span>Unggah PPT</span>
                                 </button>
                               )}

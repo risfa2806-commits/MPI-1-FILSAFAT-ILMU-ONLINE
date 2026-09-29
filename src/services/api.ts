@@ -472,7 +472,27 @@ export async function gradeGroupProject(groupId: number, grade: number, feedback
           grp.grade = Number(grade);
           grp.feedback = feedback;
           grp.gradedAt = new Date().toISOString();
+          if (grp.submission) {
+            grp.submission.grade = Number(grade);
+            grp.submission.feedback = feedback;
+          }
         }
+        if (!localDb.grades) localDb.grades = {};
+        const memberNames = grp?.members || [];
+        (localDb.students || []).forEach(std => {
+          if (std.groupId === groupId || memberNames.some(m => m.trim().toLowerCase() === std.name.trim().toLowerCase())) {
+            if (!localDb.grades[std.id]) {
+              localDb.grades[std.id] = { attendanceScore: 100, attitudeScore: 85, letterGrade: '-' };
+            }
+            if (examType === 'uts') {
+              localDb.grades[std.id].utsScore = Number(grade);
+            } else {
+              localDb.grades[std.id].groupScore = Number(grade);
+              localDb.grades[std.id].uasScore = Number(grade);
+            }
+            if (feedback) localDb.grades[std.id].notes = feedback;
+          }
+        });
         saveLocalCache(localDb);
       }
       return true;
@@ -2379,40 +2399,36 @@ export async function recalculateAllGradesApi(): Promise<Record<string, StudentG
         }
         const attPercent = total > 0 ? Math.round((hadir / total) * 100) : 100;
 
-        // 2. Individual Task
+        // 2. Individual Task: HANYA jika mahasiswa telah mengumpulkan berkas DAN dinilai dosen
         const indivSub = (cached.submissions || []).find(
           sub => sub.studentId === s.id || (sub as any).nim === s.nim || sub.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
         );
-        const indivScore = indivSub?.grade !== undefined && indivSub.grade > 0
+        const indivScore = (indivSub && indivSub.grade !== undefined && indivSub.grade > 0)
           ? indivSub.grade
-          : (indivSub && cached.grades[s.id]?.individualScore !== undefined && cached.grades[s.id].individualScore! > 0
-            ? cached.grades[s.id].individualScore
-            : undefined);
+          : undefined;
 
-        // 3. UTS
+        // 3. UTS: HANYA jika mahasiswa telah mengumpulkan lembar jawaban DAN dinilai dosen
         const utsSub = (cached.utsSubmissions || []).find(
           u => u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
         );
-        const utsScore = utsSub?.grade !== undefined && utsSub.grade > 0
+        const utsScore = (utsSub && utsSub.grade !== undefined && utsSub.grade > 0)
           ? utsSub.grade
-          : (utsSub && cached.grades[s.id]?.utsScore !== undefined && cached.grades[s.id].utsScore! > 0
-            ? cached.grades[s.id].utsScore
-            : undefined);
+          : undefined;
 
-        // 4. UAS (Video Kelompok atau Lembar Esai)
+        // 4. UAS (Video Kelompok atau Lembar Esai): HANYA jika telah dikumpulkan DAN dinilai dosen
         const grp = (cached.groups || []).find(
           g => g.id === s.groupId || (g.members || []).some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase())
         );
         const uasSub = (cached.uasSubmissions || []).find(
           u => u.studentId === s.id || (u as any).nim === s.nim || u.studentName?.trim().toLowerCase() === s.name.trim().toLowerCase()
         );
-        const uasScore = uasSub?.grade !== undefined && uasSub.grade > 0
+        const hasGrpVideo = Boolean(grp && (grp.submission?.videoUrl || grp.submission?.submittedAt));
+        const grpGrade = (grp && grp.grade !== undefined && grp.grade > 0)
+          ? grp.grade
+          : (grp?.submission?.grade !== undefined && grp.submission.grade > 0 ? grp.submission.grade : undefined);
+        const uasScore = (uasSub && uasSub.grade !== undefined && uasSub.grade > 0)
           ? uasSub.grade
-          : (grp && (grp.submission?.videoUrl || grp.submission?.submittedAt) && grp.grade !== undefined && grp.grade > 0
-            ? grp.grade
-            : (uasSub && cached.grades[s.id]?.uasScore !== undefined && cached.grades[s.id].uasScore! > 0
-              ? cached.grades[s.id].uasScore
-              : undefined));
+          : (hasGrpVideo && grpGrade !== undefined ? grpGrade : undefined);
 
         const gradeObj: StudentGrade = {
           attendanceScore: attPercent,

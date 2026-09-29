@@ -844,8 +844,9 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   // Open Review Individual Submission
   const handleOpenReviewIndiv = (sub: IndividualSubmission) => {
     setReviewIndivSub(sub);
-    setIndivScoreInput(sub.grade !== undefined ? sub.grade : 85);
-    setIndivFeedbackInput(sub.feedback || '');
+    const existingScore = sub.grade !== undefined ? sub.grade : grades[sub.studentId]?.individualScore;
+    setIndivScoreInput(existingScore !== undefined ? existingScore : 85);
+    setIndivFeedbackInput(sub.feedback || grades[sub.studentId]?.notes || '');
     setAutoGradingInfo(null);
     setDeletePartChoice('all');
     setDeleteReasonText('');
@@ -885,7 +886,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     const initialScore = sub?.grade ?? currentGrade?.utsScore ?? 85;
     setUtsScoreInput(initialScore);
     setUtsFeedbackInput(sub?.feedback || currentGrade?.notes || '');
-    if (sub?.questionScores) {
+    if (sub?.questionScores && Object.keys(sub.questionScores).length > 0) {
       setUtsScoresByQ(sub.questionScores);
     } else {
       const perQ = Math.round(initialScore / 5);
@@ -933,8 +934,9 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   const handleOpenReviewGroup = (groupId: number) => {
     setReviewGroupId(groupId);
     const grp = (groups || []).find(g => g.id === groupId);
-    setGroupScoreInput(grp?.submission?.grade || 85);
-    setGroupFeedbackInput(grp?.submission?.feedback || '');
+    const existingGroupScore = grp?.grade ?? grp?.submission?.grade;
+    setGroupScoreInput(existingGroupScore !== undefined ? existingGroupScore : 85);
+    setGroupFeedbackInput(grp?.feedback || grp?.submission?.feedback || '');
     setAutoGradingInfo(null);
   };
 

@@ -213,14 +213,12 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     );
   }, [effectiveSubmissions, targetStudent, selectedMeetingNumber]);
 
-  // Effective grade from either submission or grades table fallback (hanya jika mahasiswa telah mengirimkan tugas)
+  // Effective grade from submission ONLY (Nilai HANYA muncul setelah tugas dikumpulkan dan dosen memberikan penilaian)
   const currentGradeObj = grades[targetStudent?.id || ''];
   const hasSubmitted = Boolean(existingSubmission);
-  const effectiveGrade = (existingSubmission && existingSubmission.grade !== undefined)
+  const effectiveGrade = (existingSubmission && existingSubmission.grade !== undefined && existingSubmission.grade > 0)
     ? existingSubmission.grade
-    : (selectedMeetingNumber === (targetStudent?.meetingNumber || 2) && currentGradeObj?.individualScore !== undefined && currentGradeObj.individualScore > 0
-        ? currentGradeObj.individualScore
-        : undefined);
+    : undefined;
   const effectiveFeedback = existingSubmission?.feedback || (effectiveGrade !== undefined ? currentGradeObj?.notes : undefined);
   const hasEffectiveGrade = effectiveGrade !== undefined && effectiveGrade > 0;
 
@@ -1586,12 +1584,18 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                       <Award size={13} className="text-emerald-700" /> Sudah Dinilai ({effectiveGrade}/100)
                     </span>
                   ) : existingSubmission ? (
-                    <span className="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
-                      <CheckCircle2 size={13} /> Terkirim (Menunggu Nilai)
-                    </span>
+                    (existingSubmission.pptUrl || existingSubmission.pptFileData) ? (
+                      <span className="inline-flex items-center gap-1 font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                        <CheckCircle2 size={13} /> PPT Terkirim (Menunggu Nilai)
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full shadow-2xs">
+                        <Clock size={13} className="text-amber-700" /> Belum Unggah PPT
+                      </span>
+                    )
                   ) : (
-                    <span className="inline-flex items-center gap-1 font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                      <Clock size={13} /> Belum Dikirim (Siap Upload)
+                    <span className="inline-flex items-center gap-1 font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full shadow-2xs">
+                      <Clock size={13} className="text-amber-700" /> Belum Unggah PPT
                     </span>
                   )}
                 </div>
@@ -1742,6 +1746,12 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                 <div className="space-y-2 pt-2 border-t border-slate-100">
                   <div className="text-xs font-bold text-slate-700 mb-1">Akses File Terkirim (Pertemuan {selectedMeetingNumber}):</div>
                   
+                  {!existingSubmission.pptUrl && !existingSubmission.pptFileData && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-lg text-xs font-bold text-amber-900 flex items-center gap-2">
+                      <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                      <span>Belum Unggah PPT (Hanya dokumen makalah terunggah)</span>
+                    </div>
+                  )}
                   {existingSubmission.pptType === 'link' && existingSubmission.pptUrl && (
                     <a
                       href={existingSubmission.pptUrl}
