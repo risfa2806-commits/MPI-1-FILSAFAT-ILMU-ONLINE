@@ -585,7 +585,30 @@
       "id": "sub-1789781761092-aj8xw",
       "makalahFileName": "Makalah_Filsafat_Ilmu_Pertemuan_04_HADI_DWI_PRASETYO.doc",
       "pptFileName": "Slide_Presentasi_Pertemuan_04_HADI_DWI_PRASETYO.pptx",
-      "notes": "Makalah ilmiah terstruktur disusun sesuai RPS pertemuan 4 program studi MPI 1 STAI Jarinabi."
+      "notes": "Makalah ilmiah terstruktur disusun sesuai RPS pertemuan 4 program studi MPI 1 STAI Jarinabi.",
+      "grade": 87,
+      "feedback": "Penyusunan tugas Pertemuan 4 (Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah) sangat komprehensif. Berkas slide PPT dan Makalah memenuhi standar akademik serta relevan dengan studi Manajemen Pendidikan Islam.",
+      "gradedAt": "2026-09-27T11:47:00.000Z"
+    },
+    {
+      "id": "sub-1790484420000-hadi-p2",
+      "studentId": "mhs-3",
+      "studentName": "HADI DWI PRASETYO",
+      "nim": "2024003",
+      "rpsPart": "Pertemuan 2",
+      "topic": "Konsep Dasar, Urgensi, dan Pengertian Filsafat Ilmu dalam Manajemen Pendidikan Islam",
+      "meetingNumber": 2,
+      "presentationType": "individu",
+      "submissionChoice": "both",
+      "pptType": "link",
+      "pptUrl": "https://canva.com/hadi-p2",
+      "makalahType": "link",
+      "makalahUrl": "https://docs.google.com/hadi-p2",
+      "notes": "Tugas resume dan presentasi konsep dasar filsafat ilmu",
+      "submittedAt": "2026-09-27T11:47:00.000Z",
+      "grade": 87,
+      "feedback": "Penyusunan tugas sangat baik dan sistematis.",
+      "gradedAt": "2026-09-27T11:47:00.000Z"
     }
   ],
   "utsQuestions": [
@@ -906,6 +929,13 @@
     "1": {}
   },
   "grades": {
+    "20260103": {
+      "attendanceScore": 100,
+      "attitudeScore": 85,
+      "letterGrade": "-",
+      "individualScore": 87,
+      "notes": "Nilai Resmi Dosen Pengampu Tugas Pertemuan 4 (87/100)"
+    },
     "mhs-1": {
       "attendanceScore": 100,
       "attitudeScore": 100,
@@ -920,7 +950,9 @@
     "mhs-3": {
       "attendanceScore": 100,
       "attitudeScore": 85,
-      "letterGrade": "-"
+      "letterGrade": "-",
+      "individualScore": 87,
+      "notes": "Nilai Resmi Dosen Pengampu Tugas Pertemuan 4 (87/100)"
     },
     "mhs-4": {
       "attendanceScore": 100,

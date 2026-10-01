@@ -311,8 +311,11 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
 
     // 1b. Graded notification from Lecturer
-    const effectiveGrade = sub.grade !== undefined ? sub.grade : db.grades?.[sub.studentId]?.individualScore;
-    const effectiveFeedback = sub.feedback || db.grades?.[sub.studentId]?.notes;
+    const studentGradeObj = db.grades?.[sub.studentId] || (sub.nim ? db.grades?.[sub.nim] : undefined);
+    const effectiveGrade = sub.grade !== undefined && sub.grade > 0
+      ? sub.grade
+      : (studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0 ? studentGradeObj.individualScore : undefined);
+    const effectiveFeedback = sub.feedback || studentGradeObj?.notes;
     const gradeNotifId = `grade-ind-${sub.studentId || sub.id}`;
     if (effectiveGrade !== undefined && effectiveGrade > 0 && !deletedIds.has(gradeNotifId)) {
       gradedIndStudentIds.add(sub.studentId);
@@ -330,6 +333,44 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       });
     }
   });
+
+  // 1c. Graded notifications from browser local submissions cache
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
+      if (rawLocal) {
+        const localSubs: IndividualSubmission[] = JSON.parse(rawLocal);
+        if (Array.isArray(localSubs)) {
+          localSubs.forEach(localSub => {
+            const studentGradeObj = db.grades?.[localSub.studentId] || (localSub.nim ? db.grades?.[localSub.nim] : undefined);
+            const effectiveGrade = localSub.grade !== undefined && localSub.grade > 0
+              ? localSub.grade
+              : (studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0 ? studentGradeObj.individualScore : undefined);
+            const effectiveFeedback = localSub.feedback || studentGradeObj?.notes;
+            const gradeNotifId = `grade-ind-${localSub.studentId || localSub.id}`;
+
+            if (effectiveGrade !== undefined && effectiveGrade > 0 && !deletedIds.has(gradeNotifId) && !gradedIndStudentIds.has(localSub.studentId)) {
+              gradedIndStudentIds.add(localSub.studentId);
+              notifications.push({
+                id: gradeNotifId,
+                type: 'grade',
+                title: `Tugas Dinilai Dosen: ${localSub.rpsPart || `Pertemuan ${localSub.meetingNumber || 2}`}`,
+                message: `Tugas presentasi "${localSub.topic || 'Materi'}" telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${effectiveGrade}/100.${effectiveFeedback ? ` Catatan Evaluasi: "${effectiveFeedback}"` : ''}`,
+                timestamp: localSub.gradedAt || localSub.submittedAt || new Date().toISOString(),
+                taskType: 'Penilaian Dosen',
+                studentName: localSub.studentName,
+                studentId: localSub.studentId,
+                targetTab: 'tugas-individu',
+                read: isNotificationRead(gradeNotifId),
+              });
+            }
+          });
+        }
+      }
+    } catch {
+      // Ignore parse error
+    }
+  }
 
   // Catch students who have an individual grade in db.grades but weren't in db.submissions list
   (db.students || []).forEach(std => {
@@ -437,7 +478,7 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
 
     // 3b. Group Video UAS Graded notification
-    const effectiveGroupGrade = grp.grade !== undefined ? grp.grade : grp.submission?.grade;
+    const effectiveGroupGrade = grp.grade !== undefined ? grp.grade : (grp.submission as any)?.grade;
     const gradeGroupId = `grade-group-${grp.id}`;
     if (effectiveGroupGrade !== undefined && effectiveGroupGrade > 0 && !deletedIds.has(gradeGroupId)) {
       gradedGroupIds.add(grp.id);

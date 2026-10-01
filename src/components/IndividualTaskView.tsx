@@ -159,6 +159,32 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
     }
   }, [localSubmissions]);
 
+  // Synchronize localSubmissions with incoming submissions and grades from server / DosenPortal
+  useEffect(() => {
+    if (!submissions || submissions.length === 0) return;
+    setLocalSubmissions(prev => {
+      let updated = false;
+      const next = [...prev];
+      submissions.forEach(serverSub => {
+        const targetMeeting = Number(serverSub.meetingNumber) || 2;
+        const idx = next.findIndex(l =>
+          (l.id && serverSub.id && l.id === serverSub.id) ||
+          (l.studentId === serverSub.studentId && (Number(l.meetingNumber) || 2) === targetMeeting)
+        );
+        if (idx >= 0) {
+          if (serverSub.grade !== undefined && next[idx].grade !== serverSub.grade) {
+            next[idx] = { ...next[idx], ...serverSub };
+            updated = true;
+          }
+        } else {
+          next.push(serverSub);
+          updated = true;
+        }
+      });
+      return updated ? next : prev;
+    });
+  }, [submissions]);
+
   // Merge server submissions and local submissions per student AND per meeting
   // SERVER SUBMISSION AND SERVER GRADES ARE ALWAYS AUTHORITATIVE!
   const effectiveSubmissions = useMemo(() => {

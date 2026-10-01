@@ -180,6 +180,107 @@ export async function syncPendingSubmissionsToServer(): Promise<void> {
   }
 }
 
+// Helper to synchronize local submission cache with authoritative database
+export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDatabase {
+  if (typeof window === 'undefined' || !window.localStorage) return db;
+  try {
+    const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
+    if (!rawLocal) return db;
+    const localSubs: IndividualSubmission[] = safeParseJson(rawLocal, []);
+    if (!Array.isArray(localSubs) || localSubs.length === 0) return db;
+
+    if (!db.submissions) db.submissions = [];
+    if (!db.grades) db.grades = {};
+
+    let hasChanges = false;
+    localSubs.forEach(localSub => {
+      const targetMeeting = Number(localSub.meetingNumber) || 2;
+      const idx = db.submissions.findIndex(s =>
+        (s.id && localSub.id && s.id === localSub.id) ||
+        (s.studentId === localSub.studentId && (Number(s.meetingNumber) || 2) === targetMeeting)
+      );
+
+      if (idx >= 0) {
+        const existing = db.submissions[idx];
+        const finalGrade = existing.grade !== undefined && existing.grade > 0
+          ? existing.grade
+          : (localSub.grade !== undefined && localSub.grade > 0 ? localSub.grade : undefined);
+        const finalFeedback = existing.feedback || localSub.feedback;
+        const finalGradedAt = existing.gradedAt || localSub.gradedAt;
+
+        db.submissions[idx] = {
+          ...localSub,
+          ...existing,
+          grade: finalGrade,
+          feedback: finalFeedback,
+          gradedAt: finalGradedAt,
+        };
+      } else {
+        db.submissions.unshift(localSub);
+        hasChanges = true;
+      }
+
+      // If effective grade exists, ensure db.grades has it
+      const effSub = idx >= 0 ? db.submissions[idx] : localSub;
+      const effectiveGrade = effSub.grade !== undefined && effSub.grade > 0
+        ? effSub.grade
+        : (localSub.grade !== undefined && localSub.grade > 0 ? localSub.grade : undefined);
+
+      if (effectiveGrade !== undefined && effectiveGrade > 0 && localSub.studentId) {
+        if (!db.grades[localSub.studentId]) {
+          db.grades[localSub.studentId] = {
+            attendanceScore: 100,
+            attitudeScore: 85,
+            letterGrade: '-',
+          };
+        }
+        db.grades[localSub.studentId].individualScore = effectiveGrade;
+        if (effSub.feedback) db.grades[localSub.studentId].notes = effSub.feedback;
+
+        const std = (db.students || []).find(s => s.id === localSub.studentId || (localSub.nim && s.nim === localSub.nim));
+        if (std && std.nim) {
+          if (!db.grades[std.nim]) db.grades[std.nim] = { ...db.grades[localSub.studentId] };
+          db.grades[std.nim].individualScore = effectiveGrade;
+        }
+      }
+    });
+
+    if (hasChanges) {
+      saveLocalCache(db);
+    }
+  } catch (e) {
+    console.warn('harvestAndSyncLocalSubmissions notice:', e);
+  }
+  return db;
+}
+
+// Synchronize a grade update directly into the local submissions cache
+export function syncGradeToLocalSubmissionsCache(studentId: string, grade: number, feedback?: string): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
+    if (!rawLocal) return;
+    const localSubs: IndividualSubmission[] = safeParseJson(rawLocal, []);
+    if (!Array.isArray(localSubs) || localSubs.length === 0) return;
+
+    let changed = false;
+    localSubs.forEach(sub => {
+      if (sub.studentId === studentId || (sub.nim && sub.nim === studentId)) {
+        sub.grade = Number(grade);
+        if (feedback) sub.feedback = feedback;
+        sub.gradedAt = new Date().toISOString();
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(localSubs));
+    }
+  } catch (e) {
+    console.warn('syncGradeToLocalSubmissionsCache notice:', e);
+  }
+}
+
 // Fetch database from server, fallback to IndexedDB / Supabase / local cache if offline
 export async function fetchDatabase(): Promise<{ db: SiakadDatabase; isOffline: boolean }> {
   try {
@@ -187,10 +288,11 @@ export async function fetchDatabase(): Promise<{ db: SiakadDatabase; isOffline: 
     if (res.ok) {
       const json = await safeJson(res, null);
       if (json && json.success && json.data) {
-        saveLocalCache(json.data);
+        const harmonizedDb = harvestAndSyncLocalSubmissions(json.data);
+        saveLocalCache(harmonizedDb);
         // Automatically sync any offline pending submissions to server
         syncPendingSubmissionsToServer();
-        return { db: json.data, isOffline: false };
+        return { db: harmonizedDb, isOffline: false };
       }
     }
   } catch (err) {
@@ -202,8 +304,9 @@ export async function fetchDatabase(): Promise<{ db: SiakadDatabase; isOffline: 
     try {
       const sbData = await fetchDatabaseFromSupabase();
       if (sbData && sbData.students && sbData.students.length > 0) {
-        saveLocalCache(sbData);
-        return { db: sbData, isOffline: false };
+        const harmonizedDb = harvestAndSyncLocalSubmissions(sbData);
+        saveLocalCache(harmonizedDb);
+        return { db: harmonizedDb, isOffline: false };
       }
     } catch (err) {
       console.warn('Supabase fetch error, fallback to client storage:', err);
@@ -214,13 +317,14 @@ export async function fetchDatabase(): Promise<{ db: SiakadDatabase; isOffline: 
   try {
     const idbData = await loadFromIndexedDb();
     if (idbData && idbData.students && idbData.students.length > 0) {
-      return { db: idbData, isOffline: true };
+      const harmonizedDb = harvestAndSyncLocalSubmissions(idbData);
+      return { db: harmonizedDb, isOffline: true };
     }
   } catch {
     // Continue to localStorage fallback
   }
 
-  return { db: getLocalCache(), isOffline: true };
+  return { db: harvestAndSyncLocalSubmissions(getLocalCache()), isOffline: true };
 }
 
 // Peer Review API: Submit rating and comments on peer presentations
@@ -413,6 +517,9 @@ export async function submitGroupProject(payload: {
 
 // Grade individual task
 export async function gradeIndividualTask(studentId: string, grade: number, feedback: string): Promise<boolean> {
+  // Sync to local submissions cache immediately so UI flips to graded state without latency
+  syncGradeToLocalSubmissionsCache(studentId, grade, feedback);
+
   try {
     const res = await fetch('/api/individual-grade', {
       method: 'POST',
@@ -422,16 +529,17 @@ export async function gradeIndividualTask(studentId: string, grade: number, feed
     const json = await safeJson(res, null);
     if (res.ok) {
       if (json?.data) {
-        saveLocalCache(json.data);
+        const harmonized = harvestAndSyncLocalSubmissions(json.data);
+        saveLocalCache(harmonized);
       } else {
         const localDb = getLocalCache();
         if (localDb.submissions) {
-          const s = localDb.submissions.find(sub => sub.studentId === studentId);
-          if (s) {
+          const matched = localDb.submissions.filter(sub => sub.studentId === studentId || (sub.nim && sub.nim === studentId));
+          matched.forEach(s => {
             s.grade = Number(grade);
             s.feedback = feedback;
             s.gradedAt = new Date().toISOString();
-          }
+          });
         }
         if (!localDb.grades) localDb.grades = {};
         if (!localDb.grades[studentId]) {
@@ -443,7 +551,8 @@ export async function gradeIndividualTask(studentId: string, grade: number, feed
         }
         localDb.grades[studentId].individualScore = Number(grade);
         if (feedback) localDb.grades[studentId].notes = feedback;
-        saveLocalCache(localDb);
+        const harmonized = harvestAndSyncLocalSubmissions(localDb);
+        saveLocalCache(harmonized);
       }
       return true;
     }
@@ -1164,13 +1273,46 @@ export async function updateStudentGradeApi(
   studentId: string,
   gradeData: Partial<StudentGrade>
 ): Promise<boolean> {
+  if (gradeData.individualScore !== undefined) {
+    syncGradeToLocalSubmissionsCache(studentId, gradeData.individualScore, gradeData.notes);
+  }
   try {
     const res = await fetch('/api/grades', {
       method: 'POST',
       headers: getDosenAuthHeaders(),
       body: JSON.stringify({ studentId, ...gradeData }),
     });
-    return res.ok;
+    const json = await safeJson<any>(res, null);
+    if (res.ok) {
+      if (json?.data) {
+        const harmonized = harvestAndSyncLocalSubmissions(json.data);
+        saveLocalCache(harmonized);
+      } else {
+        const localDb = getLocalCache();
+        if (!localDb.grades) localDb.grades = {};
+        const existingGrade: StudentGrade = localDb.grades[studentId] || {
+          attendanceScore: 100,
+          attitudeScore: 85,
+          letterGrade: '-',
+        };
+        localDb.grades[studentId] = {
+          ...existingGrade,
+          ...gradeData,
+        };
+        if (gradeData.individualScore !== undefined) {
+          (localDb.submissions || []).forEach(s => {
+            if (s.studentId === studentId || (s.nim && s.nim === studentId)) {
+              s.grade = gradeData.individualScore;
+              if (gradeData.notes) s.feedback = gradeData.notes;
+            }
+          });
+        }
+        const harmonized = harvestAndSyncLocalSubmissions(localDb);
+        saveLocalCache(harmonized);
+      }
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -1213,6 +1355,33 @@ export async function deleteSubmissionApi(
       }
     } catch (e) {
       console.warn('Failed to update local cache during submission delete:', e);
+    }
+
+    // Also update siakad_local_submissions_v1 in localStorage
+    try {
+      const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
+      if (rawLocal) {
+        const localSubs: IndividualSubmission[] = safeParseJson(rawLocal, []);
+        let changed = false;
+        const updated = localSubs.filter(s => {
+          if (s.id === submissionId || s.studentId === submissionId) {
+            if (part === 'all') {
+              changed = true;
+              return false;
+            } else {
+              if (part === 'ppt') { s.pptUrl = ''; s.pptFileName = ''; s.pptFileData = ''; changed = true; }
+              if (part === 'makalah') { s.makalahUrl = ''; s.makalahFileName = ''; s.makalahFileData = ''; changed = true; }
+              if (reason) s.feedback = reason;
+            }
+          }
+          return true;
+        });
+        if (changed) {
+          localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(updated));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to update local submissions cache during delete:', e);
     }
   };
 
@@ -2623,6 +2792,28 @@ export async function gradePresentationGroupApi(
   grade: number,
   feedback?: string
 ): Promise<{ success: boolean; meetingNumber?: number; affectedStudentsCount?: number; grades?: any; data?: SiakadDatabase; error?: string }> {
+  // Sync to local submissions cache for this meeting
+  try {
+    const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
+    if (rawLocal) {
+      const localSubs: IndividualSubmission[] = safeParseJson(rawLocal, []);
+      let changed = false;
+      localSubs.forEach(sub => {
+        if ((Number(sub.meetingNumber) || 2) === Number(meetingNumber)) {
+          sub.grade = Number(grade);
+          if (feedback) sub.feedback = feedback;
+          sub.gradedAt = new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(localSubs));
+      }
+    }
+  } catch (e) {
+    console.warn('gradePresentationGroupApi local sync notice:', e);
+  }
+
   try {
     const res = await fetch('/api/presentation-group-grade', {
       method: 'POST',
@@ -2631,7 +2822,10 @@ export async function gradePresentationGroupApi(
     });
     const json = await safeJson(res, null);
     if (res.ok && json.success) {
-      if (json.data) saveLocalCache(json.data);
+      if (json.data) {
+        const harmonized = harvestAndSyncLocalSubmissions(json.data);
+        saveLocalCache(harmonized);
+      }
       return {
         success: true,
         meetingNumber: json.meetingNumber,
