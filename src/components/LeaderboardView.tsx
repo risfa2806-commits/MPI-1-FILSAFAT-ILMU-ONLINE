@@ -87,8 +87,14 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
 
       const uts = utsSubmissions.find(u => u.studentId === std.id);
       const uas = uasSubmissions.find(u => u.studentId === std.id);
-      const utsScore = (uts && uts.grade !== undefined && uts.grade > 0) ? uts.grade : undefined;
-      const uasScore = (uas && uas.grade !== undefined && uas.grade > 0) ? uas.grade : undefined;
+      const utsScore = (uts && uts.grade !== undefined && uts.grade > 0)
+        ? uts.grade
+        : (studentGrade?.utsScore !== undefined && studentGrade.utsScore > 0 ? studentGrade.utsScore : undefined);
+      const uasScore = (uas && uas.grade !== undefined && uas.grade > 0)
+        ? uas.grade
+        : (studentGrade?.uasScore !== undefined && studentGrade.uasScore > 0
+            ? studentGrade.uasScore
+            : (studentGrade?.groupScore !== undefined && studentGrade.groupScore > 0 ? studentGrade.groupScore : undefined));
 
       // Attendance calculation: count meetings marked 'H'
       let attendedCount = 0;
@@ -103,16 +109,20 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       const attendancePercent = totalRecorded > 0 ? (attendedCount / totalRecorded) * 100 : 100;
       const attendancePoints = Math.round(attendancePercent);
 
-      // Presentation score (hanya dihitung jika tugas telah resmi dinilai dosen)
+      // Presentation score: HANYA jika dosen telah memberikan penilaian resmi
       let presentationPoints = 0;
       if (sub && sub.grade !== undefined && sub.grade > 0) {
         presentationPoints = sub.grade;
+      } else if (sub && studentGrade?.individualScore !== undefined && studentGrade.individualScore > 0) {
+        presentationPoints = studentGrade.individualScore;
+      } else {
+        presentationPoints = 0;
       }
 
       // Quiz Points
       const quizPoints = bestQuizScore > 0 ? bestQuizScore : 0;
 
-      // Exam Points (hanya dihitung dari UTS & UAS yang telah dinilai)
+      // Exam Points: HANYA dihitung jika komponen ujian telah dinilai resmi oleh dosen
       let examPoints = 0;
       if (utsScore !== undefined && uasScore !== undefined) {
         examPoints = Math.round((utsScore + uasScore) / 2);
@@ -137,10 +147,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
       if (presentationPoints >= 90) {
         badges.push({ name: 'Presentasi Teladan', icon: '💎', color: 'bg-indigo-100 text-indigo-800' });
       }
-      if (bestQuizScore >= 90 || quizPoints >= 90) {
+      if (bestQuizScore >= 90) {
         badges.push({ name: 'Master Kuis RPS', icon: '🧠', color: 'bg-amber-100 text-amber-900' });
       }
-      if (utsScore >= 90 || uasScore >= 90) {
+      if ((utsScore !== undefined && utsScore >= 90) || (uasScore !== undefined && uasScore >= 90)) {
         badges.push({ name: 'Cendekiawan Filsafat', icon: '📜', color: 'bg-purple-100 text-purple-800' });
       }
 
@@ -577,10 +587,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
                     <td className="py-3 px-4 text-center">
                       <div className="flex flex-col items-center">
                         <span className="text-xs font-bold text-purple-700 dark:text-purple-400">
-                          {item.examPoints}
+                          {item.examPoints > 0 ? item.examPoints : '-'}
                         </span>
                         <span className="text-[10px] text-slate-400">
-                          UTS: {item.utsScore ?? '-'} | UAS: {item.uasScore ?? '-'}
+                          UTS: {item.utsScore !== undefined && item.utsScore > 0 ? item.utsScore : '-'} | UAS: {item.uasScore !== undefined && item.uasScore > 0 ? item.uasScore : '-'}
                         </span>
                       </div>
                     </td>

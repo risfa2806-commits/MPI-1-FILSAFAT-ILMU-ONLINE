@@ -67,12 +67,16 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
         ? submissionsFeed.filter(s =>
             !s.studentId ||
             s.studentId === currentStudent.id ||
-            (currentStudent.nim && s.studentId === currentStudent.nim) ||
+            (currentStudent.nim && (s.studentId === currentStudent.nim || (s as any).nim === currentStudent.nim)) ||
             (s.studentName && s.studentName.toLowerCase().trim() === currentStudent.name.toLowerCase().trim()) ||
-            (s.studentName && currentStudent.name.toLowerCase().includes(s.studentName.toLowerCase())) ||
-            (currentStudent.groupId && s.targetTab === 'tugas-uas' && (
+            (s.studentName && currentStudent.name && (
+              currentStudent.name.toLowerCase().includes(s.studentName.toLowerCase()) ||
+              s.studentName.toLowerCase().includes(currentStudent.name.toLowerCase())
+            )) ||
+            (currentStudent.groupId && (s.targetTab === 'tugas-uas' || s.targetTab === 'tugas-kelompok') && (
               s.studentName?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`) ||
-              s.title?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`)
+              s.title?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`) ||
+              s.message?.toLowerCase().includes(`kelompok ${currentStudent.groupId}`)
             ))
           )
         : submissionsFeed);

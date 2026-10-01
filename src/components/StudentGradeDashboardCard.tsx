@@ -43,62 +43,79 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
 
   // 1. Individual Presentation & Makalah Submission & Grade
   const studentSubs = (submissions || []).filter(
-    s => s.studentId === stdId || (Boolean(stdNim) && s.nim === stdNim) || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
+    s => s.studentId === stdId ||
+         (Boolean(stdNim) && (s.nim === stdNim || s.studentId === stdNim)) ||
+         (s.studentName && s.studentName.toLowerCase().trim() === stdName) ||
+         (s.studentName && stdName && (
+           currentStudent.name.toLowerCase().includes(s.studentName.toLowerCase()) ||
+           s.studentName.toLowerCase().includes(currentStudent.name.toLowerCase())
+         ))
   );
-  // Mahasiswa harus benar-benar telah mengunggah tugas makalah/PPT
   const gradedIndSub = studentSubs.find(s => s.grade !== undefined && s.grade > 0);
   const indSub = gradedIndSub || studentSubs[0];
-  const hasSubmittedInd = Boolean(indSub);
-  const hasUploadedPpt = Boolean(indSub && (indSub.pptUrl || indSub.pptFileData));
+  const hasSubmittedInd = Boolean(indSub && (indSub.pptUrl || indSub.makalahUrl || indSub.pptFileData || indSub.makalahFileData || indSub.submittedAt));
 
-  const studentGradeObj = grades[stdId] || (stdNim ? Object.values(grades).find((_, idx) => Object.keys(grades)[idx] === stdNim) : undefined);
+  const studentGradeObj = grades[stdId] || (stdNim ? grades[stdNim] : undefined);
 
-  // Nilai tugas individu HANYA muncul jika mahasiswa sudah mengumpulkan berkas DAN dosen telah memberikan nilai resmi di form review
+  // Nilai tugas individu muncul jika dosen telah menilai (baik di sub.grade atau di db.grades)
   const indScore = (indSub && indSub.grade !== undefined && indSub.grade > 0)
     ? indSub.grade
-    : undefined;
+    : (studentGradeObj?.individualScore !== undefined && studentGradeObj.individualScore > 0
+        ? studentGradeObj.individualScore
+        : undefined);
   const hasIndGrade = indScore !== undefined && indScore > 0;
   const indFeedback = indSub?.feedback || (hasIndGrade ? studentGradeObj?.notes : undefined);
 
   // 2. UTS Submission & Grade
   const utsSub = (utsSubmissions || []).find(
-    u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
+    u => u.studentId === stdId ||
+         (Boolean(stdNim) && (u.studentId === stdNim || (u as any).nim === stdNim)) ||
+         (u.studentName && u.studentName.toLowerCase().trim() === stdName) ||
+         (u.studentName && stdName && (
+           currentStudent.name.toLowerCase().includes(u.studentName.toLowerCase()) ||
+           u.studentName.toLowerCase().includes(currentStudent.name.toLowerCase())
+         ))
   );
-  const hasSubmittedUts = Boolean(utsSub);
-  // Nilai UTS HANYA muncul jika mahasiswa telah mengumpulkan lembar jawaban DAN dosen telah resmi memberikan penilaian di review
+  const hasSubmittedUts = Boolean(utsSub && (utsSub.docLink || utsSub.fileData || (utsSub.answers && Object.values(utsSub.answers).some(a => typeof a === 'string' && a.trim().length > 0))));
   const utsScore = (utsSub && utsSub.grade !== undefined && utsSub.grade > 0)
     ? utsSub.grade
-    : undefined;
+    : (studentGradeObj?.utsScore !== undefined && studentGradeObj.utsScore > 0
+        ? studentGradeObj.utsScore
+        : undefined);
   const hasUtsGrade = utsScore !== undefined && utsScore > 0;
   const utsFeedback = utsSub?.feedback || (hasUtsGrade ? studentGradeObj?.notes : undefined);
 
   // 3. UAS Group Submission & Grade
   const studentGroup = (groups || []).find(g =>
-    (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
-    g.id === currentStudent.groupId
+    g.id === currentStudent.groupId ||
+    (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name) || currentStudent.name.includes(m)))
   );
-  const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl || studentGroup?.submission?.submittedAt);
-  // Nilai UAS HANYA muncul jika kelompok telah mengunggah video proyek DAN dosen telah memberikan penilaian di review
-  const effectiveUasGrade = (studentGroup && studentGroup.grade !== undefined && studentGroup.grade > 0)
+  const hasSubmittedUas = Boolean(studentGroup?.submission?.videoUrl || studentGroup?.submission?.driveUrl || studentGroup?.submission?.fileData);
+  const uasScore = (studentGroup && studentGroup.grade !== undefined && studentGroup.grade > 0)
     ? studentGroup.grade
     : (studentGroup?.submission?.grade !== undefined && studentGroup.submission.grade > 0
         ? studentGroup.submission.grade
-        : undefined);
-  const uasScore = hasSubmittedUas ? effectiveUasGrade : undefined;
+        : (studentGradeObj?.uasScore !== undefined && studentGradeObj.uasScore > 0
+            ? studentGradeObj.uasScore
+            : (studentGradeObj?.groupScore !== undefined && studentGradeObj.groupScore > 0 ? studentGradeObj.groupScore : undefined)));
   const hasUasGrade = uasScore !== undefined && uasScore > 0;
   const uasFeedback = studentGroup?.feedback || studentGroup?.submission?.feedback || (hasUasGrade ? studentGradeObj?.notes : undefined);
 
   // 4. Cumulative Final Grade
-  // Nilai akhir kumulatif HANYA dihitung jika sudah ada komponen tugas/ujian yang dinilai resmi oleh dosen
+  // Nilai akhir kumulatif HANYA dihitung dari komponen yang sudah dinilai dosen
   const hasAnyGrade = hasIndGrade || hasUtsGrade || hasUasGrade;
   let finalScore: number | undefined = undefined;
   if (hasAnyGrade) {
-    let weight = 0.15 + 0.10;
-    let wScore = (studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10;
-    if (hasIndGrade) { wScore += indScore! * 0.25; weight += 0.25; }
-    if (hasUtsGrade) { wScore += utsScore! * 0.25; weight += 0.25; }
-    if (hasUasGrade) { wScore += uasScore! * 0.25; weight += 0.25; }
-    finalScore = Math.round(wScore / weight);
+    if (studentGradeObj?.finalScore !== undefined && studentGradeObj.finalScore > 0) {
+      finalScore = studentGradeObj.finalScore;
+    } else {
+      let weight = 0.15 + 0.10;
+      let wScore = (studentGradeObj?.attendanceScore || 100) * 0.15 + (studentGradeObj?.attitudeScore || 85) * 0.10;
+      if (hasIndGrade) { wScore += indScore! * 0.25; weight += 0.25; }
+      if (hasUtsGrade) { wScore += utsScore! * 0.25; weight += 0.25; }
+      if (hasUasGrade) { wScore += uasScore! * 0.25; weight += 0.25; }
+      finalScore = Math.round(wScore / weight);
+    }
   }
 
   const letterGrade = hasAnyGrade
@@ -229,13 +246,13 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
                   <CheckCircle2 size={11} /> Tugas Selesai &amp; Dinilai Dosen
                 </div>
               </div>
-            ) : hasSubmittedInd && hasUploadedPpt ? (
+            ) : hasSubmittedInd ? (
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200">
-                  <Clock size={13} /> PPT Terkirim (Menunggu Penilaian)
+                  <Clock size={13} /> Berkas Terkirim
                 </div>
                 <p className="text-[11px] text-slate-600">
-                  Berkas PPT &amp; Makalah telah berhasil dikirim. Menunggu Dosen Pengampu memberikan penilaian (otomatis via rubrik maupun manual). Nilai belum dirilis.
+                  Tugas telah berhasil dikirim. Menunggu Dosen Pengampu memberikan penilaian (otomatis maupun manual). Nilai belum dirilis.
                 </p>
               </div>
             ) : (
@@ -259,7 +276,7 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
             className={`mt-3 w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
               hasIndGrade
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : (hasSubmittedInd && hasUploadedPpt)
+                : hasSubmittedInd
                 ? 'bg-blue-700 hover:bg-blue-800 text-white'
                 : 'bg-amber-600 hover:bg-amber-700 text-white font-black'
             }`}
@@ -267,8 +284,8 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
             <span>
               {hasIndGrade
                 ? 'Lihat Detail Nilai & Berkas'
-                : (hasSubmittedInd && hasUploadedPpt)
-                ? 'Periksa Berkas PPT Terkirim'
+                : hasSubmittedInd
+                ? 'Periksa Berkas Terkirim'
                 : 'Unggah PPT'}
             </span>
             <ArrowRight size={13} />
@@ -460,18 +477,18 @@ export const StudentGradeDashboardCard: React.FC<StudentGradeDashboardCardProps>
               <div className="flex justify-between py-0.5 border-b border-slate-100">
                 <span>Tugas Presentasi (25%):</span>
                 <span className={`font-extrabold ${hasIndGrade ? 'text-emerald-700' : hasSubmittedInd ? 'text-blue-700' : 'text-amber-700'}`}>
-                  {hasIndGrade ? indScore : (hasSubmittedInd ? (hasUploadedPpt ? 'Menunggu Nilai' : 'Belum Unggah PPT') : 'Belum Unggah PPT')}
+                  {hasIndGrade ? indScore : (hasSubmittedInd ? 'Menunggu Nilai' : 'Belum Unggah PPT')}
                 </span>
               </div>
               <div className="flex justify-between py-0.5 border-b border-slate-100">
                 <span>Ujian UTS (25%):</span>
-                <span className={`font-extrabold ${hasUtsGrade ? 'text-indigo-700' : hasSubmittedUts ? 'text-blue-700' : 'text-slate-500'}`}>
+                <span className="font-extrabold text-indigo-700">
                   {hasUtsGrade ? utsScore : (hasSubmittedUts ? 'Menunggu Nilai' : '-')}
                 </span>
               </div>
               <div className="flex justify-between py-0.5">
                 <span>Proyek UAS (25%):</span>
-                <span className={`font-extrabold ${hasUasGrade ? 'text-purple-700' : hasSubmittedUas ? 'text-blue-700' : 'text-slate-500'}`}>
+                <span className="font-extrabold text-purple-700">
                   {hasUasGrade ? uasScore : (hasSubmittedUas ? 'Menunggu Nilai' : '-')}
                 </span>
               </div>

@@ -73,7 +73,7 @@ export default function App() {
     return localStorage.getItem('siakad_current_student_id') || 'mhs-1';
   });
   const [isDosen, setIsDosen] = useState<boolean>(() => {
-    return sessionStorage.getItem('siakad_dosen_auth') === 'true';
+    return sessionStorage.getItem('siakad_dosen_auth') === 'true' || localStorage.getItem('siakad_dosen_auth') === 'true';
   });
 
   // Dark / Light Theme state
@@ -244,6 +244,7 @@ export default function App() {
   const handleDosenLoginSuccess = () => {
     setIsDosen(true);
     sessionStorage.setItem('siakad_dosen_auth', 'true');
+    localStorage.setItem('siakad_dosen_auth', 'true');
     setActiveTab('portal-dosen');
   };
 
@@ -251,6 +252,7 @@ export default function App() {
   const handleDosenLogout = () => {
     setIsDosen(false);
     sessionStorage.removeItem('siakad_dosen_auth');
+    localStorage.removeItem('siakad_dosen_auth');
     setActiveTab('jadwal');
   };
 
@@ -279,32 +281,72 @@ export default function App() {
     const stdId = currentStudent.id;
     const stdNim = currentStudent.nim;
     const stdName = currentStudent.name.toLowerCase().trim();
+    const studentGradeObj = db?.grades?.[stdId] || (stdNim ? db?.grades?.[stdNim] : undefined);
 
-    // 1. Presentation submission: only consider graded if lecturer officially assigned grade > 0
+    // 1. Presentation submission: check all submissions for any with grade, or check db.grades
     const allIndSubs = (db?.submissions || []).filter(
-      s => s.studentId === stdId || (Boolean(stdNim) && s.nim === stdNim) || (s.studentName && s.studentName.toLowerCase().trim() === stdName)
+      s => s.studentId === stdId ||
+           (Boolean(stdNim) && (s.nim === stdNim || s.studentId === stdNim)) ||
+           (s.studentName && s.studentName.toLowerCase().trim() === stdName) ||
+           (s.studentName && stdName && (
+             currentStudent.name.toLowerCase().includes(s.studentName.toLowerCase()) ||
+             s.studentName.toLowerCase().includes(currentStudent.name.toLowerCase())
+           ))
     );
     const indSubWithGrade = allIndSubs.find(s => s.grade !== undefined && s.grade > 0);
-    const indGraded = indSubWithGrade || null;
+    let indGraded = indSubWithGrade || null;
 
-    // 2. UTS submission: only consider graded if lecturer officially assigned grade > 0
+    if (!indGraded && studentGradeObj && studentGradeObj.individualScore !== undefined && studentGradeObj.individualScore > 0) {
+      indGraded = {
+        id: allIndSubs[0]?.id || `grade-ind-${stdId}`,
+        studentId: stdId,
+        studentName: currentStudent.name,
+        rpsPart: currentStudent.rpsPart || `Pertemuan ${currentStudent.meetingNumber || 2}`,
+        topic: currentStudent.topic || 'Tugas Presentasi RPS',
+        meetingNumber: currentStudent.meetingNumber || 2,
+        grade: studentGradeObj.individualScore,
+        feedback: studentGradeObj.notes || 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
+
+    // 2. UTS submission: check all UTS submissions for any with grade, or check db.grades
     const allUtsSubs = (db?.utsSubmissions || []).filter(
-      u => u.studentId === stdId || (Boolean(stdNim) && u.studentId === stdNim) || (u.studentName && u.studentName.toLowerCase().trim() === stdName)
+      u => u.studentId === stdId ||
+           (Boolean(stdNim) && (u.studentId === stdNim || (u as any).nim === stdNim)) ||
+           (u.studentName && u.studentName.toLowerCase().trim() === stdName) ||
+           (u.studentName && stdName && (
+             currentStudent.name.toLowerCase().includes(u.studentName.toLowerCase()) ||
+             u.studentName.toLowerCase().includes(currentStudent.name.toLowerCase())
+           ))
     );
     const utsSubWithGrade = allUtsSubs.find(u => u.grade !== undefined && u.grade > 0);
-    const utsGraded = utsSubWithGrade || null;
+    let utsGraded = utsSubWithGrade || null;
 
-    // 3. UAS Group submission: only consider graded if lecturer officially assigned grade > 0
+    if (!utsGraded && studentGradeObj && studentGradeObj.utsScore !== undefined && studentGradeObj.utsScore > 0) {
+      utsGraded = {
+        id: allUtsSubs[0]?.id || `grade-uts-${stdId}`,
+        studentId: stdId,
+        studentName: currentStudent.name,
+        grade: studentGradeObj.utsScore,
+        feedback: studentGradeObj.notes || 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
+
+    // 3. UAS Group submission
     const grp = (db?.groups || []).find(g =>
-      (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name))) ||
-      g.id === currentStudent.groupId
+      g.id === currentStudent.groupId ||
+      (g.members || []).some(m => m && (m.toLowerCase().trim() === stdName || m.includes(currentStudent.name) || currentStudent.name.includes(m)))
     );
-    const grpEffectiveGrade = grp?.grade ?? grp?.submission?.grade;
-    const grpGraded = (grp && grp.submission?.videoUrl && grpEffectiveGrade !== undefined && grpEffectiveGrade > 0) ? {
-      ...grp,
-      grade: grpEffectiveGrade,
-      feedback: grp.feedback || grp.submission?.feedback || 'Telah dinilai oleh Dosen Pengampu',
-    } : null;
+    let grpGraded = (grp && grp.grade !== undefined && grp.grade > 0) ? grp : (grp?.submission?.grade && grp.submission.grade > 0 ? { ...grp, grade: grp.submission.grade } : null);
+
+    if (!grpGraded && studentGradeObj && studentGradeObj.uasScore !== undefined && studentGradeObj.uasScore > 0) {
+      grpGraded = {
+        id: currentStudent.groupId || 1,
+        name: grp ? grp.name : `Kelompok ${currentStudent.groupId || 1}`,
+        grade: studentGradeObj.uasScore,
+        feedback: studentGradeObj.notes || 'Telah dinilai oleh Dosen Pengampu',
+      } as any;
+    }
 
     if (!indGraded && !utsGraded && !grpGraded) return null;
     return { indGraded, utsGraded, grpGraded };

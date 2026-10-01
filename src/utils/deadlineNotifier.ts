@@ -288,6 +288,10 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     ...(db.deletedNotificationIds || []),
   ]);
 
+  const gradedIndStudentIds = new Set<string>();
+  const gradedUtsStudentIds = new Set<string>();
+  const gradedGroupIds = new Set<number>();
+
   // 1. Individual Tasks Submissions (PPT & Makalah)
   (db.submissions || []).forEach(sub => {
     const subNotifId = `sub-ind-${sub.id}`;
@@ -306,15 +310,16 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       });
     }
 
-    // 1b. Graded notification from Lecturer (Hanya jika tugas telah dikumpulkan DAN telah dinilai dosen)
-    const effectiveGrade = sub.grade !== undefined && sub.grade > 0 ? sub.grade : undefined;
-    const effectiveFeedback = sub.feedback || (effectiveGrade !== undefined ? db.grades?.[sub.studentId]?.notes : undefined);
-    const gradeNotifId = `grade-ind-${sub.id}-${sub.gradedAt || effectiveGrade}`;
-    if (sub.submittedAt && effectiveGrade !== undefined && effectiveGrade > 0 && !deletedIds.has(gradeNotifId)) {
+    // 1b. Graded notification from Lecturer
+    const effectiveGrade = sub.grade !== undefined ? sub.grade : db.grades?.[sub.studentId]?.individualScore;
+    const effectiveFeedback = sub.feedback || db.grades?.[sub.studentId]?.notes;
+    const gradeNotifId = `grade-ind-${sub.studentId || sub.id}`;
+    if (effectiveGrade !== undefined && effectiveGrade > 0 && !deletedIds.has(gradeNotifId)) {
+      gradedIndStudentIds.add(sub.studentId);
       notifications.push({
         id: gradeNotifId,
         type: 'grade',
-        title: `Tugas Dinilai Dosen: ${sub.rpsPart || 'Presentasi'}`,
+        title: `Tugas Dinilai Dosen: ${sub.rpsPart || `Pertemuan ${sub.meetingNumber || 2}`}`,
         message: `Tugas presentasi "${sub.topic || 'Materi'}" telah dinilai oleh Dosen Pengampu (${db.courseProfile?.dosenName || 'Dosen Pengampu'}) dengan Nilai: ${effectiveGrade}/100.${effectiveFeedback ? ` Catatan Evaluasi: "${effectiveFeedback}"` : ''}`,
         timestamp: sub.gradedAt || sub.submittedAt || new Date().toISOString(),
         taskType: 'Penilaian Dosen',
@@ -323,6 +328,30 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
         targetTab: 'tugas-individu',
         read: isNotificationRead(gradeNotifId),
       });
+    }
+  });
+
+  // Catch students who have an individual grade in db.grades but weren't in db.submissions list
+  (db.students || []).forEach(std => {
+    if (gradedIndStudentIds.has(std.id)) return;
+    const stdGrade = db.grades?.[std.id] || (std.nim ? db.grades?.[std.nim] : undefined);
+    if (stdGrade && stdGrade.individualScore !== undefined && stdGrade.individualScore > 0) {
+      const gradeNotifId = `grade-ind-${std.id}`;
+      if (!deletedIds.has(gradeNotifId)) {
+        gradedIndStudentIds.add(std.id);
+        notifications.push({
+          id: gradeNotifId,
+          type: 'grade',
+          title: `Tugas Dinilai Dosen: ${std.rpsPart || `Pertemuan ${std.meetingNumber || 2}`}`,
+          message: `Tugas presentasi "${std.topic || 'Materi Kuliah'}" telah dinilai oleh Dosen Pengampu dengan Nilai: ${stdGrade.individualScore}/100.${stdGrade.notes ? ` Catatan: "${stdGrade.notes}"` : ''}`,
+          timestamp: new Date().toISOString(),
+          taskType: 'Penilaian Dosen',
+          studentName: std.name,
+          studentId: std.id,
+          targetTab: 'tugas-individu',
+          read: isNotificationRead(gradeNotifId),
+        });
+      }
     }
   });
 
@@ -344,11 +373,12 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       });
     }
 
-    // 2b. UTS Graded notification (Hanya jika UTS telah dikumpulkan DAN dinilai dosen)
-    const effectiveUtsGrade = uts.grade !== undefined && uts.grade > 0 ? uts.grade : undefined;
-    const effectiveUtsFeedback = uts.feedback || (effectiveUtsGrade !== undefined ? db.grades?.[uts.studentId]?.notes : undefined);
-    const gradeUtsId = `grade-uts-${uts.id}-${uts.gradedAt || effectiveUtsGrade}`;
-    if (uts.submittedAt && effectiveUtsGrade !== undefined && effectiveUtsGrade > 0 && !deletedIds.has(gradeUtsId)) {
+    // 2b. UTS Graded notification
+    const effectiveUtsGrade = uts.grade !== undefined ? uts.grade : db.grades?.[uts.studentId]?.utsScore;
+    const effectiveUtsFeedback = uts.feedback || db.grades?.[uts.studentId]?.notes;
+    const gradeUtsId = `grade-uts-${uts.studentId || uts.id}`;
+    if (effectiveUtsGrade !== undefined && effectiveUtsGrade > 0 && !deletedIds.has(gradeUtsId)) {
+      gradedUtsStudentIds.add(uts.studentId);
       notifications.push({
         id: gradeUtsId,
         type: 'grade',
@@ -364,10 +394,34 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
   });
 
+  // Catch students who have UTS score in db.grades
+  (db.students || []).forEach(std => {
+    if (gradedUtsStudentIds.has(std.id)) return;
+    const stdGrade = db.grades?.[std.id] || (std.nim ? db.grades?.[std.nim] : undefined);
+    if (stdGrade && stdGrade.utsScore !== undefined && stdGrade.utsScore > 0) {
+      const gradeUtsId = `grade-uts-${std.id}`;
+      if (!deletedIds.has(gradeUtsId)) {
+        gradedUtsStudentIds.add(std.id);
+        notifications.push({
+          id: gradeUtsId,
+          type: 'grade',
+          title: 'UTS Telah Dinilai Dosen',
+          message: `Lembar jawaban UTS telah dinilai oleh Dosen Pengampu dengan Nilai: ${stdGrade.utsScore}/100.${stdGrade.notes ? ` Catatan: "${stdGrade.notes}"` : ''}`,
+          timestamp: new Date().toISOString(),
+          taskType: 'Penilaian Dosen',
+          studentName: std.name,
+          studentId: std.id,
+          targetTab: 'tugas-uts',
+          read: isNotificationRead(gradeUtsId),
+        });
+      }
+    }
+  });
+
   // 3. UAS / Video Kelompok Submissions
   (db.groups || []).forEach(grp => {
     const hasGroupSubmitted = Boolean(grp.submission && (grp.submission.submittedAt || grp.submission.videoUrl));
-    const subGroupId = `sub-group-${grp.id}-${grp.submission?.submittedAt || 'sub'}`;
+    const subGroupId = `sub-group-${grp.id}`;
     if (hasGroupSubmitted && !deletedIds.has(subGroupId)) {
       notifications.push({
         id: subGroupId,
@@ -382,14 +436,16 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
       });
     }
 
-    // 3b. Group Video UAS Graded notification (Hanya jika video telah dikumpulkan DAN dinilai dosen)
-    const gradeGroupId = `grade-group-${grp.id}-${grp.gradedAt || grp.grade}`;
-    if (hasGroupSubmitted && grp.grade !== undefined && grp.grade > 0 && !deletedIds.has(gradeGroupId)) {
+    // 3b. Group Video UAS Graded notification
+    const effectiveGroupGrade = grp.grade !== undefined ? grp.grade : grp.submission?.grade;
+    const gradeGroupId = `grade-group-${grp.id}`;
+    if (effectiveGroupGrade !== undefined && effectiveGroupGrade > 0 && !deletedIds.has(gradeGroupId)) {
+      gradedGroupIds.add(grp.id);
       notifications.push({
         id: gradeGroupId,
         type: 'grade',
         title: `Proyek UAS Dinilai: ${grp.name}`,
-        message: `Proyek Video UAS "${grp.title}" telah dinilai oleh Dosen Pengampu dengan Nilai: ${grp.grade}/100.${grp.feedback ? ` Catatan: "${grp.feedback}"` : ''}`,
+        message: `Proyek Video UAS "${grp.title}" telah dinilai oleh Dosen Pengampu dengan Nilai: ${effectiveGroupGrade}/100.${grp.feedback ? ` Catatan: "${grp.feedback}"` : ''}`,
         timestamp: grp.gradedAt || new Date().toISOString(),
         taskType: 'Penilaian Dosen',
         studentName: grp.name,
@@ -418,8 +474,8 @@ export function getRecentSubmissionsList(db: SiakadDatabase): AppNotification[] 
     }
 
     const effectiveUasGrade = uas.grade !== undefined ? uas.grade : db.grades?.[uas.studentId]?.uasScore;
-    const gradeUasId = `grade-uas-ind-${uas.id}-${uas.gradedAt || effectiveUasGrade}`;
-    if (uas.submittedAt && effectiveUasGrade !== undefined && effectiveUasGrade > 0 && !deletedIds.has(gradeUasId)) {
+    const gradeUasId = `grade-uas-ind-${uas.studentId || uas.id}`;
+    if (effectiveUasGrade !== undefined && effectiveUasGrade > 0 && !deletedIds.has(gradeUasId)) {
       notifications.push({
         id: gradeUasId,
         type: 'grade',

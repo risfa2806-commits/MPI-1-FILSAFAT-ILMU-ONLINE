@@ -549,7 +549,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
   // Bulk Grading Meeting Presentation Group
   const [gradingMeetingGroup, setGradingMeetingGroup] = useState<number | null>(null);
-  const [meetingGroupScore, setMeetingGroupScore] = useState<number>(85);
+  const [meetingGroupScore, setMeetingGroupScore] = useState<number>(0);
   const [meetingGroupFeedback, setMeetingGroupFeedback] = useState<string>('Presentasi dan materi makalah/PPT kelompok sangat baik dan sistematis.');
   const [isBulkGradingMeetingGroup, setIsBulkGradingMeetingGroup] = useState<boolean>(false);
 
@@ -790,20 +790,20 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
   // Grading state for individual PPT
   const [gradingStudentId, setGradingStudentId] = useState<string | null>(null);
-  const [indivScoreInput, setIndivScoreInput] = useState<number>(85);
+  const [indivScoreInput, setIndivScoreInput] = useState<number>(0);
   const [indivFeedbackInput, setIndivFeedbackInput] = useState<string>('');
   const [isGradingIndiv, setIsGradingIndiv] = useState(false);
 
   // Grading state for UTS 5 essay
   const [gradingUtsStudentId, setGradingUtsStudentId] = useState<string | null>(null);
-  const [utsScoreInput, setUtsScoreInput] = useState<number>(85);
+  const [utsScoreInput, setUtsScoreInput] = useState<number>(0);
   const [utsFeedbackInput, setUtsFeedbackInput] = useState<string>('');
-  const [utsScoresByQ, setUtsScoresByQ] = useState<Record<number, number>>({ 1: 17, 2: 17, 3: 17, 4: 17, 5: 17 });
+  const [utsScoresByQ, setUtsScoresByQ] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
   const [isGradingUts, setIsGradingUts] = useState(false);
 
   // Grading state for group video
   const [gradingGroupId, setGradingGroupId] = useState<number | null>(null);
-  const [groupScoreInput, setGroupScoreInput] = useState<number>(85);
+  const [groupScoreInput, setGroupScoreInput] = useState<number>(0);
   const [groupFeedbackInput, setGroupFeedbackInput] = useState<string>('');
   const [isGradingGroup, setIsGradingGroup] = useState(false);
 
@@ -844,9 +844,13 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   // Open Review Individual Submission
   const handleOpenReviewIndiv = (sub: IndividualSubmission) => {
     setReviewIndivSub(sub);
-    const existingScore = sub.grade !== undefined ? sub.grade : grades[sub.studentId]?.individualScore;
-    setIndivScoreInput(existingScore !== undefined ? existingScore : 85);
-    setIndivFeedbackInput(sub.feedback || grades[sub.studentId]?.notes || '');
+    const stdGrade = grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined);
+    const existingScore = (sub.grade !== undefined && sub.grade > 0)
+      ? sub.grade
+      : (stdGrade?.individualScore && stdGrade.individualScore > 0 ? stdGrade.individualScore : 0);
+    const existingFeedback = sub.feedback || stdGrade?.notes || '';
+    setIndivScoreInput(existingScore);
+    setIndivFeedbackInput(existingFeedback);
     setAutoGradingInfo(null);
     setDeletePartChoice('all');
     setDeleteReasonText('');
@@ -854,7 +858,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
   // Trigger Auto-Grade for Individual Task
   const handleAutoGradeIndiv = (sub: IndividualSubmission) => {
-    const targetStudent = (students || []).find(s => s.id === sub.studentId);
+    const targetStudent = (students || []).find(s => s.id === sub.studentId || (sub.nim && s.nim === sub.nim));
     const result = autoGradeIndividualSubmission(sub, targetStudent);
     setIndivScoreInput(result.score);
     setIndivFeedbackInput(result.feedback);
@@ -866,13 +870,25 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     if (!reviewIndivSub) return;
     setIsGradingIndiv(true);
     try {
-      await gradeIndividualTask(reviewIndivSub.studentId, indivScoreInput, indivFeedbackInput);
-      setActionAlertMsg({
-        type: 'success',
-        text: `Nilai tugas ${reviewIndivSub.studentName} (${indivScoreInput}) berhasil disimpan!`,
-      });
+      const ok = await gradeIndividualTask(reviewIndivSub.studentId, indivScoreInput, indivFeedbackInput);
+      if (ok) {
+        setActionAlertMsg({
+          type: 'success',
+          text: `Nilai tugas ${reviewIndivSub.studentName} (${indivScoreInput}/100) berhasil disimpan & disinkronkan ke Dasbor Mahasiswa!`,
+        });
+      } else {
+        setActionAlertMsg({
+          type: 'error',
+          text: 'Gagal menyimpan nilai tugas. Silakan periksa koneksi jaringan.',
+        });
+      }
       setReviewIndivSub(null);
       await onRefreshData();
+    } catch (err: any) {
+      setActionAlertMsg({
+        type: 'error',
+        text: `Terjadi kesalahan saat menyimpan nilai: ${err?.message || 'Gagal'}`,
+      });
     } finally {
       setIsGradingIndiv(false);
     }
@@ -883,10 +899,10 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     setReviewUtsStudentId(studentId);
     const sub = (utsSubmissions || []).find(u => u.studentId === studentId);
     const currentGrade = grades[studentId];
-    const initialScore = sub?.grade ?? currentGrade?.utsScore ?? 85;
+    const initialScore = sub?.grade ?? (currentGrade?.utsScore !== undefined && currentGrade.utsScore > 0 ? currentGrade.utsScore : 0);
     setUtsScoreInput(initialScore);
     setUtsFeedbackInput(sub?.feedback || currentGrade?.notes || '');
-    if (sub?.questionScores && Object.keys(sub.questionScores).length > 0) {
+    if (sub?.questionScores) {
       setUtsScoresByQ(sub.questionScores);
     } else {
       const perQ = Math.round(initialScore / 5);
@@ -934,8 +950,8 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   const handleOpenReviewGroup = (groupId: number) => {
     setReviewGroupId(groupId);
     const grp = (groups || []).find(g => g.id === groupId);
-    const existingGroupScore = grp?.grade ?? grp?.submission?.grade;
-    setGroupScoreInput(existingGroupScore !== undefined ? existingGroupScore : 85);
+    const initialScore = grp?.grade ?? grp?.submission?.grade ?? 0;
+    setGroupScoreInput(initialScore);
     setGroupFeedbackInput(grp?.feedback || grp?.submission?.feedback || '');
     setAutoGradingInfo(null);
   };
@@ -1664,7 +1680,17 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                             {sub ? (
                               <div className="inline-flex items-center gap-1">
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                  <CheckCircle2 size={11} /> {sub.grade !== undefined ? `Nilai: ${sub.grade}` : 'Terkirim'}
+                                  {(() => {
+                                    const stdGrade = grades[std.id] || (std.nim ? grades[std.nim] : undefined);
+                                    const effectiveGrade = (sub.grade !== undefined && sub.grade > 0)
+                                      ? sub.grade
+                                      : (stdGrade?.individualScore && stdGrade.individualScore > 0 ? stdGrade.individualScore : undefined);
+                                    return (
+                                      <>
+                                        <CheckCircle2 size={11} /> {effectiveGrade !== undefined ? `Nilai: ${effectiveGrade}` : 'Terkirim'}
+                                      </>
+                                    );
+                                  })()}
                                 </span>
                                 <button
                                   onClick={() => handleOpenReviewIndiv(sub)}
@@ -2432,6 +2458,8 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                           const firstGrade = meetingStudents.find(s => grades[s.id]?.individualScore);
                           if (firstGrade && grades[firstGrade.id]?.individualScore) {
                             setMeetingGroupScore(grades[firstGrade.id].individualScore!);
+                          } else {
+                            setMeetingGroupScore(0);
                           }
                         }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer"
@@ -2976,27 +3004,42 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                       </button>
 
                       {/* Review & Nilai Button */}
-                      <button
-                        onClick={() => handleOpenReviewIndiv(sub)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
-                        title="Review lengkap berkas tugas & berikan nilai"
-                      >
-                        <Eye size={13} />
-                        <span>{sub.grade !== undefined ? `Review & Nilai (${sub.grade})` : 'Review & Beri Nilai'}</span>
-                      </button>
+                      {(() => {
+                        const stdGrade = grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined);
+                        const effectiveGrade = (sub.grade !== undefined && sub.grade > 0)
+                          ? sub.grade
+                          : (stdGrade?.individualScore && stdGrade.individualScore > 0 ? stdGrade.individualScore : undefined);
+                        const isGraded = effectiveGrade !== undefined;
+                        return (
+                          <>
+                            <button
+                              onClick={() => handleOpenReviewIndiv(sub)}
+                              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                                isGraded
+                                  ? 'bg-emerald-700 hover:bg-emerald-800 text-white ring-1 ring-emerald-400/50'
+                                  : 'bg-indigo-700 hover:bg-indigo-800 text-white'
+                              }`}
+                              title="Review lengkap berkas tugas & berikan nilai"
+                            >
+                              {isGraded ? <CheckCircle2 size={13} /> : <Eye size={13} />}
+                              <span>{isGraded ? `Review & Nilai (${effectiveGrade})` : 'Review & Beri Nilai'}</span>
+                            </button>
 
-                      {/* Quick Auto-Grade Button */}
-                      <button
-                        onClick={() => {
-                          handleOpenReviewIndiv(sub);
-                          handleAutoGradeIndiv(sub);
-                        }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-colors shadow-2xs"
-                        title="Otomatis beri rekomendasi nilai & catatan evaluasi berbasis rubrik akademik"
-                      >
-                        <Zap size={13} className="text-amber-600 fill-amber-500" />
-                        <span>Nilai Otomatis</span>
-                      </button>
+                            {/* Quick Auto-Grade Button */}
+                            <button
+                              onClick={() => {
+                                handleOpenReviewIndiv(sub);
+                                handleAutoGradeIndiv(sub);
+                              }}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                              title="Otomatis beri rekomendasi nilai & catatan evaluasi berbasis rubrik akademik"
+                            >
+                              <Zap size={13} className="text-amber-600 fill-amber-500" />
+                              <span>Nilai Otomatis</span>
+                            </button>
+                          </>
+                        );
+                      })()}
 
                       {/* Delete Task Button (Only Dosen) */}
                       <button

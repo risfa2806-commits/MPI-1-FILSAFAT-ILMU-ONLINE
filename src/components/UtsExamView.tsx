@@ -170,7 +170,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
 
   // Dosen Grading for individual essay
   const [selectedStudentForGrading, setSelectedStudentForGrading] = useState<string>(students?.[0]?.id || '');
-  const [gradingScore, setGradingScore] = useState<number>(85);
+  const [gradingScore, setGradingScore] = useState<number>(0);
   const [gradingFeedback, setGradingFeedback] = useState<string>('');
   const [isSavingGrade, setIsSavingGrade] = useState(false);
   const [resettingUtsStudentId, setResettingUtsStudentId] = useState<string | null>(null);
@@ -205,7 +205,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
   const [summaryNotes, setSummaryNotes] = useState<string>(activeGroup?.submission?.summaryNotes || '');
   const [submittedBy, setSubmittedBy] = useState<string>(activeGroup?.submission?.submittedBy || currentStudent?.name || '');
   const [isSubmittingGroup, setIsSubmittingGroup] = useState(false);
-  const [groupGradeInput, setGroupGradeInput] = useState<number>(activeGroup?.grade || 85);
+  const [groupGradeInput, setGroupGradeInput] = useState<number>(activeGroup?.grade || 0);
   const [groupFeedbackInput, setGroupFeedbackInput] = useState<string>(activeGroup?.feedback || '');
   const [isGradingGroup, setIsGradingGroup] = useState(false);
 
@@ -486,7 +486,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
       setAiToolsUsed(activeGroup.submission?.aiToolsUsed || activeGroup.toolsSuggested || '');
       setSummaryNotes(activeGroup.submission?.summaryNotes || '');
       setSubmittedBy(activeGroup.submission?.submittedBy || currentStudent?.name || '');
-      setGroupGradeInput(activeGroup.grade || 85);
+      setGroupGradeInput(activeGroup.grade || 0);
       setGroupFeedbackInput(activeGroup.feedback || '');
     }
   }, [activeGroupId, activeGroup]);
@@ -528,7 +528,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
         setGradingFeedback(sub.feedback || '');
       } else {
         const stdGrade = grades[selectedStudentForGrading]?.utsScore;
-        setGradingScore(stdGrade !== undefined ? stdGrade : 85);
+        setGradingScore(stdGrade !== undefined ? stdGrade : 0);
         setGradingFeedback('');
       }
     }
@@ -1412,7 +1412,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
                     </div>
                   </div>
 
-                  {(activeGroup.grade !== undefined && activeGroup.grade > 0) && (
+                  {activeGroup.grade !== undefined && (
                     <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-300">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-emerald-950 flex items-center gap-1">
@@ -2206,7 +2206,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
                         </div>
                       </div>
 
-                      {(studentSubmission.grade !== undefined && studentSubmission.grade > 0) ? (
+                      {studentSubmission.grade !== undefined ? (
                         <div className="text-right">
                           <span className="text-[10px] text-emerald-700 uppercase font-semibold block">Nilai UTS:</span>
                           <span className="text-2xl font-black text-emerald-900">{studentSubmission.grade} / 100</span>
@@ -2268,7 +2268,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
                     )}
 
                     {/* Auto-grading and Feedback */}
-                    {(studentSubmission.autoGraded && studentSubmission.grade !== undefined && studentSubmission.grade > 0) && (
+                    {studentSubmission.autoGraded && (
                       <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Sparkles size={16} className="text-indigo-600" />
@@ -2482,7 +2482,7 @@ export const UtsExamView: React.FC<UtsExamViewProps> = ({
                               </td>
                               <td className="py-3 px-3 text-center">
                                 <span className="font-extrabold text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                                  {(sub.grade !== undefined && sub.grade > 0) ? `${sub.grade} Poin` : '—'}
+                                  {sub.grade !== undefined ? `${sub.grade} Poin` : '—'}
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-center">

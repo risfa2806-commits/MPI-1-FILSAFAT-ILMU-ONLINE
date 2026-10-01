@@ -161,7 +161,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
 
   // Dosen Grading for individual essay
   const [selectedStudentForGrading, setSelectedStudentForGrading] = useState<string>(students?.[0]?.id || '');
-  const [gradingScore, setGradingScore] = useState<number>(85);
+  const [gradingScore, setGradingScore] = useState<number>(0);
   const [gradingFeedback, setGradingFeedback] = useState<string>('');
   const [isSavingGrade, setIsSavingGrade] = useState(false);
 
@@ -175,7 +175,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
   const [summaryNotes, setSummaryNotes] = useState<string>(activeGroup?.submission?.summaryNotes || '');
   const [submittedBy, setSubmittedBy] = useState<string>(activeGroup?.submission?.submittedBy || currentStudent?.name || '');
   const [isSubmittingGroup, setIsSubmittingGroup] = useState(false);
-  const [groupGradeInput, setGroupGradeInput] = useState<number>(activeGroup?.grade || 85);
+  const [groupGradeInput, setGroupGradeInput] = useState<number>(activeGroup?.grade || 0);
   const [groupFeedbackInput, setGroupFeedbackInput] = useState<string>(activeGroup?.feedback || '');
   const [isGradingGroup, setIsGradingGroup] = useState(false);
 
@@ -273,7 +273,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
       setAiToolsUsed(activeGroup.submission?.aiToolsUsed || activeGroup.toolsSuggested || '');
       setSummaryNotes(activeGroup.submission?.summaryNotes || '');
       setSubmittedBy(activeGroup.submission?.submittedBy || currentStudent?.name || '');
-      setGroupGradeInput(activeGroup.grade || 85);
+      setGroupGradeInput(activeGroup.grade || 0);
       setGroupFeedbackInput(activeGroup.feedback || '');
     }
   }, [activeGroupId, activeGroup]);
@@ -1411,7 +1411,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                     </div>
                   </div>
 
-                  {(activeGroup.grade !== undefined && activeGroup.grade > 0) && (
+                  {activeGroup.grade !== undefined && (
                     <div className="p-3.5 bg-indigo-50 rounded-xl border border-indigo-300">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-indigo-950 flex items-center gap-1">
@@ -2296,7 +2296,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                         </div>
                       </div>
 
-                      {(studentSubmission.grade !== undefined && studentSubmission.grade > 0) ? (
+                      {studentSubmission.grade !== undefined ? (
                         <div className="text-right">
                           <span className="text-[10px] text-indigo-700 uppercase font-semibold block">Nilai UAS:</span>
                           <span className="text-2xl font-black text-indigo-900">{studentSubmission.grade} / 100</span>
@@ -2356,7 +2356,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                     )}
 
                     {/* Auto-grading and Feedback */}
-                    {(studentSubmission.autoGraded && studentSubmission.grade !== undefined && studentSubmission.grade > 0) && (
+                    {studentSubmission.autoGraded && (
                       <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Sparkles size={16} className="text-indigo-600" />
@@ -2570,7 +2570,7 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                               </td>
                               <td className="py-3 px-3 text-center">
                                 <span className="font-extrabold text-sm text-indigo-800 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
-                                  {(sub.grade !== undefined && sub.grade > 0) ? `${sub.grade} Poin` : '—'}
+                                  {sub.grade !== undefined ? `${sub.grade} Poin` : '—'}
                                 </span>
                               </td>
                               <td className="py-3 px-3 text-center">
@@ -2611,7 +2611,9 @@ export const UasExamView: React.FC<UasExamViewProps> = ({
                                     onClick={() => {
                                       setSelectedStudentForGrading(sub.studentId);
                                       if (sub.grade !== undefined) setGradingScore(sub.grade);
+                                      else setGradingScore(0);
                                       if (sub.feedback) setGradingFeedback(sub.feedback);
+                                      else setGradingFeedback('');
                                     }}
                                     className="px-2.5 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200"
                                   >

@@ -95,9 +95,9 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
   // Edit form state
   const [attScore, setAttScore] = useState<number>(100);
   const [attitScore, setAttitScore] = useState<number>(85);
-  const [indivScore, setIndivScore] = useState<number>(85);
-  const [utsScore, setUtsScore] = useState<number>(85);
-  const [uasScore, setUasScore] = useState<number>(85);
+  const [indivScore, setIndivScore] = useState<number>(0);
+  const [utsScore, setUtsScore] = useState<number>(0);
+  const [uasScore, setUasScore] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -125,9 +125,9 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
     setEditingStudentId(std.id);
     setAttScore(currentGrade.attendanceScore);
     setAttitScore(currentGrade.attitudeScore);
-    setIndivScore(currentGrade.individualScore ?? 85);
-    setUtsScore(currentGrade.utsScore ?? 85);
-    setUasScore(currentGrade.uasScore ?? currentGrade.groupScore ?? 85);
+    setIndivScore(currentGrade.individualScore ?? 0);
+    setUtsScore(currentGrade.utsScore ?? 0);
+    setUasScore(currentGrade.uasScore ?? currentGrade.groupScore ?? 0);
     setNotes(currentGrade.notes || '');
   };
 
@@ -271,12 +271,7 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
       const g = grades[studentToExport.id] || {
         attendanceScore: 100,
         attitudeScore: 85,
-        individualScore: 85,
-        utsScore: 85,
-        uasScore: 85,
-        groupScore: 85,
-        finalScore: 88,
-        letterGrade: 'A-',
+        letterGrade: '-',
       };
       exportIndividualTranscriptWord({
         campusName: campus,
@@ -694,24 +689,30 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
                   s => s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
                 );
                 const hasSubInd = stdSubs.length > 0;
-                const gradedInd = stdSubs.find(s => s.grade !== undefined && s.grade > 0);
-                const displayInd = gradedInd?.grade !== undefined ? gradedInd.grade : undefined;
+                const gradedInd = stdSubs.find(s => s.grade !== undefined);
+                const displayInd = (gradedInd?.grade !== undefined && gradedInd.grade > 0)
+                  ? gradedInd.grade
+                  : (g.individualScore !== undefined && g.individualScore > 0 ? g.individualScore : undefined);
 
                 // UTS submission check
                 const stdUts = (utsSubmissions || []).find(
                   u => u.studentId === std.id || (Boolean(std.nim) && u.studentId === std.nim) || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
                 );
                 const hasSubUts = Boolean(stdUts);
-                const displayUts = (stdUts && stdUts.grade !== undefined && stdUts.grade > 0) ? stdUts.grade : undefined;
+                const displayUts = (stdUts && stdUts.grade !== undefined && stdUts.grade > 0)
+                  ? stdUts.grade
+                  : (g.utsScore !== undefined && g.utsScore > 0 ? g.utsScore : undefined);
 
                 // UAS group submission check
                 const stdGrp = (groups || []).find(grp =>
                   grp.id === std.groupId || (grp.members || []).some(m => m && (m.toLowerCase().trim() === std.name.toLowerCase().trim() || m.includes(std.name)))
                 );
-                const hasSubUas = Boolean(stdGrp?.submission?.videoUrl || stdGrp?.submission?.submittedAt);
-                const displayUas = (hasSubUas && stdGrp?.grade !== undefined && stdGrp.grade > 0)
+                const hasSubUas = Boolean(stdGrp?.submission?.videoUrl);
+                const displayUas = (stdGrp?.grade !== undefined && stdGrp.grade > 0)
                   ? stdGrp.grade
-                  : (hasSubUas && stdGrp?.submission?.grade !== undefined && stdGrp.submission.grade > 0 ? stdGrp.submission.grade : undefined);
+                  : (stdGrp?.submission?.grade !== undefined && stdGrp.submission.grade > 0
+                      ? stdGrp.submission.grade
+                      : (g.uasScore !== undefined && g.uasScore > 0 ? (g.uasScore ?? g.groupScore) : undefined));
 
                 const hasAnyGraded = displayInd !== undefined || displayUts !== undefined || displayUas !== undefined;
                 const displayFinal = isEditing ? computedFinalScore : (hasAnyGraded && g.finalScore !== undefined ? g.finalScore : undefined);

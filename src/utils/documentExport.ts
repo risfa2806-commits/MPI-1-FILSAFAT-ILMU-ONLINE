@@ -323,15 +323,15 @@ export function exportIndividualTranscriptWord(options: {
             <td style="text-align:center;">4</td>
             <td>Ujian Tengah Semester (UTS - 5 Essay)</td>
             <td style="text-align:center;">25%</td>
-            <td style="text-align:center;">${grade.utsScore ?? 85}</td>
-            <td style="text-align:center;">${((grade.utsScore ?? 85) * 0.25).toFixed(1)}</td>
+            <td style="text-align:center;">${grade.utsScore !== undefined ? grade.utsScore : '-'}</td>
+            <td style="text-align:center;">${grade.utsScore !== undefined ? (grade.utsScore * 0.25).toFixed(1) : '-'}</td>
           </tr>
           <tr>
             <td style="text-align:center;">5</td>
             <td>Ujian Akhir Semester (UAS Video / Essay)</td>
             <td style="text-align:center;">25%</td>
-            <td style="text-align:center;">${grade.uasScore ?? grade.groupScore ?? 85}</td>
-            <td style="text-align:center;">${((grade.uasScore ?? grade.groupScore ?? 85) * 0.25).toFixed(1)}</td>
+            <td style="text-align:center;">${grade.uasScore ?? grade.groupScore ?? '-'}</td>
+            <td style="text-align:center;">${(grade.uasScore ?? grade.groupScore) !== undefined ? (((grade.uasScore ?? grade.groupScore) as number) * 0.25).toFixed(1) : '-'}</td>
           </tr>
           <tr style="background-color:#e8f5e9; font-weight:bold;">
             <td colspan="3" style="text-align:right; padding:10px;">TOTAL NILAI AKHIR (SKALA 0-100):</td>
@@ -435,12 +435,7 @@ export function exportGradesToExcel(options: {
     const g = grades[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
 
     const feedback = getStudentPersonalizedFeedback(std.name, std.nim, g.finalScore, std.topic, idx);
@@ -452,13 +447,13 @@ export function exportGradesToExcel(options: {
         <td style="font-weight:bold;">${std.name}</td>
         <td style="text-align:center;">${g.attendanceScore}</td>
         <td style="text-align:center;">${g.attitudeScore}</td>
-        <td style="text-align:center;">${g.individualScore}</td>
-        <td style="text-align:center;">${g.utsScore ?? 85}</td>
-        <td style="text-align:center;">${g.uasScore ?? g.groupScore ?? 85}</td>
-        <td style="text-align:center; font-weight:bold; background-color:#E8F5E9;">${g.finalScore}</td>
-        <td style="text-align:center; font-weight:bold;">${g.letterGrade}</td>
-        <td style="text-align:center; font-weight:bold; color:${g.finalScore >= 60 ? '#1B5E20' : '#B71C1C'};">
-          ${g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS'}
+        <td style="text-align:center;">${g.individualScore ?? '-'}</td>
+        <td style="text-align:center;">${g.utsScore ?? '-'}</td>
+        <td style="text-align:center;">${g.uasScore ?? g.groupScore ?? '-'}</td>
+        <td style="text-align:center; font-weight:bold; background-color:#E8F5E9;">${g.finalScore ?? '-'}</td>
+        <td style="text-align:center; font-weight:bold;">${g.letterGrade ?? '-'}</td>
+        <td style="text-align:center; font-weight:bold; color:${(g.finalScore && g.finalScore >= 60) ? '#1B5E20' : '#B71C1C'};">
+          ${g.finalScore !== undefined ? (g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS') : '-'}
         </td>
         <td style="font-size:10pt;">${feedback.personalizedDescription}</td>
         <td style="font-size:10pt; font-style:italic;">"${feedback.quote}" (${feedback.scholar})</td>
@@ -2257,12 +2252,7 @@ export function generateGradesCollectivePrintHtml(options: ExportGradesOptions):
     const g = grades[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
 
     const feedback = getStudentPersonalizedFeedback(std.name, std.nim, g.finalScore, std.topic, idx);
@@ -2274,13 +2264,13 @@ export function generateGradesCollectivePrintHtml(options: ExportGradesOptions):
         <td style="padding:5px 6px; border:1px solid #94a3b8; font-weight:bold; color:#0f172a;">${std.name}</td>
         <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.attendanceScore}</td>
         <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.attitudeScore}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.individualScore}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.utsScore ?? 85}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.uasScore ?? g.groupScore ?? 85}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; background-color:#dcfce7; color:#166534;">${g.finalScore}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; color:#0f172a;">${g.letterGrade}</td>
-        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; font-size:7.5pt; color:${g.finalScore >= 60 ? '#15803d' : '#b91c1c'};">
-          ${g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS'}
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.individualScore ?? '-'}</td>
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.utsScore ?? '-'}</td>
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8;">${g.uasScore ?? g.groupScore ?? '-'}</td>
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; background-color:#dcfce7; color:#166534;">${g.finalScore ?? '-'}</td>
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; color:#0f172a;">${g.letterGrade ?? '-'}</td>
+        <td style="text-align:center; padding:5px 2px; border:1px solid #94a3b8; font-weight:bold; font-size:7.5pt; color:${(g.finalScore && g.finalScore >= 60) ? '#15803d' : '#b91c1c'};">
+          ${g.finalScore !== undefined ? (g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS') : '-'}
         </td>
         <td style="padding:5px 6px; border:1px solid #94a3b8; font-size:7.5pt; line-height:1.2; color:#1e293b;">
           "${feedback.quote}" <br><strong style="color:#0369a1;">— ${feedback.scholar}</strong>
@@ -2475,12 +2465,7 @@ export function generateGradeIndividualPrintHtml(options: ExportGradesOptions): 
   const g = grades[selectedStudent.id] || {
     attendanceScore: 100,
     attitudeScore: 85,
-    individualScore: 85,
-    utsScore: 85,
-    uasScore: 85,
-    groupScore: 85,
-    finalScore: 88,
-    letterGrade: 'A-',
+    letterGrade: '-',
   };
 
   const currentDateStr = new Date().toLocaleDateString('id-ID', {
@@ -2663,15 +2648,15 @@ export function generateGradeIndividualPrintHtml(options: ExportGradesOptions): 
             <td style="text-align:center;">4</td>
             <td>Ujian Tengah Semester (UTS)</td>
             <td style="text-align:center;">25%</td>
-            <td style="text-align:center; font-weight:bold;">${g.utsScore ?? 85}</td>
-            <td style="text-align:center;">${((g.utsScore ?? 85) * 0.25).toFixed(1)}</td>
+            <td style="text-align:center; font-weight:bold;">${g.utsScore ?? '-'}</td>
+            <td style="text-align:center;">${g.utsScore !== undefined ? (g.utsScore * 0.25).toFixed(1) : '-'}</td>
           </tr>
           <tr>
             <td style="text-align:center;">5</td>
             <td>Ujian Akhir Semester / Proyek UAS</td>
             <td style="text-align:center;">25%</td>
-            <td style="text-align:center; font-weight:bold;">${g.uasScore ?? g.groupScore ?? 85}</td>
-            <td style="text-align:center;">${((g.uasScore ?? g.groupScore ?? 85) * 0.25).toFixed(1)}</td>
+            <td style="text-align:center; font-weight:bold;">${g.uasScore ?? g.groupScore ?? '-'}</td>
+            <td style="text-align:center;">${(g.uasScore ?? g.groupScore) !== undefined ? (((g.uasScore ?? g.groupScore) as number) * 0.25).toFixed(1) : '-'}</td>
           </tr>
         </tbody>
         <tfoot>
@@ -2975,12 +2960,7 @@ export function exportAllTasksToExcel(db: SiakadDatabase) {
     const g = db.grades?.[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      groupScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
     };
     return {
       'No': idx + 1,
@@ -2988,12 +2968,12 @@ export function exportAllTasksToExcel(db: SiakadDatabase) {
       'Nama Mahasiswa': std.name,
       'Kehadiran (10%)': g.attendanceScore,
       'Sikap / Kuis (10%)': g.attitudeScore,
-      'Tugas Presentasi (20%)': g.individualScore,
-      'UTS (30%)': g.utsScore ?? 85,
-      'UAS (30%)': g.uasScore ?? g.groupScore ?? 85,
-      'Nilai Akhir (100%)': g.finalScore,
-      'Huruf Mutu': g.letterGrade,
-      'Status Kelulusan': g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS',
+      'Tugas Presentasi (20%)': g.individualScore ?? '-',
+      'UTS (30%)': g.utsScore ?? '-',
+      'UAS (30%)': g.uasScore ?? g.groupScore ?? '-',
+      'Nilai Akhir (100%)': g.finalScore ?? '-',
+      'Huruf Mutu': g.letterGrade ?? '-',
+      'Status Kelulusan': g.finalScore !== undefined ? (g.finalScore >= 60 ? 'LULUS' : 'TIDAK LULUS') : '-',
       'Catatan Dosen': g.notes || '-',
     };
   });
@@ -3101,11 +3081,7 @@ export function generateRekapNilaiDanTugasHtml(options: ExportRekapNilaiDanTugas
     const g = grades[std.id] || {
       attendanceScore: 100,
       attitudeScore: 85,
-      individualScore: 85,
-      utsScore: 85,
-      uasScore: 85,
-      finalScore: 88,
-      letterGrade: 'A-',
+      letterGrade: '-',
       notes: '',
     };
 
@@ -3135,7 +3111,7 @@ export function generateRekapNilaiDanTugasHtml(options: ExportRekapNilaiDanTugas
     const utsSub = (utsSubmissions || []).find(
       u => u.studentId === std.id || (u.answers && Object.keys(u.answers).length > 0)
     );
-    const utsStatusText = utsSub ? `Terkumpul (${g.utsScore ?? 85})` : 'Belum Kirim';
+    const utsStatusText = utsSub ? (g.utsScore !== undefined ? `Terkumpul (${g.utsScore})` : 'Terkumpul (Menunggu Nilai)') : 'Belum Kirim';
     const utsBadgeColor = utsSub ? '#059669' : '#dc2626';
 
     // Assignment Status 3: UAS Video Kelompok
@@ -3143,7 +3119,7 @@ export function generateRekapNilaiDanTugasHtml(options: ExportRekapNilaiDanTugas
     const uasGroupSub = studentGroup?.submission;
     const uasSubDirect = (uasSubmissions || []).find(u => u.studentId === std.id);
     const hasUas = Boolean(uasGroupSub?.videoUrl || uasSubDirect?.answers || uasSubDirect?.docLink);
-    const uasStatusText = hasUas ? `Klp ${studentGroup?.id || 1} (${g.uasScore ?? 85})` : 'Belum Kirim';
+    const uasStatusText = hasUas ? ((g.uasScore ?? g.groupScore) !== undefined ? `Klp ${studentGroup?.id || 1} (${g.uasScore ?? g.groupScore})` : `Klp ${studentGroup?.id || 1} (Menunggu Nilai)`) : 'Belum Kirim';
     const uasBadgeColor = hasUas ? '#059669' : '#d97706';
 
     // Quiz score
