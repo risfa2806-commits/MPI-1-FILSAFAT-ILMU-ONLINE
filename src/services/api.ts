@@ -193,6 +193,8 @@ export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDataba
     if (!db.grades) db.grades = {};
 
     let hasChanges = false;
+    let localCacheUpdated = false;
+
     localSubs.forEach(localSub => {
       const targetMeeting = Number(localSub.meetingNumber) || 2;
       const idx = db.submissions.findIndex(s =>
@@ -202,11 +204,20 @@ export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDataba
 
       if (idx >= 0) {
         const existing = db.submissions[idx];
-        const finalGrade = existing.grade !== undefined && existing.grade > 0
+        // The authoritative server grade takes precedence; fallback to localSub if server was un-graded
+        const finalGrade = (existing.grade !== undefined && existing.grade > 0)
           ? existing.grade
           : (localSub.grade !== undefined && localSub.grade > 0 ? localSub.grade : undefined);
         const finalFeedback = existing.feedback || localSub.feedback;
         const finalGradedAt = existing.gradedAt || localSub.gradedAt;
+
+        // Keep local cache item in sync with authoritative server grade
+        if (existing.grade !== undefined && existing.grade > 0 && localSub.grade !== existing.grade) {
+          localSub.grade = existing.grade;
+          localSub.feedback = existing.feedback || localSub.feedback;
+          localSub.gradedAt = existing.gradedAt || localSub.gradedAt;
+          localCacheUpdated = true;
+        }
 
         db.submissions[idx] = {
           ...localSub,
@@ -220,7 +231,7 @@ export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDataba
         hasChanges = true;
       }
 
-      // If effective grade exists, ensure db.grades has it
+      // Synchronize db.grades with the authoritative submission grade
       const effSub = idx >= 0 ? db.submissions[idx] : localSub;
       const effectiveGrade = effSub.grade !== undefined && effSub.grade > 0
         ? effSub.grade
@@ -241,9 +252,14 @@ export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDataba
         if (std && std.nim) {
           if (!db.grades[std.nim]) db.grades[std.nim] = { ...db.grades[localSub.studentId] };
           db.grades[std.nim].individualScore = effectiveGrade;
+          if (effSub.feedback) db.grades[std.nim].notes = effSub.feedback;
         }
       }
     });
+
+    if (localCacheUpdated) {
+      localStorage.setItem('siakad_local_submissions_v1', JSON.stringify(localSubs));
+    }
 
     if (hasChanges) {
       saveLocalCache(db);
@@ -255,7 +271,12 @@ export function harvestAndSyncLocalSubmissions(db: SiakadDatabase): SiakadDataba
 }
 
 // Synchronize a grade update directly into the local submissions cache
-export function syncGradeToLocalSubmissionsCache(studentId: string, grade: number, feedback?: string): void {
+export function syncGradeToLocalSubmissionsCache(
+  studentId: string,
+  grade: number,
+  feedback?: string,
+  submissionId?: string
+): void {
   if (typeof window === 'undefined' || !window.localStorage) return;
   try {
     const rawLocal = localStorage.getItem('siakad_local_submissions_v1');
@@ -265,9 +286,12 @@ export function syncGradeToLocalSubmissionsCache(studentId: string, grade: numbe
 
     let changed = false;
     localSubs.forEach(sub => {
-      if (sub.studentId === studentId || (sub.nim && sub.nim === studentId)) {
+      const isMatch = (submissionId && sub.id === submissionId) ||
+                      sub.studentId === studentId ||
+                      (sub.nim && sub.nim === studentId);
+      if (isMatch) {
         sub.grade = Number(grade);
-        if (feedback) sub.feedback = feedback;
+        if (feedback !== undefined) sub.feedback = feedback;
         sub.gradedAt = new Date().toISOString();
         changed = true;
       }
@@ -516,15 +540,22 @@ export async function submitGroupProject(payload: {
 }
 
 // Grade individual task
-export async function gradeIndividualTask(studentId: string, grade: number, feedback: string): Promise<boolean> {
+export async function gradeIndividualTask(
+  studentId: string,
+  grade: number,
+  feedback: string,
+  submissionId?: string
+): Promise<boolean> {
+  const numericGrade = Math.min(100, Math.max(0, isNaN(Number(grade)) ? 0 : Number(grade)));
+
   // Sync to local submissions cache immediately so UI flips to graded state without latency
-  syncGradeToLocalSubmissionsCache(studentId, grade, feedback);
+  syncGradeToLocalSubmissionsCache(studentId, numericGrade, feedback, submissionId);
 
   try {
     const res = await fetch('/api/individual-grade', {
       method: 'POST',
       headers: getDosenAuthHeaders(),
-      body: JSON.stringify({ studentId, grade, feedback }),
+      body: JSON.stringify({ studentId, grade: numericGrade, feedback, submissionId }),
     });
     const json = await safeJson(res, null);
     if (res.ok) {
@@ -534,23 +565,35 @@ export async function gradeIndividualTask(studentId: string, grade: number, feed
       } else {
         const localDb = getLocalCache();
         if (localDb.submissions) {
-          const matched = localDb.submissions.filter(sub => sub.studentId === studentId || (sub.nim && sub.nim === studentId));
+          const matched = localDb.submissions.filter(sub =>
+            (submissionId && sub.id === submissionId) ||
+            sub.studentId === studentId ||
+            (sub.nim && sub.nim === studentId)
+          );
           matched.forEach(s => {
-            s.grade = Number(grade);
+            s.grade = numericGrade;
             s.feedback = feedback;
             s.gradedAt = new Date().toISOString();
           });
         }
+        const std = (localDb.students || []).find(s => s.id === studentId || s.nim === studentId);
+        const targetKey = std ? std.id : studentId;
         if (!localDb.grades) localDb.grades = {};
-        if (!localDb.grades[studentId]) {
-          localDb.grades[studentId] = {
+        if (!localDb.grades[targetKey]) {
+          localDb.grades[targetKey] = {
             attendanceScore: 100,
             attitudeScore: 85,
             letterGrade: '-',
           };
         }
-        localDb.grades[studentId].individualScore = Number(grade);
-        if (feedback) localDb.grades[studentId].notes = feedback;
+        localDb.grades[targetKey].individualScore = numericGrade;
+        if (feedback) localDb.grades[targetKey].notes = feedback;
+        if (std?.nim) {
+          localDb.grades[std.nim] = { ...localDb.grades[targetKey] };
+        }
+        if (targetKey !== studentId) {
+          localDb.grades[studentId] = { ...localDb.grades[targetKey] };
+        }
         const harmonized = harvestAndSyncLocalSubmissions(localDb);
         saveLocalCache(harmonized);
       }
@@ -1306,6 +1349,10 @@ export async function updateStudentGradeApi(
               if (gradeData.notes) s.feedback = gradeData.notes;
             }
           });
+        }
+        const std = (localDb.students || []).find(s => s.id === studentId || s.nim === studentId);
+        if (std?.nim) {
+          localDb.grades[std.nim] = { ...localDb.grades[studentId] };
         }
         const harmonized = harvestAndSyncLocalSubmissions(localDb);
         saveLocalCache(harmonized);

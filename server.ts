@@ -2044,76 +2044,109 @@ app.post('/api/individual-grade', (req, res) => {
     return res.status(403).json({ error: 'Akses Ditolak: Hanya Dosen yang memiliki hak akses untuk memberikan nilai tugas individu!' });
   }
 
-  const { studentId, grade, feedback } = req.body;
-  if (!studentId) {
-    return res.status(400).json({ error: 'studentId wajib disertakan' });
+  const { studentId, grade, feedback, submissionId } = req.body;
+  if (!studentId && !submissionId) {
+    return res.status(400).json({ error: 'studentId atau submissionId wajib disertakan' });
   }
 
   if (!db.submissions) db.submissions = [];
-  const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
+  if (!db.allTimeSubmissions) db.allTimeSubmissions = [];
+
+  const subById = submissionId ? (db.submissions || []).find(s => s.id === submissionId) : undefined;
+  const effectiveStudentId = studentId || subById?.studentId || '';
+  const std = (db.students || []).find(s =>
+    (effectiveStudentId && (s.id === effectiveStudentId || s.nim === effectiveStudentId)) ||
+    (submissionId && s.id === subById?.studentId) ||
+    (req.body.studentName && s.name.trim().toLowerCase() === req.body.studentName.trim().toLowerCase())
+  );
   const stdName = std?.name?.toLowerCase().trim();
   const stdNim = std?.nim;
+  const numericGrade = Math.min(100, Math.max(0, isNaN(Number(grade)) ? 0 : Number(grade)));
 
   let matchedSubs = (db.submissions || []).filter(s =>
-    s.studentId === studentId ||
-    (Boolean(stdNim) && (s as any).nim === stdNim) ||
+    (submissionId && s.id === submissionId) ||
+    (effectiveStudentId && (s.studentId === effectiveStudentId || (s as any).nim === effectiveStudentId)) ||
+    (std && s.studentId === std.id) ||
+    (Boolean(stdNim) && ((s as any).nim === stdNim || s.studentId === stdNim)) ||
     (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
 
   let sub: any;
   if (matchedSubs.length > 0) {
     matchedSubs.forEach(s => {
-      s.grade = Number(grade);
-      s.feedback = feedback || '';
+      s.grade = numericGrade;
+      s.feedback = feedback !== undefined ? feedback : (s.feedback || 'Dinilai oleh Dosen Pengampu');
       s.gradedAt = new Date().toISOString();
+      if (stdNim && !s.nim) s.nim = stdNim;
     });
-    sub = matchedSubs[0];
+    sub = (submissionId ? matchedSubs.find(s => s.id === submissionId) : undefined) || matchedSubs[0];
   } else {
     // If student hadn't submitted a formal file yet, create submission record so grade is preserved permanently
     sub = {
-      id: `sub-${Date.now()}-${studentId}`,
-      studentId: std ? std.id : studentId,
-      studentName: std ? std.name : 'Mahasiswa',
+      id: submissionId || `sub-${Date.now()}-${effectiveStudentId || 'mhs'}`,
+      studentId: std ? std.id : effectiveStudentId,
+      studentName: std ? std.name : (req.body.studentName || 'Mahasiswa'),
+      nim: stdNim || (effectiveStudentId.startsWith('20') ? effectiveStudentId : undefined),
       rpsPart: std?.rpsPart || `Pertemuan ${std?.meetingNumber || 2}`,
       topic: std?.topic || 'Tugas Presentasi RPS',
       meetingNumber: std?.meetingNumber || 2,
       presentationType: 'individu',
       pptType: 'link',
       submittedAt: new Date().toISOString(),
-      grade: Number(grade),
+      grade: numericGrade,
       feedback: feedback || 'Dinilai oleh Dosen Pengampu',
       gradedAt: new Date().toISOString(),
     };
     db.submissions.push(sub);
   }
 
-  const targetGradeKey = std ? std.id : studentId;
+  // Synchronize allTimeSubmissions to ensure persistent archive durability
+  let matchedAllTime = db.allTimeSubmissions.filter(s =>
+    (submissionId && s.id === submissionId) ||
+    (effectiveStudentId && (s.studentId === effectiveStudentId || (s as any).nim === effectiveStudentId)) ||
+    (std && s.studentId === std.id) ||
+    (Boolean(stdNim) && ((s as any).nim === stdNim || s.studentId === stdNim)) ||
+    (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
+  );
+  if (matchedAllTime.length > 0) {
+    matchedAllTime.forEach(s => {
+      s.grade = numericGrade;
+      s.feedback = feedback !== undefined ? feedback : (s.feedback || 'Dinilai oleh Dosen Pengampu');
+      s.gradedAt = new Date().toISOString();
+      if (stdNim && !s.nim) s.nim = stdNim;
+    });
+  } else {
+    db.allTimeSubmissions.push({ ...sub });
+  }
+
+  const targetGradeKey = std ? std.id : (effectiveStudentId || sub.studentId);
   if (!db.grades) db.grades = {};
   if (!db.grades[targetGradeKey]) {
     db.grades[targetGradeKey] = {
       attendanceScore: 100,
       attitudeScore: 85,
       letterGrade: '-',
-      notes: feedback || `Nilai Tugas Presentasi: ${grade}`,
+      notes: feedback || `Nilai Tugas Presentasi: ${numericGrade}`,
     };
   }
-  db.grades[targetGradeKey].individualScore = Number(grade);
-  if (feedback) db.grades[targetGradeKey].notes = feedback;
+  db.grades[targetGradeKey].individualScore = numericGrade;
+  if (feedback !== undefined) db.grades[targetGradeKey].notes = feedback;
 
   recalculateStudentGrade(db.grades[targetGradeKey]);
 
-  if (targetGradeKey !== studentId) {
-    db.grades[studentId] = db.grades[targetGradeKey];
+  if (targetGradeKey !== effectiveStudentId && effectiveStudentId) {
+    db.grades[effectiveStudentId] = { ...db.grades[targetGradeKey] };
   }
   if (stdNim) {
-    db.grades[stdNim] = db.grades[targetGradeKey];
+    db.grades[stdNim] = { ...db.grades[targetGradeKey] };
   }
   if (std?.id) {
-    db.grades[std.id] = db.grades[targetGradeKey];
+    db.grades[std.id] = { ...db.grades[targetGradeKey] };
   }
 
   if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
     db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+    db.allCoursesData[db.activeCourseId].allTimeSubmissions = db.allTimeSubmissions;
     db.allCoursesData[db.activeCourseId].grades = db.grades;
   }
 
@@ -3506,15 +3539,19 @@ app.post('/api/grades', (req, res) => {
   };
   recalculateStudentGrade(gradeObj);
   db.grades[studentId] = gradeObj;
+  if (std?.id) db.grades[std.id] = { ...gradeObj };
+  if (stdNim) db.grades[stdNim] = { ...gradeObj };
 
-  // Sync with db.submissions if individual score was specified
+  // Sync with db.submissions and allTimeSubmissions if individual score was specified
   if (!db.submissions) db.submissions = [];
+  if (!db.allTimeSubmissions) db.allTimeSubmissions = [];
   const std = (db.students || []).find(s => s.id === studentId || s.nim === studentId);
   const stdName = std?.name?.toLowerCase().trim();
   const stdNim = std?.nim;
   const subs = (db.submissions || []).filter(s =>
     s.studentId === studentId ||
-    (Boolean(stdNim) && (s as any).nim === stdNim) ||
+    (std && s.studentId === std.id) ||
+    (Boolean(stdNim) && ((s as any).nim === stdNim || s.studentId === stdNim)) ||
     (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
   );
 
@@ -3524,12 +3561,14 @@ app.post('/api/grades', (req, res) => {
         s.grade = indiv;
         if (notes) s.feedback = notes;
         s.gradedAt = new Date().toISOString();
+        if (stdNim && !s.nim) s.nim = stdNim;
       });
     } else {
-      db.submissions.push({
+      const newSub = {
         id: `sub-${Date.now()}-${studentId}`,
         studentId: std ? std.id : studentId,
         studentName: std ? std.name : 'Mahasiswa',
+        nim: stdNim || (studentId.startsWith('20') ? studentId : undefined),
         rpsPart: std?.rpsPart || 'Presentasi',
         topic: std?.topic || 'Materi Perkuliahan',
         meetingNumber: std?.meetingNumber || 2,
@@ -3539,12 +3578,29 @@ app.post('/api/grades', (req, res) => {
         grade: indiv,
         feedback: notes || 'Dinilai oleh Dosen Pengampu',
         gradedAt: new Date().toISOString(),
+      };
+      db.submissions.push(newSub);
+    }
+
+    const allSubs = (db.allTimeSubmissions || []).filter(s =>
+      s.studentId === studentId ||
+      (std && s.studentId === std.id) ||
+      (Boolean(stdNim) && ((s as any).nim === stdNim || s.studentId === stdNim)) ||
+      (Boolean(stdName) && s.studentName && s.studentName.toLowerCase().trim() === stdName)
+    );
+    if (allSubs.length > 0) {
+      allSubs.forEach(s => {
+        s.grade = indiv;
+        if (notes) s.feedback = notes;
+        s.gradedAt = new Date().toISOString();
+        if (stdNim && !s.nim) s.nim = stdNim;
       });
     }
   }
 
   if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
     db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+    db.allCoursesData[db.activeCourseId].allTimeSubmissions = db.allTimeSubmissions;
     db.allCoursesData[db.activeCourseId].grades = db.grades;
   }
 
@@ -5138,13 +5194,26 @@ app.post('/api/presentation-group-grade', (req, res) => {
   const meetingStudents = (db.students || []).filter(s => s.meetingNumber === Number(meetingNumber));
 
   meetingStudents.forEach(std => {
-    // 1. Update or create submission grade
-    let sub = (db.submissions || []).find(s => s.studentId === std.id);
-    if (!sub) {
-      sub = {
+    // 1. Update or create submission grade for all matched submissions of this student
+    const matched = (db.submissions || []).filter(s =>
+      s.studentId === std.id ||
+      (Boolean(std.nim) && ((s as any).nim === std.nim || s.studentId === std.nim)) ||
+      (Boolean(std.name) && s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+    );
+
+    if (matched.length > 0) {
+      matched.forEach(sub => {
+        sub.grade = numericGrade;
+        if (feedback) sub.feedback = feedback;
+        sub.gradedAt = new Date().toISOString();
+        if (std.nim && !sub.nim) sub.nim = std.nim;
+      });
+    } else {
+      const newSub = {
         id: `sub-${Date.now()}-${std.id}`,
         studentId: std.id,
         studentName: std.name,
+        nim: std.nim,
         rpsPart: std.rpsPart || `Pertemuan ${meetingNumber}`,
         topic: std.topic || `Materi Pertemuan ${meetingNumber}`,
         meetingNumber: Number(meetingNumber),
@@ -5155,14 +5224,26 @@ app.post('/api/presentation-group-grade', (req, res) => {
         feedback: feedback || `Nilai Kelompok Presentasi Pertemuan ${meetingNumber}`,
         gradedAt: new Date().toISOString(),
       };
-      db.submissions.push(sub);
-    } else {
-      sub.grade = numericGrade;
-      if (feedback) sub.feedback = feedback;
-      sub.gradedAt = new Date().toISOString();
+      db.submissions.push(newSub);
     }
 
-    // 2. Update StudentGrade
+    // Also sync allTimeSubmissions
+    if (!db.allTimeSubmissions) db.allTimeSubmissions = [];
+    const matchedAllTime = db.allTimeSubmissions.filter(s =>
+      s.studentId === std.id ||
+      (Boolean(std.nim) && ((s as any).nim === std.nim || s.studentId === std.nim)) ||
+      (Boolean(std.name) && s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+    );
+    if (matchedAllTime.length > 0) {
+      matchedAllTime.forEach(sub => {
+        sub.grade = numericGrade;
+        if (feedback) sub.feedback = feedback;
+        sub.gradedAt = new Date().toISOString();
+        if (std.nim && !sub.nim) sub.nim = std.nim;
+      });
+    }
+
+    // 2. Update StudentGrade for both std.id and std.nim
     if (!db.grades[std.id]) {
       db.grades[std.id] = {
         attendanceScore: 100,
@@ -5174,10 +5255,15 @@ app.post('/api/presentation-group-grade', (req, res) => {
       db.grades[std.id].individualScore = numericGrade;
     }
     recalculateStudentGrade(db.grades[std.id]);
+
+    if (std.nim) {
+      db.grades[std.nim] = { ...db.grades[std.id] };
+    }
   });
 
   if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
     db.allCoursesData[db.activeCourseId].submissions = db.submissions;
+    db.allCoursesData[db.activeCourseId].allTimeSubmissions = db.allTimeSubmissions;
     db.allCoursesData[db.activeCourseId].grades = db.grades;
   }
 
@@ -5474,6 +5560,7 @@ app.post('/api/grades/recalculate-all', (req, res) => {
 
     recalculateStudentGrade(gradeObj);
     db.grades[s.id] = gradeObj;
+    if (s.nim) db.grades[s.nim] = { ...gradeObj };
   });
 
   if (db.activeCourseId && db.allCoursesData?.[db.activeCourseId]) {

@@ -117,15 +117,23 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
   };
 
   const startEdit = (std: Student) => {
-    const currentGrade = grades[std.id] || {
+    const currentGrade = grades[std.id] || (std.nim ? grades[std.nim] : undefined) || {
       attendanceScore: 100,
       attitudeScore: 85,
       letterGrade: '-',
     };
+
+    // Check individual submission grade first, as it is the canonical grade from Review & Evaluasi
+    const stdSubs = (submissions || []).filter(
+      s => s.studentId === std.id || (Boolean(std.nim) && (s.nim === std.nim || s.studentId === std.nim)) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+    );
+    const gradedInd = stdSubs.find(s => s.grade !== undefined && s.grade > 0);
+    const effectiveIndiv = gradedInd?.grade ?? currentGrade.individualScore ?? (std.nim ? grades[std.nim]?.individualScore : undefined) ?? 0;
+
     setEditingStudentId(std.id);
     setAttScore(currentGrade.attendanceScore);
     setAttitScore(currentGrade.attitudeScore);
-    setIndivScore(currentGrade.individualScore ?? 0);
+    setIndivScore(effectiveIndiv);
     setUtsScore(currentGrade.utsScore ?? 0);
     setUasScore(currentGrade.uasScore ?? currentGrade.groupScore ?? 0);
     setNotes(currentGrade.notes || '');
@@ -213,12 +221,18 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
     ];
 
     const rows = (students || []).map((s, idx) => {
-      const g = grades[s.id] || {
+      const g = grades[s.id] || (s.nim ? grades[s.nim] : undefined) || {
         attendanceScore: 100,
         attitudeScore: 85,
         letterGrade: '-',
       };
-      const hasAny = g.individualScore !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
+      const stdSubs = (submissions || []).filter(
+        sub => sub.studentId === s.id || (Boolean(s.nim) && (sub.nim === s.nim || sub.studentId === s.nim)) || (sub.studentName && sub.studentName.toLowerCase().trim() === s.name.toLowerCase().trim())
+      );
+      const gradedInd = stdSubs.find(sub => sub.grade !== undefined && sub.grade > 0);
+      const effectiveIndiv = gradedInd?.grade ?? (g.individualScore !== undefined && g.individualScore > 0 ? g.individualScore : undefined);
+
+      const hasAny = effectiveIndiv !== undefined || g.utsScore !== undefined || g.uasScore !== undefined;
       return [
         idx + 1,
         `"${s.nim}"`,
@@ -227,7 +241,7 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
         `"Kelompok ${s.groupId}"`,
         g.attendanceScore,
         g.attitudeScore,
-        g.individualScore ?? '-',
+        effectiveIndiv ?? '-',
         g.utsScore ?? '-',
         g.uasScore ?? g.groupScore ?? '-',
         hasAny && g.finalScore !== undefined ? g.finalScore : '-',
@@ -268,10 +282,18 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
     const studentToExport = targetStd || (exportScope === 'individu' ? getSelectedExportStudent() : null);
 
     if (studentToExport) {
-      const g = grades[studentToExport.id] || {
+      const g = grades[studentToExport.id] || (studentToExport.nim ? grades[studentToExport.nim] : undefined) || {
         attendanceScore: 100,
         attitudeScore: 85,
         letterGrade: '-',
+      };
+      const stdSubs = (submissions || []).filter(
+        sub => sub.studentId === studentToExport.id || (Boolean(studentToExport.nim) && (sub.nim === studentToExport.nim || sub.studentId === studentToExport.nim)) || (sub.studentName && sub.studentName.toLowerCase().trim() === studentToExport.name.toLowerCase().trim())
+      );
+      const gradedInd = stdSubs.find(sub => sub.grade !== undefined && sub.grade > 0);
+      const mergedGrade: StudentGrade = {
+        ...g,
+        individualScore: gradedInd?.grade ?? g.individualScore,
       };
       exportIndividualTranscriptWord({
         campusName: campus,
@@ -282,7 +304,7 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
         semester: sem,
         studyProgram: prodi,
         student: studentToExport,
-        grade: g,
+        grade: mergedGrade,
       });
     } else {
       exportGradesToWord({
@@ -678,7 +700,7 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.map((std, idx) => {
                 const isEditing = editingStudentId === std.id;
-                const g = grades[std.id] || {
+                const g = grades[std.id] || (std.nim ? grades[std.nim] : undefined) || {
                   attendanceScore: 100,
                   attitudeScore: 85,
                   letterGrade: '-',
@@ -686,11 +708,11 @@ export const GradeRecapView: React.FC<GradeRecapViewProps> = ({
 
                 // Individual task submission check
                 const stdSubs = (submissions || []).filter(
-                  s => s.studentId === std.id || (Boolean(std.nim) && s.nim === std.nim) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+                  s => s.studentId === std.id || (Boolean(std.nim) && (s.nim === std.nim || s.studentId === std.nim)) || (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
                 );
                 const hasSubInd = stdSubs.length > 0;
-                const gradedInd = stdSubs.find(s => s.grade !== undefined);
-                const displayInd = (gradedInd?.grade !== undefined && gradedInd.grade > 0)
+                const gradedInd = stdSubs.find(s => s.grade !== undefined && s.grade > 0);
+                const displayInd = gradedInd?.grade !== undefined
                   ? gradedInd.grade
                   : (g.individualScore !== undefined && g.individualScore > 0 ? g.individualScore : undefined);
 

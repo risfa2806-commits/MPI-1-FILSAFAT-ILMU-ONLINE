@@ -844,7 +844,15 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   // Open Review Individual Submission
   const handleOpenReviewIndiv = (sub: IndividualSubmission) => {
     setReviewIndivSub(sub);
-    const stdGrade = grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined);
+    const targetStudent = (students || []).find(s =>
+      s.id === sub.studentId ||
+      (sub.nim && s.nim === sub.nim) ||
+      (sub.studentName && s.name.trim().toLowerCase() === sub.studentName.trim().toLowerCase())
+    );
+    const stdGrade = targetStudent
+      ? (grades[targetStudent.id] || (targetStudent.nim ? grades[targetStudent.nim] : undefined))
+      : (grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined));
+
     const existingScore = (sub.grade !== undefined && sub.grade > 0)
       ? sub.grade
       : (stdGrade?.individualScore && stdGrade.individualScore > 0 ? stdGrade.individualScore : 0);
@@ -858,7 +866,11 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
   // Trigger Auto-Grade for Individual Task
   const handleAutoGradeIndiv = (sub: IndividualSubmission) => {
-    const targetStudent = (students || []).find(s => s.id === sub.studentId || (sub.nim && s.nim === sub.nim));
+    const targetStudent = (students || []).find(s =>
+      s.id === sub.studentId ||
+      (sub.nim && s.nim === sub.nim) ||
+      (sub.studentName && s.name.trim().toLowerCase() === sub.studentName.trim().toLowerCase())
+    );
     const result = autoGradeIndividualSubmission(sub, targetStudent);
     setIndivScoreInput(result.score);
     setIndivFeedbackInput(result.feedback);
@@ -870,11 +882,24 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     if (!reviewIndivSub) return;
     setIsGradingIndiv(true);
     try {
-      const ok = await gradeIndividualTask(reviewIndivSub.studentId, indivScoreInput, indivFeedbackInput);
+      const targetStudent = (students || []).find(s =>
+        (reviewIndivSub.studentId && s.id === reviewIndivSub.studentId) ||
+        (reviewIndivSub.nim && s.nim === reviewIndivSub.nim) ||
+        (reviewIndivSub.studentId && s.nim === reviewIndivSub.studentId) ||
+        (reviewIndivSub.studentName && s.name.trim().toLowerCase() === reviewIndivSub.studentName.trim().toLowerCase())
+      );
+      const studentIdToGrade = targetStudent?.id || reviewIndivSub.studentId;
+
+      const ok = await gradeIndividualTask(
+        studentIdToGrade,
+        indivScoreInput,
+        indivFeedbackInput,
+        reviewIndivSub.id
+      );
       if (ok) {
         setActionAlertMsg({
           type: 'success',
-          text: `Nilai tugas ${reviewIndivSub.studentName} (${indivScoreInput}/100) berhasil disimpan & disinkronkan ke Dasbor Mahasiswa!`,
+          text: `Nilai tugas ${reviewIndivSub.studentName} (${indivScoreInput}/100) berhasil disimpan & disinkronkan ke seluruh sistem!`,
         });
       } else {
         setActionAlertMsg({
@@ -1031,7 +1056,14 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   const handleSaveIndivGrade = async (studentId: string) => {
     setIsGradingIndiv(true);
     try {
-      await gradeIndividualTask(studentId, indivScoreInput, indivFeedbackInput);
+      const targetStudent = (students || []).find(s =>
+        s.id === studentId || (s.nim && s.nim === studentId)
+      );
+      const sub = (submissions || []).find(s =>
+        s.studentId === studentId ||
+        (targetStudent && ((targetStudent.nim && s.nim === targetStudent.nim) || (s.studentName && s.studentName.toLowerCase().trim() === targetStudent.name.toLowerCase().trim())))
+      );
+      await gradeIndividualTask(studentId, indivScoreInput, indivFeedbackInput, sub?.id);
       setGradingStudentId(null);
       await onRefreshData();
     } finally {
@@ -1647,10 +1679,23 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                     })
                     .map((std, idx) => {
                       const online = isStudentOnline(std.lastActive);
-                      const sub = (submissions || []).find(s => s.studentId === std.id);
-                      const utsSub = (utsSubmissions || []).find(u => u.studentId === std.id);
-                      const uasSub = (uasSubmissions || []).find(u => u.studentId === std.id);
-                      const quizSub = (currentFullDb.quizSubmissions || []).find(q => q.studentId === std.id);
+                      const sub = (submissions || []).find(s =>
+                        s.studentId === std.id ||
+                        (Boolean(std.nim) && (s.nim === std.nim || s.studentId === std.nim)) ||
+                        (std.name && s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+                      );
+                      const utsSub = (utsSubmissions || []).find(u =>
+                        u.studentId === std.id ||
+                        (Boolean(std.nim) && (u.studentId === std.nim || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+                      );
+                      const uasSub = (uasSubmissions || []).find(u =>
+                        u.studentId === std.id ||
+                        (Boolean(std.nim) && (u.studentId === std.nim || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+                      );
+                      const quizSub = (currentFullDb.quizSubmissions || []).find(q =>
+                        q.studentId === std.id ||
+                        (Boolean(std.nim) && (q.studentId === std.nim || (q.studentName && q.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+                      );
                       const hasAnyVaultData = !!(sub || utsSub || uasSub || quizSub);
 
                       return (
@@ -2455,9 +2500,18 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                         type="button"
                         onClick={() => {
                           setGradingMeetingGroup(isGradingThis ? null : meeting.meetingNumber);
-                          const firstGrade = meetingStudents.find(s => grades[s.id]?.individualScore);
-                          if (firstGrade && grades[firstGrade.id]?.individualScore) {
-                            setMeetingGroupScore(grades[firstGrade.id].individualScore!);
+                          const firstGradeScore = meetingStudents.map(s => {
+                            const sub = (submissions || []).find(sub =>
+                              sub.studentId === s.id ||
+                              (s.nim && (sub.studentId === s.nim || sub.nim === s.nim)) ||
+                              (s.name && sub.studentName && sub.studentName.toLowerCase().trim() === s.name.toLowerCase().trim())
+                            );
+                            if (sub && sub.grade !== undefined && sub.grade > 0) return sub.grade;
+                            return grades[s.id]?.individualScore ?? (s.nim ? grades[s.nim]?.individualScore : undefined);
+                          }).find(score => score !== undefined && score > 0);
+
+                          if (firstGradeScore !== undefined) {
+                            setMeetingGroupScore(firstGradeScore);
                           } else {
                             setMeetingGroupScore(0);
                           }
@@ -2645,8 +2699,15 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                     {(meetingStudents?.length || 0) > 0 ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                         {meetingStudents.map((std) => {
-                          const stdGrade = grades[std.id]?.individualScore ?? (submissions || []).find(s => s.studentId === std.id)?.grade;
-                          const hasSub = (submissions || []).find(s => s.studentId === std.id);
+                          const matchedSub = (submissions || []).find(s =>
+                            s.studentId === std.id ||
+                            (Boolean(std.nim) && (s.nim === std.nim || s.studentId === std.nim)) ||
+                            (std.name && s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+                          );
+                          const stdGrade = (matchedSub && matchedSub.grade !== undefined && matchedSub.grade > 0)
+                            ? matchedSub.grade
+                            : (grades[std.id]?.individualScore ?? (std.nim ? grades[std.nim]?.individualScore : undefined));
+                          const hasSub = Boolean(matchedSub);
 
                           return (
                             <div
@@ -3005,7 +3066,14 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 
                       {/* Review & Nilai Button */}
                       {(() => {
-                        const stdGrade = grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined);
+                        const targetStudent = students.find(s =>
+                          (sub.studentId && s.id === sub.studentId) ||
+                          (sub.nim && s.nim === sub.nim) ||
+                          (sub.studentId && s.nim === sub.studentId) ||
+                          (sub.studentName && s.name.toLowerCase().trim() === sub.studentName.toLowerCase().trim())
+                        );
+                        const stdGrade = (targetStudent ? grades[targetStudent.id] || (targetStudent.nim ? grades[targetStudent.nim] : undefined) : undefined) ||
+                                         grades[sub.studentId] || (sub.nim ? grades[sub.nim] : undefined);
                         const effectiveGrade = (sub.grade !== undefined && sub.grade > 0)
                           ? sub.grade
                           : (stdGrade?.individualScore && stdGrade.individualScore > 0 ? stdGrade.individualScore : undefined);

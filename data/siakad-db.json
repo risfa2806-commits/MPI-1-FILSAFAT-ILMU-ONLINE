@@ -574,6 +574,7 @@
     {
       "studentId": "mhs-3",
       "studentName": "HADI DWI PRASETYO",
+      "nim": "20260103",
       "rpsPart": "Pertemuan 4",
       "topic": "Landasan Epistemologis Keilmuan: Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah",
       "meetingNumber": 4,
@@ -588,26 +589,6 @@
       "notes": "Makalah ilmiah terstruktur disusun sesuai RPS pertemuan 4 program studi MPI 1 STAI Jarinabi.",
       "grade": 87,
       "feedback": "Penyusunan tugas Pertemuan 4 (Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah) sangat komprehensif. Berkas slide PPT dan Makalah memenuhi standar akademik serta relevan dengan studi Manajemen Pendidikan Islam.",
-      "gradedAt": "2026-09-27T11:47:00.000Z"
-    },
-    {
-      "id": "sub-1790484420000-hadi-p2",
-      "studentId": "mhs-3",
-      "studentName": "HADI DWI PRASETYO",
-      "nim": "2024003",
-      "rpsPart": "Pertemuan 2",
-      "topic": "Konsep Dasar, Urgensi, dan Pengertian Filsafat Ilmu dalam Manajemen Pendidikan Islam",
-      "meetingNumber": 2,
-      "presentationType": "individu",
-      "submissionChoice": "both",
-      "pptType": "link",
-      "pptUrl": "https://canva.com/hadi-p2",
-      "makalahType": "link",
-      "makalahUrl": "https://docs.google.com/hadi-p2",
-      "notes": "Tugas resume dan presentasi konsep dasar filsafat ilmu",
-      "submittedAt": "2026-09-27T11:47:00.000Z",
-      "grade": 87,
-      "feedback": "Penyusunan tugas sangat baik dan sistematis.",
       "gradedAt": "2026-09-27T11:47:00.000Z"
     }
   ],
@@ -2334,8 +2315,9 @@
     {
       "studentId": "mhs-3",
       "studentName": "HADI DWI PRASETYO",
+      "nim": "20260103",
       "rpsPart": "Pertemuan 4",
-      "topic": "Pilar Ontologi Ilmu",
+      "topic": "Landasan Epistemologis Keilmuan: Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah",
       "meetingNumber": 4,
       "pptType": "link",
       "pptUrl": "https://canva.com/test-hadi",
@@ -2343,9 +2325,9 @@
       "makalahUrl": "https://docs.google.com/test-hadi",
       "submittedAt": "2026-09-19T01:36:01.092Z",
       "id": "sub-1789781761092-aj8xw",
-      "grade": 92,
-      "feedback": "Pemaparan ontologi sangat mendalam dan slide rapi.",
-      "gradedAt": "2026-09-19T01:36:06.345Z"
+      "grade": 87,
+      "feedback": "Penyusunan tugas Pertemuan 4 (Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah) sangat komprehensif. Berkas slide PPT dan Makalah memenuhi standar akademik serta relevan dengan studi Manajemen Pendidikan Islam.",
+      "gradedAt": "2026-09-27T11:47:00.000Z"
     }
   ],
   "deletedNotificationIds": []

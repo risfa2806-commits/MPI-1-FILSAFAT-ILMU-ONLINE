@@ -78,15 +78,28 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({
   // Calculate scores and ranks for all students
   const studentScores: StudentScoreCard[] = useMemo(() => {
     return (students || []).map(std => {
-      const studentGrade = grades[std.id];
-      const sub = submissions.find(s => s.studentId === std.id);
-      const studentQuizzes = quizSubmissions.filter(q => q.studentId === std.id);
+      const studentGrade = grades[std.id] || (std.nim ? grades[std.nim] : undefined);
+      const sub = submissions.find(s =>
+        s.studentId === std.id ||
+        (Boolean(std.nim) && (s.nim === std.nim || s.studentId === std.nim)) ||
+        (s.studentName && s.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())
+      );
+      const studentQuizzes = quizSubmissions.filter(q =>
+        q.studentId === std.id ||
+        (Boolean(std.nim) && (q.studentId === std.nim || (q.studentName && q.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+      );
       const bestQuizScore = studentQuizzes.length > 0
         ? Math.max(...studentQuizzes.map(q => q.score || 0))
         : 0;
 
-      const uts = utsSubmissions.find(u => u.studentId === std.id);
-      const uas = uasSubmissions.find(u => u.studentId === std.id);
+      const uts = utsSubmissions.find(u =>
+        u.studentId === std.id ||
+        (Boolean(std.nim) && (u.studentId === std.nim || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+      );
+      const uas = uasSubmissions.find(u =>
+        u.studentId === std.id ||
+        (Boolean(std.nim) && (u.studentId === std.nim || (u.studentName && u.studentName.toLowerCase().trim() === std.name.toLowerCase().trim())))
+      );
       const utsScore = (uts && uts.grade !== undefined && uts.grade > 0)
         ? uts.grade
         : (studentGrade?.utsScore !== undefined && studentGrade.utsScore > 0 ? studentGrade.utsScore : undefined);
