@@ -240,6 +240,7 @@ export interface CourseDataPayload {
   students: Student[];
   groups: GroupProject[];
   submissions: IndividualSubmission[];
+  allTimeSubmissions?: IndividualSubmission[];
   utsQuestions: UtsQuestion[];
   utsSubmissions: UtsSubmission[];
   uasQuestions?: UtsQuestion[];

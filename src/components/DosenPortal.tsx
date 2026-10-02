@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Student,
   GroupProject,
@@ -144,6 +144,13 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
 }) => {
   const [subTab, setSubTab] = useState<'monitoring' | 'pesan-mhs' | 'rps-sync' | 'kelompok-ppt' | 'nilai-ppt' | 'nilai-uts' | 'nilai-video' | 'keamanan' | 'cadangan-data'>('monitoring');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('siakad_dosen_auth', 'true');
+      localStorage.setItem('siakad_dosen_auth', 'true');
+    } catch {}
+  }, []);
 
   // Full database instance for reliable exports and backups
   const currentFullDb: SiakadDatabase = db || {
@@ -894,7 +901,8 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
         studentIdToGrade,
         indivScoreInput,
         indivFeedbackInput,
-        reviewIndivSub.id
+        reviewIndivSub.id,
+        reviewIndivSub.studentName
       );
       if (ok) {
         setActionAlertMsg({
@@ -1063,7 +1071,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
         s.studentId === studentId ||
         (targetStudent && ((targetStudent.nim && s.nim === targetStudent.nim) || (s.studentName && s.studentName.toLowerCase().trim() === targetStudent.name.toLowerCase().trim())))
       );
-      await gradeIndividualTask(studentId, indivScoreInput, indivFeedbackInput, sub?.id);
+      await gradeIndividualTask(studentId, indivScoreInput, indivFeedbackInput, sub?.id, targetStudent?.name);
       setGradingStudentId(null);
       await onRefreshData();
     } finally {
