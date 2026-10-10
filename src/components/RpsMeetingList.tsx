@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MeetingSchedule, Student, IndividualSubmission, StudentGrade } from '../types';
 import { Calendar, User, FileText, CheckCircle2, Clock, ExternalLink, Download, Search, Award, Sparkles } from 'lucide-react';
+import { isMeetingToday } from '../utils/meetingDateUtils';
 
 interface RpsMeetingListProps {
   meetings: MeetingSchedule[];
@@ -121,7 +122,7 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
         {(filteredMeetings || []).map((meeting) => {
           // Find students assigned to this meeting
           const assignedStudents = (students || []).filter(s => s.meetingNumber === meeting.meetingNumber);
-          const isTodayMeeting = meeting.meetingNumber === 1; // 12 Sep 2026
+          const isTodayMeeting = isMeetingToday(meeting);
 
           return (
             <div
@@ -333,8 +334,27 @@ export const RpsMeetingList: React.FC<RpsMeetingListProps> = ({
                       })}
                     </div>
                   ) : (
-                    <div className="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                      {meeting.presenters.join(', ')}
+                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div>
+                        <span className="font-bold text-slate-800">{meeting.presenters.join(', ')}</span>
+                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{meeting.title}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const matched = (students || []).find(s =>
+                            meeting.presenters.some(p => p.trim().toLowerCase() === s.name.trim().toLowerCase())
+                          ) || currentStudent || students?.[0];
+                          if (matched) {
+                            onSelectStudentTask(matched, meeting.meetingNumber);
+                            onOpenUploadForStudent(matched, meeting.meetingNumber);
+                          }
+                        }}
+                        className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer active:scale-95 self-start sm:self-auto"
+                      >
+                        <Clock size={11} />
+                        <span>Unggah PPT</span>
+                      </button>
                     </div>
                   )}
                 </div>

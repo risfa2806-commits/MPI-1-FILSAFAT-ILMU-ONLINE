@@ -566,7 +566,9 @@ export default function App() {
             meetings={db.meetings || []}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onSelectStudentTask={(std, meetingNumber) => {
-              setSelectedStudentForTask(std);
+              const target = meetingNumber ? { ...std, meetingNumber } : std;
+              handleSelectStudent(target);
+              setSelectedStudentForTask(target);
               setActiveTab('tugas-individu');
             }}
           />
@@ -581,11 +583,15 @@ export default function App() {
             grades={db.grades || {}}
             currentStudent={currentStudent}
             onSelectStudentTask={(std, meetingNumber) => {
-              setSelectedStudentForTask(std);
+              const target = meetingNumber ? { ...std, meetingNumber } : std;
+              handleSelectStudent(target);
+              setSelectedStudentForTask(target);
               setActiveTab('tugas-individu');
             }}
             onOpenUploadForStudent={(std, meetingNumber) => {
-              setSelectedStudentForTask(std);
+              const target = meetingNumber ? { ...std, meetingNumber } : std;
+              handleSelectStudent(target);
+              setSelectedStudentForTask(target);
               setActiveTab('tugas-individu');
             }}
           />

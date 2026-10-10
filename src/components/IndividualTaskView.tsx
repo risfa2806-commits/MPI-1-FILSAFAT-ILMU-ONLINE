@@ -114,18 +114,16 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   const [isEditingExisting, setIsEditingExisting] = useState<boolean>(false);
   const [docPreviewData, setDocPreviewData] = useState<DocumentPreviewData | null>(null);
 
-  // When external student selection explicitly arrives, update meeting
+  // When external student selection explicitly arrives, update meeting and immediately activate PPT upload form
   useEffect(() => {
     if (selectedStudentForTask?.meetingNumber) {
       setSelectedMeetingNumber(selectedStudentForTask.meetingNumber);
-      setIsEditingExisting(false);
+      setIsEditingExisting(true);
+      setActiveFormatTab('file_ppt');
+      setSubmissionChoice('ppt_only');
+      setPptType('file');
     }
   }, [selectedStudentForTask?.id, selectedStudentForTask?.meetingNumber]);
-
-  // Reset editing mode whenever meeting number changes
-  useEffect(() => {
-    setIsEditingExisting(false);
-  }, [selectedMeetingNumber]);
 
   // Persistent local submission overrides to update UI immediately upon submission,
   // ensure the locked state and submitted status persist across re-renders without UI mismatch.
@@ -480,6 +478,8 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
   // Ref to track which submission/meeting/student was loaded into the form
   // to avoid polling re-renders wiping out user inputs
   const lastInitializedKeyRef = useRef<string>('');
+  const pptFileInputRef = useRef<HTMLInputElement>(null);
+  const makalahFileInputRef = useRef<HTMLInputElement>(null);
 
   // When target student or selected meeting changes, reload form with existing submission if available
   useEffect(() => {
@@ -2970,18 +2970,46 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                     </p>
                   </div>
                 ) : (
-                  <div>
+                  <div className="space-y-2">
                     <input
+                      ref={pptFileInputRef}
+                      id="ppt-file-upload-input"
                       type="file"
                       accept=".ppt,.pptx,.pdf"
                       onChange={handlePptFileChange}
-                      className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer"
+                      className="hidden"
                     />
-                    {pptFileName && (
-                      <p className="text-xs text-emerald-800 font-medium mt-1.5 flex items-center gap-1">
-                        <CheckCircle2 size={13} /> File terpilih: {pptFileName}
-                      </p>
-                    )}
+                    <div
+                      onClick={() => pptFileInputRef.current?.click()}
+                      className="border-2 border-dashed border-emerald-400 hover:border-emerald-600 bg-emerald-50/70 hover:bg-emerald-100/60 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 active:scale-[0.99] group shadow-2xs"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 group-hover:bg-emerald-200 text-emerald-800 flex items-center justify-center transition-colors">
+                        <Upload size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">
+                        {pptFileName ? 'Klik di Sini untuk Mengganti File PPT' : 'Klik di Sini untuk Memilih / Mengunggah File PPT'}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Mendukung file presentasi PowerPoint (.ppt, .pptx) dan dokumen slide (.pdf) maks. 20MB
+                      </span>
+                      {pptFileName ? (
+                        <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs">
+                          <CheckCircle2 size={13} />
+                          <span>File Terpilih: {pptFileName}</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            pptFileInputRef.current?.click();
+                          }}
+                          className="mt-1 px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs"
+                        >
+                          Pilih File PPT dari Perangkat
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -3035,18 +3063,46 @@ export const IndividualTaskView: React.FC<IndividualTaskViewProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div>
+                  <div className="space-y-2">
                     <input
+                      ref={makalahFileInputRef}
+                      id="makalah-file-upload-input"
                       type="file"
                       accept=".pdf,.doc,.docx,.txt"
                       onChange={handleMakalahFileChange}
-                      className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-900 cursor-pointer"
+                      className="hidden"
                     />
-                    {makalahFileName && (
-                      <p className="text-xs text-slate-700 font-medium mt-1.5 flex items-center gap-1">
-                        <CheckCircle2 size={13} /> File makalah: {makalahFileName}
-                      </p>
-                    )}
+                    <div
+                      onClick={() => makalahFileInputRef.current?.click()}
+                      className="border-2 border-dashed border-blue-400 hover:border-blue-600 bg-blue-50/70 hover:bg-blue-100/60 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 active:scale-[0.99] group shadow-2xs"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-blue-100 group-hover:bg-blue-200 text-blue-800 flex items-center justify-center transition-colors">
+                        <Upload size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">
+                        {makalahFileName ? 'Klik di Sini untuk Mengganti File Makalah' : 'Klik di Sini untuk Memilih / Mengunggah File Makalah'}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Mendukung file dokumen PDF (.pdf) atau Word (.docx, .doc) maks. 15MB
+                      </span>
+                      {makalahFileName ? (
+                        <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs">
+                          <CheckCircle2 size={13} />
+                          <span>File Terpilih: {makalahFileName}</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            makalahFileInputRef.current?.click();
+                          }}
+                          className="mt-1 px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-xs"
+                        >
+                          Pilih File Makalah dari Perangkat
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

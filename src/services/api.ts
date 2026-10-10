@@ -20,6 +20,7 @@ import {
   saveDatabaseToSupabase,
   isSupabaseConfigured,
 } from './supabase';
+import { parseIndonesianDateToIso, getLocalTodayIso } from '../utils/meetingDateUtils';
 
 const LOCAL_STORAGE_KEY = 'siakad_mpi1_offline_db';
 const LOCAL_PENDING_SUBMISSIONS_KEY = 'siakad_mpi1_pending_subs';
@@ -2023,27 +2024,79 @@ export async function updateStudentApi(id: string, data: Partial<Student>): Prom
   let updatedStd: Student | null = null;
   try {
     const local = getLocalCache();
-    const s = (local.students || []).find(std => std.id === id);
+    const s = (local.students || []).find(std => std.id === id || std.nim === id);
     if (s) {
       const oldName = s.name;
+      const oldMeetingNumber = s.meetingNumber;
+      const oldGroupId = s.groupId;
+
       if (data.name) s.name = data.name.trim().toUpperCase();
       if (data.nim) s.nim = data.nim.trim();
       if (data.topic) s.topic = data.topic;
       if (data.rpsPart) s.rpsPart = data.rpsPart;
-      if (data.meetingNumber) s.meetingNumber = Number(data.meetingNumber);
-      if (data.groupId) s.groupId = Number(data.groupId);
+      if (data.meetingNumber !== undefined) s.meetingNumber = Number(data.meetingNumber);
+      if (data.groupId !== undefined) s.groupId = Number(data.groupId);
 
-      // If name changed, sync across groups and meeting presenters
+      // If meeting number changed, update meeting presenters in local cache
+      if (data.meetingNumber !== undefined && Number(data.meetingNumber) !== oldMeetingNumber) {
+        const newMNum = Number(data.meetingNumber);
+        if (oldMeetingNumber) {
+          const oldM = (local.meetings || []).find(m => m.meetingNumber === oldMeetingNumber);
+          if (oldM) {
+            oldM.presenters = (oldM.presenters || []).filter(
+              p => p.trim().toUpperCase() !== oldName.trim().toUpperCase() && p.trim().toUpperCase() !== s.name.trim().toUpperCase()
+            );
+          }
+        }
+        const newM = (local.meetings || []).find(m => m.meetingNumber === newMNum);
+        if (newM) {
+          if (!newM.presenters) newM.presenters = [];
+          if (!newM.presenters.some(p => p.trim().toUpperCase() === s.name.trim().toUpperCase())) {
+            newM.presenters.push(s.name);
+          }
+        }
+      }
+
+      // If group changed, update group members in local cache
+      if (data.groupId !== undefined && Number(data.groupId) !== oldGroupId) {
+        const newGid = Number(data.groupId);
+        if (oldGroupId) {
+          const oldG = (local.groups || []).find(g => g.id === oldGroupId);
+          if (oldG) {
+            oldG.members = (oldG.members || []).filter(
+              m => m.trim().toUpperCase() !== oldName.trim().toUpperCase() && m.trim().toUpperCase() !== s.name.trim().toUpperCase()
+            );
+          }
+        }
+        const newG = (local.groups || []).find(g => g.id === newGid);
+        if (newG) {
+          if (!newG.members) newG.members = [];
+          if (!newG.members.some(m => m.trim().toUpperCase() === s.name.trim().toUpperCase())) {
+            newG.members.push(s.name);
+          }
+        }
+      }
+
+      // If name changed, sync across groups, meeting presenters, and submissions
       if (data.name && oldName !== s.name) {
         (local.groups || []).forEach(g => {
-          if (g.members && g.members.includes(oldName)) {
-            g.members = g.members.map(m => m === oldName ? s.name : m);
+          if (g.members && g.members.some(m => m.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+            g.members = g.members.map(m => m.trim().toUpperCase() === oldName.trim().toUpperCase() ? s.name : m);
           }
         });
         (local.meetings || []).forEach(m => {
-          if (m.presenters && m.presenters.includes(oldName)) {
-            m.presenters = m.presenters.map(p => p === oldName ? s.name : p);
+          if (m.presenters && m.presenters.some(p => p.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+            m.presenters = m.presenters.map(p => p.trim().toUpperCase() === oldName.trim().toUpperCase() ? s.name : p);
           }
+        });
+        (local.submissions || []).forEach(sub => {
+          if (sub.studentId === s.id || (s.nim && sub.nim === s.nim)) sub.studentName = s.name;
+        });
+        (local.utsSubmissions || []).forEach(uts => {
+          if (uts.studentId === s.id || (s.nim && (uts as any).nim === s.nim)) uts.studentName = s.name;
+        });
+        (local.uasSubmissions || []).forEach(uas => {
+          if (uas.studentId === s.id || (s.nim && (uas as any).nim === s.nim)) uas.studentName = s.name;
         });
       }
       saveLocalCache(local);
@@ -2065,11 +2118,17 @@ export async function updateStudentApi(id: string, data: Partial<Student>): Prom
     if (res.ok) {
       const json = await safeJson(res, null);
       if (json?.student) {
+        const local = getLocalCache();
+        const idx = (local.students || []).findIndex(std => std.id === id || std.nim === id);
+        if (idx >= 0) {
+          local.students[idx] = { ...local.students[idx], ...json.student };
+          saveLocalCache(local);
+        }
         return json.student;
       }
     }
   } catch (err) {
-    console.warn('Update student error:', err);
+    console.warn('Update student server error:', err);
   }
   return updatedStd;
 }
@@ -2497,50 +2556,140 @@ export async function parseRpsFileApi(payload: {
 
 // Update Meeting Schedule / Presensi Date
 export async function updateMeetingApi(meetingNumber: number, data: any): Promise<any> {
+  const payload = { ...data };
+  if (payload.dateStr && !payload.isoDate) {
+    const derivedIso = parseIndonesianDateToIso(payload.dateStr);
+    if (derivedIso) payload.isoDate = derivedIso;
+  }
+
+  // 1. Immediately update local cache
+  try {
+    const db = getLocalCache();
+    const idx = (db.meetings || []).findIndex(m => m.meetingNumber === meetingNumber);
+    if (idx >= 0) {
+      db.meetings[idx] = {
+        ...db.meetings[idx],
+        ...payload,
+      };
+      saveLocalCache(db);
+    }
+  } catch (err) {
+    console.warn('Local meeting update cache notice:', err);
+  }
+
+  // 2. Persist to server with Dosen Auth headers
   try {
     const res = await fetch(`/api/meetings/${meetingNumber}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...getDosenAuthHeaders(),
+      },
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
       const json = await safeJson(res, null);
-      return json.meeting;
+      if (json?.meeting) {
+        const db = getLocalCache();
+        const idx = (db.meetings || []).findIndex(m => m.meetingNumber === meetingNumber);
+        if (idx >= 0) {
+          db.meetings[idx] = json.meeting;
+          saveLocalCache(db);
+        }
+        return json.meeting;
+      }
     }
   } catch (err) {
-    console.warn('Update meeting error:', err);
+    console.warn('Update meeting server error:', err);
   }
-  return null;
+
+  // Fallback to local cache item
+  const db = getLocalCache();
+  return (db.meetings || []).find(m => m.meetingNumber === meetingNumber) || null;
 }
 
 // Add New Meeting
 export async function addMeetingApi(data: any): Promise<any> {
+  const payload = { ...data };
+  if (payload.dateStr && !payload.isoDate) {
+    const derivedIso = parseIndonesianDateToIso(payload.dateStr);
+    if (derivedIso) payload.isoDate = derivedIso;
+  }
+
   try {
     const res = await fetch('/api/meetings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        ...getDosenAuthHeaders(),
+      },
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
       const json = await safeJson(res, null);
-      return json.meeting;
+      if (json?.meeting) {
+        const db = getLocalCache();
+        if (!db.meetings) db.meetings = [];
+        db.meetings.push(json.meeting);
+        db.meetings.sort((a, b) => a.meetingNumber - b.meetingNumber);
+        saveLocalCache(db);
+        return json.meeting;
+      }
     }
   } catch (err) {
     console.warn('Add meeting error:', err);
   }
-  return null;
+
+  // Local fallback
+  try {
+    const db = getLocalCache();
+    if (!db.meetings) db.meetings = [];
+    const nextNum = db.meetings.length > 0 ? Math.max(...db.meetings.map(m => m.meetingNumber)) + 1 : 1;
+    const newM: MeetingSchedule = {
+      meetingNumber: payload.meetingNumber ? Number(payload.meetingNumber) : nextNum,
+      dateStr: payload.dateStr || `Sabtu, ${nextNum} Oktober 2026`,
+      isoDate: payload.isoDate || getLocalTodayIso(),
+      title: payload.title || `Pertemuan ${nextNum}`,
+      presenters: payload.presenters || [],
+      partCodes: payload.partCodes || [`Pertemuan ${nextNum}`],
+      type: payload.type || 'kuliah',
+      description: payload.description || 'Kajian materi perkuliahan sesuai RPS.',
+      presentationFormat: payload.presentationFormat || 'individu',
+      groupName: payload.groupName,
+      groupId: payload.groupId,
+      taskType: payload.taskType || 'makalah_ppt',
+      assignmentDescription: payload.assignmentDescription,
+    };
+    db.meetings.push(newM);
+    db.meetings.sort((a, b) => a.meetingNumber - b.meetingNumber);
+    saveLocalCache(db);
+    return newM;
+  } catch {
+    return null;
+  }
 }
 
 // Delete Meeting
 export async function deleteMeetingApi(meetingNumber: number): Promise<boolean> {
+  // 1. Immediately delete from local cache
+  try {
+    const db = getLocalCache();
+    db.meetings = (db.meetings || []).filter(m => m.meetingNumber !== meetingNumber);
+    saveLocalCache(db);
+  } catch (err) {
+    console.warn('Local delete meeting notice:', err);
+  }
+
+  // 2. Persist to server
   try {
     const res = await fetch(`/api/meetings/${meetingNumber}`, {
       method: 'DELETE',
+      headers: getDosenAuthHeaders(),
     });
     return res.ok;
   } catch (err) {
-    console.warn('Delete meeting error:', err);
-    return false;
+    console.warn('Delete meeting server error:', err);
+    return true; // Return true as local cache was updated
   }
 }
 
@@ -3601,25 +3750,118 @@ export async function updateStudentBiodataApi(
   id: string,
   payload: Partial<Student>
 ): Promise<{ success: boolean; student?: Student; error?: string }> {
+  let localUpdatedStudent: Student | null = null;
+  // 1. Immediately update local cache
+  try {
+    const local = getLocalCache();
+    const idx = (local.students || []).findIndex(s => s.id === id || s.nim === id);
+    if (idx >= 0) {
+      const s = local.students[idx];
+      const oldName = s.name;
+      const oldMeetingNumber = s.meetingNumber;
+      const oldGroupId = s.groupId;
+
+      const merged: Student = {
+        ...s,
+        ...payload,
+        name: payload.name ? payload.name.trim().toUpperCase() : s.name,
+        nim: payload.nim !== undefined ? payload.nim.trim() : s.nim,
+      };
+
+      // Sync meeting presenters if meetingNumber changed
+      if (payload.meetingNumber !== undefined && Number(payload.meetingNumber) !== oldMeetingNumber) {
+        const newMNum = Number(payload.meetingNumber);
+        if (oldMeetingNumber) {
+          const oldM = (local.meetings || []).find(m => m.meetingNumber === oldMeetingNumber);
+          if (oldM) {
+            oldM.presenters = (oldM.presenters || []).filter(
+              p => p.trim().toUpperCase() !== oldName.trim().toUpperCase() && p.trim().toUpperCase() !== merged.name.trim().toUpperCase()
+            );
+          }
+        }
+        const newM = (local.meetings || []).find(m => m.meetingNumber === newMNum);
+        if (newM) {
+          if (!newM.presenters) newM.presenters = [];
+          if (!newM.presenters.some(p => p.trim().toUpperCase() === merged.name.trim().toUpperCase())) {
+            newM.presenters.push(merged.name);
+          }
+        }
+      }
+
+      // Sync group members if groupId changed
+      if (payload.groupId !== undefined && Number(payload.groupId) !== oldGroupId) {
+        const newGid = Number(payload.groupId);
+        if (oldGroupId) {
+          const oldG = (local.groups || []).find(g => g.id === oldGroupId);
+          if (oldG) {
+            oldG.members = (oldG.members || []).filter(
+              m => m.trim().toUpperCase() !== oldName.trim().toUpperCase() && m.trim().toUpperCase() !== merged.name.trim().toUpperCase()
+            );
+          }
+        }
+        const newG = (local.groups || []).find(g => g.id === newGid);
+        if (newG) {
+          if (!newG.members) newG.members = [];
+          if (!newG.members.some(m => m.trim().toUpperCase() === merged.name.trim().toUpperCase())) {
+            newG.members.push(merged.name);
+          }
+        }
+      }
+
+      // Sync name
+      if (payload.name && oldName !== merged.name) {
+        (local.groups || []).forEach(g => {
+          if (g.members && g.members.some(m => m.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+            g.members = g.members.map(m => m.trim().toUpperCase() === oldName.trim().toUpperCase() ? merged.name : m);
+          }
+        });
+        (local.meetings || []).forEach(m => {
+          if (m.presenters && m.presenters.some(p => p.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+            m.presenters = m.presenters.map(p => p.trim().toUpperCase() === oldName.trim().toUpperCase() ? merged.name : p);
+          }
+        });
+      }
+
+      local.students[idx] = merged;
+      saveLocalCache(local);
+      localUpdatedStudent = merged;
+    }
+  } catch (localErr) {
+    console.warn('Local update student biodata cache notice:', localErr);
+  }
+
+  // 2. Persist to server
   try {
     const res = await fetch(`/api/students/${id}`, {
       method: 'PUT',
-      headers: getDosenAuthHeaders(),
-      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        ...getDosenAuthHeaders(),
+      },
+      body: JSON.stringify({ ...payload, isStudentUpdate: true }),
     });
     const json = await safeJson(res, null);
     if (res.ok && json.success) {
-      const local = getLocalCache();
-      const idx = (local.students || []).findIndex(s => s.id === id);
-      if (idx >= 0) {
-        local.students[idx] = json.student;
-        saveLocalCache(local);
+      if (json.student) {
+        const local = getLocalCache();
+        const idx = (local.students || []).findIndex(s => s.id === id || s.nim === id);
+        if (idx >= 0) {
+          local.students[idx] = { ...local.students[idx], ...json.student };
+          saveLocalCache(local);
+        }
+        return { success: true, student: json.student };
       }
-      return { success: true, student: json.student };
+      return { success: true, student: localUpdatedStudent || undefined };
     }
-    return { success: false, error: json.error || 'Gagal memperbarui biodata mahasiswa' };
+    if (localUpdatedStudent) {
+      return { success: true, student: localUpdatedStudent };
+    }
+    return { success: false, error: json?.error || 'Gagal memperbarui biodata mahasiswa' };
   } catch (err) {
-    console.warn('Update student biodata error:', err);
+    console.warn('Update student biodata server error, using local data:', err);
+    if (localUpdatedStudent) {
+      return { success: true, student: localUpdatedStudent };
+    }
     return { success: false, error: 'Koneksi ke server terputus' };
   }
 }

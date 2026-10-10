@@ -441,6 +441,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     groupName?: string;
   }>({ name: '', nim: '', rpsPart: '', topic: '', meetingNumber: 1, groupId: 1, groupName: '' });
   const [isSavingStudent, setIsSavingStudent] = useState(false);
+  const [editStudentFeedback, setEditStudentFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeletingStudent, setIsDeletingStudent] = useState(false);
   const [isBiodataModalOpen, setIsBiodataModalOpen] = useState(false);
@@ -652,6 +653,7 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
   const handleStartEditStudent = (std: Student) => {
     const grp = (groups || []).find(g => g.id === std.groupId);
     setEditingStudent(std);
+    setEditStudentFeedback(null);
     setEditStudentForm({
       name: std.name,
       nim: std.nim,
@@ -667,20 +669,35 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
     e.preventDefault();
     if (!editingStudent) return;
     setIsSavingStudent(true);
+    setEditStudentFeedback(null);
     try {
       if (editStudentForm.groupName && editStudentForm.groupName.trim()) {
-        await updateGroupApi(editStudentForm.groupId, { name: editStudentForm.groupName.trim().toUpperCase() });
+        try {
+          await updateGroupApi(editStudentForm.groupId, { name: editStudentForm.groupName.trim().toUpperCase() });
+        } catch (gErr) {
+          console.warn('Group update notice:', gErr);
+        }
       }
       await updateStudentApi(editingStudent.id, {
-        name: editStudentForm.name,
-        nim: editStudentForm.nim,
-        rpsPart: editStudentForm.rpsPart,
-        topic: editStudentForm.topic,
-        meetingNumber: editStudentForm.meetingNumber,
-        groupId: editStudentForm.groupId,
+        name: editStudentForm.name.trim().toUpperCase(),
+        nim: editStudentForm.nim.trim(),
+        rpsPart: editStudentForm.rpsPart.trim(),
+        topic: editStudentForm.topic.trim(),
+        meetingNumber: Number(editStudentForm.meetingNumber),
+        groupId: Number(editStudentForm.groupId),
       });
       setEditingStudent(null);
       await onRefreshData();
+      setGroupActionFeedback({
+        type: 'success',
+        text: `Data mahasiswa "${editStudentForm.name.trim().toUpperCase()}" berhasil disimpan dan disinkronkan ke SIAKAD!`,
+      });
+    } catch (err: any) {
+      console.error('Save student error:', err);
+      setEditStudentFeedback({
+        type: 'error',
+        text: err?.message || 'Gagal menyimpan perubahan data mahasiswa. Silakan coba kembali.',
+      });
     } finally {
       setIsSavingStudent(false);
     }
@@ -5047,6 +5064,23 @@ export const DosenPortal: React.FC<DosenPortalProps> = ({
                 <X size={18} />
               </button>
             </div>
+
+            {editStudentFeedback && (
+              <div
+                className={`p-3 mb-3 rounded-xl text-xs flex items-center gap-2 ${
+                  editStudentFeedback.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-300'
+                    : 'bg-rose-50 text-rose-900 border border-rose-200'
+                }`}
+              >
+                {editStudentFeedback.type === 'success' ? (
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                )}
+                <span>{editStudentFeedback.text}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSaveStudentEdit} className="space-y-4">
               <div>

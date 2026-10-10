@@ -909,6 +909,7 @@
   "attendance": {
     "1": {}
   },
+  "attendanceNotes": {},
   "grades": {
     "20260103": {
       "attendanceScore": 100,
@@ -999,7 +1000,8 @@
   "activeHeartbeats": {},
   "dosenPassword": "filsafat2026",
   "messages": [],
-  "lastUpdated": "2026-09-24T03:40:03.498Z",
+  "deletedNotificationIds": [],
+  "lastUpdated": "2026-10-10T14:17:21.590Z",
   "allCoursesData": {},
   "archivedSemesters": [
     {
@@ -2329,6 +2331,5 @@
       "feedback": "Penyusunan tugas Pertemuan 4 (Metode Ilmiah Deduktif, Induktif, dan Intuisi Ilahiah) sangat komprehensif. Berkas slide PPT dan Makalah memenuhi standar akademik serta relevan dengan studi Manajemen Pendidikan Islam.",
       "gradedAt": "2026-09-27T11:47:00.000Z"
     }
-  ],
-  "deletedNotificationIds": []
+  ]
 }

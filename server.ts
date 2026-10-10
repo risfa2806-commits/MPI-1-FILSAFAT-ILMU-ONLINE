@@ -534,6 +534,32 @@ function parseRpsContent(
   };
 }
 
+function parseIndonesianDateToIso(dateStr?: string): string | null {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const trimmed = dateStr.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const idMonths: Record<string, string> = {
+    januari: '01', februari: '02', maret: '03', april: '04', mei: '05', juni: '06',
+    juli: '07', agustus: '08', september: '09', oktober: '10', november: '11', desember: '12',
+    jan: '01', feb: '02', mar: '03', apr: '04', jun: '06', jul: '07', agu: '08', sep: '09', okt: '10', nov: '11', des: '12'
+  };
+  const match = trimmed.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+  if (match) {
+    const day = match[1].padStart(2, '0');
+    const month = idMonths[match[2].toLowerCase()];
+    const year = match[3];
+    if (month) return `${year}-${month}-${day}`;
+  }
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return null;
+}
+
 function isDosenAuthorized(req: express.Request): boolean {
   const authHeader = req.headers['x-dosen-auth'];
   const sessionToken = req.headers['authorization'];
@@ -3681,13 +3707,15 @@ app.put('/api/students/:id', (req, res) => {
   }
 
   const { id } = req.params;
-  const student = (db.students || []).find(s => s.id === id);
+  const student = (db.students || []).find(s => s.id === id || s.nim === id || String(s.id).toLowerCase() === String(id).toLowerCase());
   if (!student) {
     return res.status(404).json({ error: 'Mahasiswa tidak ditemukan' });
   }
 
   const { name, nim, birthPlace, birthDate, address, gender, phone, rpsPart, topic, meetingNumber, groupId } = req.body;
   const oldName = student.name;
+  const oldMeetingNumber = student.meetingNumber;
+  const oldGroupId = student.groupId;
 
   if (name) student.name = name.trim().toUpperCase();
   if (nim && (isDosen || !student.nim)) student.nim = nim.trim();
@@ -3698,50 +3726,73 @@ app.put('/api/students/:id', (req, res) => {
   if (phone !== undefined) student.phone = phone.trim();
   
   // Meeting and group assignment restricted to Dosen
-  if (isDosen) {
+  if (isDosen || isSelfUpdate) {
     if (rpsPart !== undefined) student.rpsPart = rpsPart;
     if (topic !== undefined) student.topic = topic;
-    if (meetingNumber !== undefined) student.meetingNumber = Number(meetingNumber);
+    if (meetingNumber !== undefined) {
+      const newMNum = Number(meetingNumber);
+      student.meetingNumber = newMNum;
+
+      // Sync meeting presenters across meetings when meetingNumber changes
+      if (oldMeetingNumber && oldMeetingNumber !== newMNum) {
+        const oldMeeting = (db.meetings || []).find(m => m.meetingNumber === oldMeetingNumber);
+        if (oldMeeting) {
+          oldMeeting.presenters = (oldMeeting.presenters || []).filter(
+            p => p.trim().toUpperCase() !== oldName.trim().toUpperCase() && p.trim().toUpperCase() !== student.name.trim().toUpperCase()
+          );
+        }
+        const newMeeting = (db.meetings || []).find(m => m.meetingNumber === newMNum);
+        if (newMeeting) {
+          if (!newMeeting.presenters) newMeeting.presenters = [];
+          if (!newMeeting.presenters.some(p => p.trim().toUpperCase() === student.name.trim().toUpperCase())) {
+            newMeeting.presenters.push(student.name);
+          }
+        }
+      }
+    }
   }
 
-  // If group changed or name changed, update group members
-  if (isDosen && groupId !== undefined && Number(groupId) !== student.groupId) {
+  // If group changed
+  if (groupId !== undefined && Number(groupId) !== oldGroupId) {
+    const newGid = Number(groupId);
     // Remove from old group
-    const oldGroup = (db.groups || []).find(g => g.id === student.groupId);
+    const oldGroup = (db.groups || []).find(g => g.id === oldGroupId);
     if (oldGroup) {
-      oldGroup.members = oldGroup.members.filter(m => m !== oldName && m !== student.name);
+      oldGroup.members = (oldGroup.members || []).filter(
+        m => m.trim().toUpperCase() !== oldName.trim().toUpperCase() && m.trim().toUpperCase() !== student.name.trim().toUpperCase()
+      );
     }
     // Add to new group
-    student.groupId = Number(groupId);
-    const newGroup = (db.groups || []).find(g => g.id === student.groupId);
-    if (newGroup && !newGroup.members.includes(student.name)) {
-      newGroup.members.push(student.name);
+    student.groupId = newGid;
+    const newGroup = (db.groups || []).find(g => g.id === newGid);
+    if (newGroup) {
+      if (!newGroup.members) newGroup.members = [];
+      if (!newGroup.members.some(m => m.trim().toUpperCase() === student.name.trim().toUpperCase())) {
+        newGroup.members.push(student.name);
+      }
     }
-  } else if (name && oldName !== student.name) {
-    // Update name across ALL groups that had oldName
-    (db.groups || []).forEach(g => {
-      if (g.members && g.members.includes(oldName)) {
-        g.members = g.members.map(m => m === oldName ? student.name : m);
-      }
-    });
-    // Update name in meeting presenters
-    (db.meetings || []).forEach(m => {
-      if (m.presenters && m.presenters.includes(oldName)) {
-        m.presenters = m.presenters.map(p => p === oldName ? student.name : p);
-      }
-    });
   }
 
-  // Update name in submissions & UTS & UAS
+  // Name update across ALL groups and meeting presenters (independent of group change)
   if (name && oldName !== student.name) {
+    (db.groups || []).forEach(g => {
+      if (g.members && g.members.some(m => m.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+        g.members = g.members.map(m => m.trim().toUpperCase() === oldName.trim().toUpperCase() ? student.name : m);
+      }
+    });
+    (db.meetings || []).forEach(m => {
+      if (m.presenters && m.presenters.some(p => p.trim().toUpperCase() === oldName.trim().toUpperCase())) {
+        m.presenters = m.presenters.map(p => p.trim().toUpperCase() === oldName.trim().toUpperCase() ? student.name : p);
+      }
+    });
     (db.submissions || []).forEach(sub => {
-      if (sub.studentId === id) sub.studentName = student.name;
+      if (sub.studentId === student.id || (student.nim && sub.nim === student.nim)) sub.studentName = student.name;
     });
     (db.utsSubmissions || []).forEach(uts => {
-      if (uts.studentId === id) uts.studentName = student.name;
+      if (uts.studentId === student.id || (student.nim && (uts as any).nim === student.nim)) uts.studentName = student.name;
     });
     (db.uasSubmissions || []).forEach(uas => {
-      if (uas.studentId === id) uas.studentName = student.name;
+      if (uas.studentId === student.id || (student.nim && (uas as any).nim === student.nim)) uas.studentName = student.name;
     });
   }
 
@@ -4910,7 +4961,13 @@ app.put('/api/meetings/:meetingNumber', (req, res) => {
     assignmentDescription,
   } = req.body;
 
-  if (dateStr !== undefined) meeting.dateStr = dateStr;
+  if (dateStr !== undefined) {
+    meeting.dateStr = dateStr;
+    if (isoDate === undefined) {
+      const derived = parseIndonesianDateToIso(dateStr);
+      if (derived) meeting.isoDate = derived;
+    }
+  }
   if (isoDate !== undefined) meeting.isoDate = isoDate;
   if (title !== undefined) meeting.title = title;
   if (description !== undefined) meeting.description = description;
@@ -4921,6 +4978,10 @@ app.put('/api/meetings/:meetingNumber', (req, res) => {
   if (type !== undefined) meeting.type = type;
   if (taskType !== undefined) meeting.taskType = taskType;
   if (assignmentDescription !== undefined) meeting.assignmentDescription = assignmentDescription;
+
+  if (db.allCoursesData && db.activeCourseId && db.allCoursesData[db.activeCourseId]) {
+    db.allCoursesData[db.activeCourseId].meetings = db.meetings;
+  }
 
   saveDatabase();
   res.json({ success: true, meeting });

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, MeetingSchedule, AttendanceStatus, DosenProfile, ArchivedSemester, StudentGrade } from '../types';
 import { updateAttendanceApi, isStudentOnline, formatActiveTime, updateMeetingApi } from '../services/api';
+import { parseIndonesianDateToIso, isMeetingToday, getTodayOrActiveMeetingNumber } from '../utils/meetingDateUtils';
 import {
   exportAttendanceToWord,
   exportAttendanceToExcel,
@@ -64,8 +65,21 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   archivedSemesters = [],
   grades = {},
 }) => {
-  // Selected meeting for detailed viewing / attendance ticking (default to meeting 1: 12 Sept 2026)
-  const [selectedMeetingNumber, setSelectedMeetingNumber] = useState<number>(1);
+  // Selected meeting for detailed viewing / attendance ticking (dynamically matches today's meeting or closest)
+  const [selectedMeetingNumber, setSelectedMeetingNumber] = useState<number>(() =>
+    getTodayOrActiveMeetingNumber(meetings, 1)
+  );
+
+  // Sync selectedMeetingNumber when meetings load
+  useEffect(() => {
+    if (meetings && meetings.length > 0) {
+      const todayNum = getTodayOrActiveMeetingNumber(meetings);
+      if (todayNum && todayNum !== 1 && selectedMeetingNumber === 1) {
+        setSelectedMeetingNumber(todayNum);
+      }
+    }
+  }, [meetings]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
@@ -289,12 +303,15 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
     if (!activeMeeting) return;
     setIsSavingMeeting(true);
     try {
+      const derivedIso = parseIndonesianDateToIso(editedDateStr);
       await updateMeetingApi(activeMeeting.meetingNumber, {
         dateStr: editedDateStr,
+        isoDate: derivedIso || activeMeeting.isoDate,
         title: editedTitle,
         presenters: editedPresenters.split(',').map(s => s.trim()).filter(Boolean),
       });
       setIsEditingMeeting(false);
+      triggerActionFeedback(`Informasi Pertemuan ke-${activeMeeting.meetingNumber} berhasil diperbarui!`);
       await onRefreshData().catch(() => {});
     } finally {
       setIsSavingMeeting(false);
@@ -608,7 +625,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
             {meetings.map((m) => {
               const isSelected = m.meetingNumber === selectedMeetingNumber;
-              const isToday = m.meetingNumber === 1;
+              const isToday = isMeetingToday(m);
 
               return (
                 <button
